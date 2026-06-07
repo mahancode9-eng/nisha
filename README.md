@@ -207,3 +207,7 @@ See [docs/DEMO.md](docs/DEMO.md) for a 5-minute scripted demo (customer → sell
 - Set a strong `JWT_SECRET_KEY` before any production deploy; the Docker Compose default is for local use only.
 - Sellers can only access their own store’s products and orders; admins require the `ADMIN` role.
 - Guest order edits and proof uploads require the invoice password (bcrypt).
+
+git add .
+git commit -m "Add product management page"
+git push
