@@ -4,7 +4,7 @@ export function ComingSoon({ title }: { title: string }) {
   return (
     <EmptyState
       title={title}
-      description="This section will be available in the next release. Check back soon."
+      description="این بخش در نسخه بعدی فعال می‌شود. به‌زودی دوباره بررسی کنید."
     />
   );
 }

@@ -29,7 +29,7 @@ export function TrackOrderForm({ onSuccess }: TrackOrderFormProps) {
       });
       onSuccess(order, password);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Could not find order");
+      setError(err instanceof ApiError ? err.message : "سفارش پیدا نشد");
     } finally {
       setLoading(false);
     }
@@ -40,19 +40,19 @@ export function TrackOrderForm({ onSuccess }: TrackOrderFormProps) {
       <CardContent className="py-6">
         <form onSubmit={handleSubmit} className="mx-auto max-w-md space-y-4">
           {error && (
-            <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
+            <p className="rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-200" role="alert">
               {error}
             </p>
           )}
           <Input
-            label="Invoice code"
+            label="کد فاکتور"
             value={invoiceCode}
             onChange={(e) => setInvoiceCode(e.target.value)}
             required
             autoComplete="off"
           />
           <Input
-            label="Invoice password"
+            label="رمز فاکتور"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -60,7 +60,7 @@ export function TrackOrderForm({ onSuccess }: TrackOrderFormProps) {
             autoComplete="off"
           />
           <Button type="submit" className="w-full" loading={loading}>
-            Track order
+            پیگیری سفارش
           </Button>
         </form>
       </CardContent>

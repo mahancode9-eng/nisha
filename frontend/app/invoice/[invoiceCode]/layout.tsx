@@ -1,8 +1,11 @@
+import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
+
 export default function InvoiceLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-neutral-100 print:bg-white">
-      <div className="print:hidden border-b border-neutral-200 bg-white px-4 py-3 text-center text-sm text-neutral-500">
-        Nisha — Invoice
+    <div className="min-h-screen bg-background print:bg-white">
+      <div className="flex items-center justify-between border-b border-border bg-surface px-4 py-3 text-sm text-foreground-muted print:hidden">
+        <span>نیشا - فاکتور</span>
+        <ThemeSwitcher variant="button" />
       </div>
       {children}
     </div>

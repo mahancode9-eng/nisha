@@ -3,7 +3,8 @@ function parseDetail(detail: unknown): string {
   if (Array.isArray(detail) && detail.length > 0) {
     const first = detail[0];
     if (typeof first === "object" && first !== null && "msg" in first) {
-      return String((first as { msg: string }).msg);
+      const msg = (first as Record<string, unknown>).msg;
+      return msg != null ? String(msg) : "Request failed";
     }
   }
   return "Request failed";

@@ -5,6 +5,7 @@ import { ApiError } from "@/lib/api/errors";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { ErrorAlert } from "@/components/ui/ErrorAlert";
 
 type RegisterFormProps = {
   onSubmit: (data: {
@@ -29,7 +30,7 @@ export function RegisterForm({ onSubmit, footer }: RegisterFormProps) {
     try {
       await onSubmit({ email, password, full_name: fullName });
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Registration failed");
+      setError(err instanceof ApiError ? err.message : "ثبت‌نام ناموفق بود");
     } finally {
       setLoading(false);
     }
@@ -38,27 +39,23 @@ export function RegisterForm({ onSubmit, footer }: RegisterFormProps) {
   return (
     <Card className="mx-auto w-full max-w-md">
       <CardHeader>
-        <CardTitle>Create seller account</CardTitle>
-        <p className="mt-1 text-sm text-neutral-600">
-          Start selling with your own online store.
+        <CardTitle>ایجاد حساب فروشنده</CardTitle>
+        <p className="mt-1 text-sm text-foreground-muted">
+          فروش را با فروشگاه آنلاین اختصاصی خود شروع کنید.
         </p>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
-              {error}
-            </p>
-          )}
+          <ErrorAlert message={error ?? ""} />
           <Input
-            label="Full name"
+            label="نام کامل"
             name="full_name"
             required
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
           />
           <Input
-            label="Email"
+            label="ایمیل"
             name="email"
             type="email"
             autoComplete="email"
@@ -67,21 +64,21 @@ export function RegisterForm({ onSubmit, footer }: RegisterFormProps) {
             onChange={(e) => setEmail(e.target.value)}
           />
           <Input
-            label="Password"
+            label="رمز عبور"
             name="password"
             type="password"
             autoComplete="new-password"
             required
             minLength={8}
-            hint="At least 8 characters"
+            hint="حداقل ۸ کاراکتر"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
           <Button type="submit" className="w-full" loading={loading}>
-            Create account
+            ایجاد حساب
           </Button>
         </form>
-        {footer && <div className="mt-6 text-center text-sm text-neutral-600">{footer}</div>}
+        {footer && <div className="mt-6 text-center text-sm text-foreground-muted">{footer}</div>}
       </CardContent>
     </Card>
   );

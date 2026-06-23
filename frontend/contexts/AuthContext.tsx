@@ -18,6 +18,7 @@ import {
   setStoredUser,
   setToken,
 } from "@/lib/auth/token";
+import { ApiError } from "@/lib/api/errors";
 import type { LoginRequest, RegisterRequest, User } from "@/types/auth";
 
 type AuthContextValue = {
@@ -53,9 +54,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setStoredUser(me);
       setUser(me);
       return me;
-    } catch {
-      clearToken();
-      setUser(null);
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        clearToken();
+        setUser(null);
+      }
       return null;
     }
   }, []);

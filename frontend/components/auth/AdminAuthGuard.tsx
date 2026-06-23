@@ -17,14 +17,12 @@ export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
       return;
     }
     if (user.role !== "ADMIN") {
-      router.replace(
-        user.role === "SELLER" ? paths.seller.dashboard : paths.admin.login,
-      );
+      router.replace(user.role === "SELLER" ? paths.seller.dashboard : paths.admin.login);
     }
   }, [user, isLoading, router]);
 
   if (isLoading || !user || user.role !== "ADMIN") {
-    return <LoadingState message="Loading admin panel…" />;
+    return <LoadingState message="در حال بارگذاری پنل مدیریت..." />;
   }
 
   return <>{children}</>;

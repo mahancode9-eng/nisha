@@ -9,4 +9,5 @@ export type PaginatedResponse<T> = {
 export type PaginationParams = {
   page?: number;
   page_size?: number;
+  search?: string;
 };

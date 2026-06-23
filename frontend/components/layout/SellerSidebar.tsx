@@ -9,12 +9,12 @@ import { cn } from "@/lib/cn";
 import { Button } from "@/components/ui/Button";
 
 const navItems = [
-  { href: paths.seller.dashboard, label: "Dashboard" },
-  { href: paths.seller.store, label: "Store settings" },
-  { href: paths.seller.products, label: "Products" },
-  { href: paths.seller.paymentMethods, label: "Payment methods" },
-  { href: paths.seller.orders, label: "Orders" },
-  { href: paths.seller.conversations, label: "Messages" },
+  { href: paths.seller.dashboard, label: "داشبورد" },
+  { href: paths.seller.store, label: "تنظیمات فروشگاه" },
+  { href: paths.seller.products, label: "محصولات" },
+  { href: paths.seller.paymentMethods, label: "روش‌های پرداخت" },
+  { href: paths.seller.orders, label: "سفارشات" },
+  { href: paths.seller.conversations, label: "پیام‌ها" },
 ];
 
 export function SellerSidebar() {
@@ -30,26 +30,26 @@ export function SellerSidebar() {
 
   return (
     <>
-      <div className="flex items-center justify-between border-b border-neutral-200 bg-white px-4 py-3 lg:hidden">
-        <span className="font-semibold text-neutral-900">Seller panel</span>
+      <div className="flex items-center justify-between border-b border-border bg-surface px-4 py-3 lg:hidden">
+        <span className="font-semibold text-foreground">پنل فروشنده</span>
         <Button variant="ghost" size="sm" onClick={() => setOpen(!open)}>
-          {open ? "Close" : "Menu"}
+          {open ? "بستن" : "منو"}
         </Button>
       </div>
       <aside
         className={cn(
-          "flex w-full flex-col border-r border-neutral-200 bg-white lg:w-64 lg:shrink-0",
+          "flex w-full flex-col border-r border-border bg-surface lg:w-64 lg:shrink-0",
           open ? "block" : "hidden lg:flex",
         )}
       >
-        <div className="hidden border-b border-neutral-200 px-4 py-5 lg:block">
-          <p className="text-xs font-medium uppercase tracking-wide text-neutral-500">
-            Seller
+        <div className="hidden border-b border-border px-4 py-5 lg:block">
+          <p className="text-xs font-medium tracking-wide text-foreground-muted">
+            فروشنده
           </p>
-          <p className="mt-1 truncate text-sm font-semibold text-neutral-900">
+          <p className="mt-1 truncate text-sm font-semibold text-foreground">
             {user?.full_name}
           </p>
-          <p className="truncate text-xs text-neutral-500">{user?.email}</p>
+          <p className="truncate text-xs text-foreground-muted">{user?.email}</p>
         </div>
         <nav className="flex-1 space-y-1 p-3">
           {navItems.map((item) => {
@@ -62,9 +62,7 @@ export function SellerSidebar() {
                 onClick={() => setOpen(false)}
                 className={cn(
                   "block rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                  active
-                    ? "bg-indigo-50 text-indigo-700"
-                    : "text-neutral-700 hover:bg-neutral-100",
+                  active ? "bg-brand/10 text-brand" : "text-foreground hover:bg-surface-muted",
                 )}
               >
                 {item.label}
@@ -72,9 +70,9 @@ export function SellerSidebar() {
             );
           })}
         </nav>
-        <div className="border-t border-neutral-200 p-3">
+        <div className="border-t border-border p-3">
           <Button variant="ghost" size="sm" className="w-full justify-start" onClick={handleLogout}>
-            Log out
+            خروج
           </Button>
         </div>
       </aside>

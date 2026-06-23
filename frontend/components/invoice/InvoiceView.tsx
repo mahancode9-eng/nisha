@@ -12,25 +12,23 @@ import type { OrderTrackResponse } from "@/types/public/order";
 
 export function InvoiceView({ order }: { order: OrderTrackResponse }) {
   return (
-    <div className="invoice-print space-y-6 rounded-xl border border-neutral-200 bg-white p-6 sm:p-8">
-      <header className="border-b border-neutral-200 pb-4">
-        <p className="text-sm text-neutral-500">Invoice</p>
-        <h1 className="text-2xl font-bold text-neutral-900">{order.store.name}</h1>
+    <div className="invoice-print space-y-6 rounded-xl border border-border bg-surface p-6 sm:p-8">
+      <header className="border-b border-border pb-4">
+        <p className="text-sm text-foreground-muted">فاکتور</p>
+        <h1 className="text-2xl font-bold text-foreground">{order.store.name}</h1>
         <p className="mt-1 font-mono text-sm">{order.invoice_code}</p>
-        <p className="text-sm text-neutral-500">{formatDateTime(order.created_at)}</p>
+        <p className="text-sm text-foreground-muted">{formatDateTime(order.created_at)}</p>
       </header>
 
       <div className="grid gap-6 sm:grid-cols-2">
         <section>
-          <h2 className="text-xs font-semibold uppercase text-neutral-500">From</h2>
+          <h2 className="text-xs font-semibold text-foreground-muted">فرستنده</h2>
           <p className="mt-1 font-medium">{order.store.name}</p>
           {order.store.phone && <p className="text-sm">{order.store.phone}</p>}
-          {order.store.support_contact && (
-            <p className="text-sm">{order.store.support_contact}</p>
-          )}
+          {order.store.support_contact && <p className="text-sm">{order.store.support_contact}</p>}
         </section>
         <section>
-          <h2 className="text-xs font-semibold uppercase text-neutral-500">Bill to</h2>
+          <h2 className="text-xs font-semibold text-foreground-muted">صورتحساب به</h2>
           <p className="mt-1 font-medium">{order.buyer_name}</p>
           <p className="text-sm">{order.buyer_phone}</p>
           <p className="text-sm whitespace-pre-wrap">{order.buyer_address}</p>
@@ -38,17 +36,17 @@ export function InvoiceView({ order }: { order: OrderTrackResponse }) {
       </div>
 
       <div className="flex items-center gap-2">
-        <span className="text-sm text-neutral-600">Status:</span>
+        <span className="text-sm text-foreground-muted">وضعیت:</span>
         <StatusBadge status={order.status} />
       </div>
 
       <Table>
         <TableHead>
           <TableRow>
-            <TableHeaderCell>Item</TableHeaderCell>
-            <TableHeaderCell>Qty</TableHeaderCell>
-            <TableHeaderCell>Unit price</TableHeaderCell>
-            <TableHeaderCell>Total</TableHeaderCell>
+            <TableHeaderCell>محصول</TableHeaderCell>
+            <TableHeaderCell>تعداد</TableHeaderCell>
+            <TableHeaderCell>قیمت واحد</TableHeaderCell>
+            <TableHeaderCell>جمع</TableHeaderCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -63,26 +61,26 @@ export function InvoiceView({ order }: { order: OrderTrackResponse }) {
         </TableBody>
       </Table>
 
-      <div className="flex justify-end border-t border-neutral-200 pt-4">
-        <div className="text-right">
-          <p className="text-sm text-neutral-600">
-            Subtotal: {formatMoney(order.subtotal_amount)}
+      <div className="flex justify-end border-t border-border pt-4">
+        <div className="text-start">
+          <p className="text-sm text-foreground-muted">
+            جمع جزء: {formatMoney(order.subtotal_amount)}
           </p>
-          <p className="text-lg font-bold">Total: {formatMoney(order.total_amount)}</p>
+          <p className="text-lg font-bold">مجموع: {formatMoney(order.total_amount)}</p>
         </div>
       </div>
 
-      <section className="rounded-lg bg-neutral-50 p-4 text-sm">
-        <h2 className="font-semibold text-neutral-900">Payment method</h2>
+      <section className="rounded-lg bg-surface-muted p-4 text-sm">
+        <h2 className="font-semibold text-foreground">روش پرداخت</h2>
         <p className="mt-1">{order.payment_method.display_name}</p>
         {order.payment_method.type === "CARD_TO_CARD" && order.payment_method.card_number && (
-          <p>Card: {order.payment_method.card_number}</p>
+          <p>کارت: {order.payment_method.card_number}</p>
         )}
         {order.payment_method.type === "CRYPTO" && order.payment_method.wallet_address && (
-          <p className="break-all">Wallet: {order.payment_method.wallet_address}</p>
+          <p className="break-all">کیف پول: {order.payment_method.wallet_address}</p>
         )}
         {order.payment_method.instructions && (
-          <p className="mt-2 text-neutral-600">{order.payment_method.instructions}</p>
+          <p className="mt-2 text-foreground-muted">{order.payment_method.instructions}</p>
         )}
       </section>
     </div>

@@ -18,7 +18,7 @@ export function CustomerAuthGuard({ children }: { children: React.ReactNode }) {
   }, [customer, isLoading, router]);
 
   if (isLoading || !customer) {
-    return <LoadingState message="Loading messages…" />;
+    return <LoadingState message="در حال بارگذاری پنل مشتری..." />;
   }
 
   return <>{children}</>;

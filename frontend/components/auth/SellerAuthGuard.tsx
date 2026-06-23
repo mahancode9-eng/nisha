@@ -17,14 +17,12 @@ export function SellerAuthGuard({ children }: { children: React.ReactNode }) {
       return;
     }
     if (user.role !== "SELLER") {
-      router.replace(
-        user.role === "ADMIN" ? paths.admin.dashboard : paths.seller.login,
-      );
+      router.replace(user.role === "ADMIN" ? paths.admin.dashboard : paths.seller.login);
     }
   }, [user, isLoading, router]);
 
   if (isLoading || !user || user.role !== "SELLER") {
-    return <LoadingState message="Loading seller panel…" />;
+    return <LoadingState message="در حال بارگذاری پنل فروشنده..." />;
   }
 
   return <>{children}</>;
