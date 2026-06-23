@@ -7,11 +7,9 @@ from app.api.deps import require_admin
 from app.db.session import get_db
 from app.models.enums import OrderStatus
 from app.models.user import User
-from app.schemas.admin import AdminOrderDetailResponse, AdminOrderListItem
+from app.schemas.admin import AdminOrderDetailResponse, AdminOrderListItem, AdminOrderUpdateRequest
+from app.schemas.chat import ConversationDetailResponse
 from app.schemas.pagination import PaginatedResponse, build_paginated_response
-from app.schemas.guest_order import OrderStatusHistoryResponse, PaymentProofResponse
-from app.schemas.payment_method import PaymentMethodResponse
-from app.schemas.seller_order import SellerOrderItemResponse
 from app.services import admin_order_service
 from app.services.exceptions import ServiceError
 
@@ -24,6 +22,7 @@ def list_orders(
     status: OrderStatus | None = None,
     date_from: date | None = None,
     date_to: date | None = None,
+    search: str | None = None,
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=20, ge=1, le=100),
     _: User = Depends(require_admin),
@@ -37,6 +36,7 @@ def list_orders(
         status=status,
         date_from=date_from,
         date_to=date_to,
+        search=search,
     )
     return build_paginated_response(items, total, page, page_size)
 
@@ -48,28 +48,34 @@ def get_order(
     db: Session = Depends(get_db),
 ) -> AdminOrderDetailResponse:
     try:
-        order, store = admin_order_service.get_order_by_id(db, order_id)
+        return admin_order_service.get_order_detail_response(db, order_id)
     except ServiceError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
 
-    return AdminOrderDetailResponse(
-        id=order.id,
-        invoice_code=order.invoice_code,
-        status=order.status,
-        buyer_name=order.buyer_name,
-        buyer_phone=order.buyer_phone,
-        buyer_address=order.buyer_address,
-        buyer_note=order.buyer_note,
-        subtotal_amount=order.subtotal_amount,
-        total_amount=order.total_amount,
-        stock_restored=order.stock_restored,
-        store_id=store.id,
-        store_name=store.name,
-        store_slug=store.slug,
-        created_at=order.created_at,
-        updated_at=order.updated_at,
-        items=[SellerOrderItemResponse.model_validate(item) for item in order.items],
-        payment_method=PaymentMethodResponse.model_validate(order.payment_method),
-        payment_proofs=[PaymentProofResponse.model_validate(p) for p in order.payment_proofs],
-        status_history=[OrderStatusHistoryResponse.model_validate(h) for h in order.status_history],
-    )
+
+@router.get("/{order_id}/chat", response_model=ConversationDetailResponse)
+def get_order_chat(
+    order_id: int,
+    _: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+) -> ConversationDetailResponse:
+    try:
+        conversation = admin_order_service.get_order_chat_detail(db, order_id)
+    except ServiceError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+    if conversation is None:
+        raise HTTPException(status_code=404, detail="گفتگو پیدا نشد")
+    return conversation
+
+
+@router.patch("/{order_id}", response_model=AdminOrderDetailResponse)
+def update_order(
+    order_id: int,
+    payload: AdminOrderUpdateRequest,
+    _: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+) -> AdminOrderDetailResponse:
+    try:
+        return admin_order_service.update_order(db, order_id, payload, admin=_)
+    except ServiceError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc

@@ -30,6 +30,14 @@ async def lifespan(app: FastAPI):
     upload_dir = Path(settings.UPLOAD_DIR)
     upload_dir.mkdir(parents=True, exist_ok=True)
     (upload_dir / settings.PAYMENT_PROOF_SUBDIR).mkdir(parents=True, exist_ok=True)
+
+    if settings.DATABASE_URL.startswith("postgresql"):
+        from alembic.config import Config as AlembicConfig
+        from alembic.command import upgrade as alembic_upgrade
+        alembic_cfg = AlembicConfig("alembic.ini")
+        alembic_cfg.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+        alembic_upgrade(alembic_cfg, "head")
+
     yield
 
 
@@ -59,6 +67,8 @@ app.include_router(public_router, prefix="/api/v1")
 app.include_router(admin_router, prefix="/api/v1")
 app.include_router(customer_router, prefix="/api/v1")
 
+upload_dir = Path(settings.UPLOAD_DIR)
+upload_dir.mkdir(parents=True, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
 
 

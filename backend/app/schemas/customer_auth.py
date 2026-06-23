@@ -4,6 +4,7 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
 class CustomerRegisterRequest(BaseModel):
     email: EmailStr | None = None
     phone: str | None = Field(default=None, max_length=50)
+    postal_code: str | None = Field(default=None, max_length=50)
     password: str = Field(min_length=8)
     full_name: str = Field(min_length=1, max_length=255)
 
@@ -25,6 +26,7 @@ class CustomerResponse(BaseModel):
     id: int
     email: str | None
     phone: str | None
+    postal_code: str | None
     full_name: str
 
 

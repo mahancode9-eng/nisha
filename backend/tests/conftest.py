@@ -16,23 +16,19 @@ from sqlalchemy.pool import StaticPool
 from app.core.config import get_settings
 from app.db.base import Base
 from app.db.session import get_db
-from app.main import app
+from app.main import app as fastapi_app
 
-# Import models so metadata is populated.
-from app.models import (  # noqa: F401
-    Conversation,
-    CustomerAccount,
-    Message,
-    Order,
-    OrderItem,
-    OrderStatusHistory,
-    PaymentMethod,
-    PaymentProof,
-    Product,
-    ProductImage,
-    Store,
-    User,
-)
+# Import model modules so metadata is populated.
+import app.models.admin_audit  # noqa: F401
+import app.models.conversation  # noqa: F401
+import app.models.customer_account  # noqa: F401
+import app.models.customer_portal  # noqa: F401
+import app.models.message  # noqa: F401
+import app.models.order  # noqa: F401
+import app.models.payment_method  # noqa: F401
+import app.models.product  # noqa: F401
+import app.models.store  # noqa: F401
+import app.models.user  # noqa: F401
 
 get_settings.cache_clear()
 
@@ -195,7 +191,7 @@ def client(db: Session) -> Generator[TestClient, None, None]:
         finally:
             pass
 
-    app.dependency_overrides[get_db] = override_get_db
-    with TestClient(app) as test_client:
+    fastapi_app.dependency_overrides[get_db] = override_get_db
+    with TestClient(fastapi_app) as test_client:
         yield test_client
-    app.dependency_overrides.clear()
+    fastapi_app.dependency_overrides.clear()

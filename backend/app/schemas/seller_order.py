@@ -4,7 +4,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.models.enums import OrderStatus, PaymentMethodType
+from app.models.enums import CustomerReceiptStatus, OrderStatus, PaymentMethodType
 from app.schemas.guest_order import OrderStatusHistoryResponse, PaymentProofResponse
 from app.schemas.payment_method import PaymentMethodResponse
 
@@ -18,6 +18,9 @@ class SellerOrderListItem(BaseModel):
     buyer_name: str
     buyer_phone: str
     total_amount: Decimal
+    customer_id: int | None = None
+    receipt_status: CustomerReceiptStatus | None = None
+    complaint_count: int = 0
     created_at: datetime
 
 
@@ -44,6 +47,9 @@ class SellerOrderDetailResponse(BaseModel):
     buyer_note: str | None
     subtotal_amount: Decimal
     total_amount: Decimal
+    customer_id: int | None = None
+    receipt_status: CustomerReceiptStatus | None = None
+    complaint_count: int = 0
     stock_restored: bool
     created_at: datetime
     updated_at: datetime

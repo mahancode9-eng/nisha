@@ -23,10 +23,18 @@ from app.models.mixins import TimestampMixin
 
 if TYPE_CHECKING:
     from app.models.conversation import Conversation
+    from app.models.customer_account import CustomerAccount
+    from app.models.customer_portal import (
+        CustomerOrderReceipt,
+        CustomerReview,
+        OrderClaim,
+        OrderComplaint,
+    )
     from app.models.payment_method import PaymentMethod
     from app.models.product import Product
     from app.models.store import Store
     from app.models.user import User
+    from app.models.product import OrderItemFieldValue
 
 
 class Order(TimestampMixin, Base):
@@ -36,6 +44,11 @@ class Order(TimestampMixin, Base):
     store_id: Mapped[int] = mapped_column(
         ForeignKey("stores.id", ondelete="CASCADE"),
         nullable=False,
+        index=True,
+    )
+    customer_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("customer_accounts.id", ondelete="SET NULL"),
+        nullable=True,
         index=True,
     )
     invoice_code: Mapped[str] = mapped_column(String(50), unique=True, index=True, nullable=False)
@@ -60,6 +73,10 @@ class Order(TimestampMixin, Base):
     stock_restored: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     store: Mapped["Store"] = relationship("Store", back_populates="orders")
+    customer: Mapped[Optional["CustomerAccount"]] = relationship(
+        "CustomerAccount",
+        back_populates="orders",
+    )
     payment_method: Mapped["PaymentMethod"] = relationship(
         "PaymentMethod",
         back_populates="orders",
@@ -84,6 +101,27 @@ class Order(TimestampMixin, Base):
         "Conversation",
         back_populates="order",
     )
+    claims: Mapped[list["OrderClaim"]] = relationship(
+        "OrderClaim",
+        back_populates="order",
+        cascade="all, delete-orphan",
+    )
+    receipt: Mapped[Optional["CustomerOrderReceipt"]] = relationship(
+        "CustomerOrderReceipt",
+        back_populates="order",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
+    complaints: Mapped[list["OrderComplaint"]] = relationship(
+        "OrderComplaint",
+        back_populates="order",
+        cascade="all, delete-orphan",
+    )
+    reviews: Mapped[list["CustomerReview"]] = relationship(
+        "CustomerReview",
+        back_populates="order",
+        cascade="all, delete-orphan",
+    )
 
 
 class OrderItem(Base):
@@ -107,6 +145,11 @@ class OrderItem(Base):
 
     order: Mapped["Order"] = relationship("Order", back_populates="items")
     product: Mapped[Optional["Product"]] = relationship("Product", back_populates="order_items")
+    field_values: Mapped[list["OrderItemFieldValue"]] = relationship(
+        "OrderItemFieldValue",
+        cascade="all, delete-orphan",
+        order_by="OrderItemFieldValue.sort_order",
+    )
 
 
 class PaymentProof(Base):

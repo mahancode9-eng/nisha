@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 from datetime import UTC, datetime
 
-from sqlalchemy import func, select
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy import func, or_, select
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session, joinedload, selectinload
 
 from app.models.conversation import Conversation
 from app.models.customer_account import CustomerAccount
@@ -23,25 +26,65 @@ def _message_to_response(message: Message) -> MessageResponse:
     return MessageResponse.model_validate(message)
 
 
+def _customer_name(db: Session, conversation: Conversation) -> str:
+    if conversation.customer is not None:
+        return conversation.customer.full_name
+    if conversation.order is not None and conversation.order.customer is not None:
+        return conversation.order.customer.full_name
+    return "Guest"
+
+
+def _order_invoice_code(conversation: Conversation) -> str | None:
+    if conversation.order is None:
+        return None
+    return conversation.order.invoice_code
+
+
+def _order_status(conversation: Conversation):
+    if conversation.order is None:
+        return None
+    return conversation.order.status
+
+
+def _conversation_query():
+    return (
+        select(Conversation)
+        .options(
+            joinedload(Conversation.store),
+            joinedload(Conversation.customer),
+            joinedload(Conversation.order).joinedload(Order.customer),
+            selectinload(Conversation.messages),
+        )
+    )
+
+
+def _load_conversation(db: Session, conversation_id: int) -> Conversation:
+    conversation = db.scalar(_conversation_query().where(Conversation.id == conversation_id))
+    if conversation is None:
+        raise ServiceError("Conversation not found", status_code=404)
+    return conversation
+
+
 def _conversation_list_item(
     conversation: Conversation,
     *,
-    store_name: str,
-    store_slug: str,
-    customer_name: str,
-    invoice_code: str | None,
     unread_count: int,
-    last_message: Message | None,
 ) -> ConversationListItem:
+    store = conversation.store
+    if store is None:
+        raise ServiceError("Conversation not found", status_code=404)
+
+    last_message = conversation.messages[-1] if conversation.messages else None
     return ConversationListItem(
         id=conversation.id,
         store_id=conversation.store_id,
-        store_name=store_name,
-        store_slug=store_slug,
+        store_name=store.name,
+        store_slug=store.slug,
         customer_id=conversation.customer_id,
-        customer_name=customer_name,
+        customer_name=_customer_name_from_conversation(conversation),
         order_id=conversation.order_id,
-        invoice_code=invoice_code,
+        invoice_code=_order_invoice_code(conversation),
+        order_status=_order_status(conversation),
         unread_count=unread_count,
         last_message_body=last_message.body if last_message else None,
         last_message_at=last_message.created_at if last_message else None,
@@ -49,70 +92,12 @@ def _conversation_list_item(
     )
 
 
-def _get_invoice_code(db: Session, order_id: int | None) -> str | None:
-    if order_id is None:
-        return None
-    order = db.get(Order, order_id)
-    return order.invoice_code if order else None
-
-
-def conversation_to_list_item_for_customer(
-    db: Session,
-    conversation: Conversation,
-) -> ConversationListItem:
-    store = db.get(Store, conversation.store_id)
-    customer = db.get(CustomerAccount, conversation.customer_id)
-    if store is None or customer is None:
-        raise ServiceError("Conversation not found", status_code=404)
-    last_msg = _last_message(db, conversation.id)
-    return _conversation_list_item(
-        conversation,
-        store_name=store.name,
-        store_slug=store.slug,
-        customer_name=customer.full_name,
-        invoice_code=_get_invoice_code(db, conversation.order_id),
-        unread_count=_unread_count(db, conversation.id, for_sender_type=SenderType.SELLER),
-        last_message=last_msg,
-    )
-
-
-def get_or_create_conversation(
-    db: Session,
-    *,
-    customer_id: int,
-    store_id: int,
-    order_id: int | None = None,
-) -> Conversation:
-    store = db.get(Store, store_id)
-    if store is None or not store.is_active:
-        raise ServiceError("Store not found", status_code=404)
-
-    if order_id is not None:
-        order = db.get(Order, order_id)
-        if order is None or order.store_id != store_id:
-            raise ServiceError("Order not found", status_code=404)
-
-    conversation = db.scalar(
-        select(Conversation).where(
-            Conversation.store_id == store_id,
-            Conversation.customer_id == customer_id,
-        )
-    )
-    if conversation is None:
-        conversation = Conversation(
-            store_id=store_id,
-            customer_id=customer_id,
-            order_id=order_id,
-        )
-        db.add(conversation)
-        db.commit()
-        db.refresh(conversation)
-    elif order_id is not None and conversation.order_id is None:
-        conversation.order_id = order_id
-        db.commit()
-        db.refresh(conversation)
-
-    return conversation
+def _customer_name_from_conversation(conversation: Conversation) -> str:
+    if conversation.customer is not None:
+        return conversation.customer.full_name
+    if conversation.order is not None and conversation.order.customer is not None:
+        return conversation.order.customer.full_name
+    return "Guest"
 
 
 def _unread_count(
@@ -135,85 +120,6 @@ def _unread_count(
     )
 
 
-def _last_message(db: Session, conversation_id: int) -> Message | None:
-    return db.scalar(
-        select(Message)
-        .where(Message.conversation_id == conversation_id)
-        .order_by(Message.created_at.desc())
-        .limit(1)
-    )
-
-
-def list_customer_conversations(
-    db: Session,
-    customer_id: int,
-) -> list[ConversationListItem]:
-    conversations = db.scalars(
-        select(Conversation)
-        .where(Conversation.customer_id == customer_id)
-        .order_by(Conversation.updated_at.desc())
-    ).all()
-
-    items: list[ConversationListItem] = []
-    for conv in conversations:
-        store = db.get(Store, conv.store_id)
-        customer = db.get(CustomerAccount, conv.customer_id)
-        if store is None or customer is None:
-            continue
-        last_msg = _last_message(db, conv.id)
-        items.append(
-            _conversation_list_item(
-                conv,
-                store_name=store.name,
-                store_slug=store.slug,
-                customer_name=customer.full_name,
-                invoice_code=_get_invoice_code(db, conv.order_id),
-                unread_count=_unread_count(db, conv.id, for_sender_type=SenderType.SELLER),
-                last_message=last_msg,
-            )
-        )
-    return items
-
-
-def list_seller_conversations(db: Session, store_id: int) -> list[ConversationListItem]:
-    conversations = db.scalars(
-        select(Conversation)
-        .where(Conversation.store_id == store_id)
-        .order_by(Conversation.updated_at.desc())
-    ).all()
-
-    items: list[ConversationListItem] = []
-    for conv in conversations:
-        store = db.get(Store, conv.store_id)
-        customer = db.get(CustomerAccount, conv.customer_id)
-        if store is None or customer is None:
-            continue
-        last_msg = _last_message(db, conv.id)
-        items.append(
-            _conversation_list_item(
-                conv,
-                store_name=store.name,
-                store_slug=store.slug,
-                customer_name=customer.full_name,
-                invoice_code=_get_invoice_code(db, conv.order_id),
-                unread_count=_unread_count(db, conv.id, for_sender_type=SenderType.CUSTOMER),
-                last_message=last_msg,
-            )
-        )
-    return items
-
-
-def _load_conversation(db: Session, conversation_id: int) -> Conversation:
-    conversation = db.scalar(
-        select(Conversation)
-        .options(selectinload(Conversation.messages))
-        .where(Conversation.id == conversation_id)
-    )
-    if conversation is None:
-        raise ServiceError("Conversation not found", status_code=404)
-    return conversation
-
-
 def _mark_messages_read(
     db: Session,
     conversation_id: int,
@@ -231,7 +137,177 @@ def _mark_messages_read(
     for message in messages:
         message.is_read = True
     if messages:
-        db.commit()
+        db.flush()
+
+
+def _set_order_customer_if_needed(db: Session, conversation: Conversation, customer_id: int | None) -> None:
+    if customer_id is not None and conversation.customer_id is None:
+        conversation.customer_id = customer_id
+        db.flush()
+
+
+def _get_order(db: Session, order_id: int) -> Order:
+    order = db.scalar(
+        select(Order)
+        .options(selectinload(Order.customer), selectinload(Order.store))
+        .where(Order.id == order_id)
+    )
+    if order is None:
+        raise ServiceError("Order not found", status_code=404)
+    return order
+
+
+def _get_conversation_for_order(db: Session, order_id: int) -> Conversation | None:
+    return db.scalar(
+        _conversation_query().where(Conversation.order_id == order_id)
+    )
+
+
+def get_or_create_conversation(
+    db: Session,
+    *,
+    customer_id: int | None = None,
+    store_id: int | None = None,
+    order_id: int | None = None,
+) -> Conversation:
+    if order_id is not None:
+        order = _get_order(db, order_id)
+        if store_id is not None and order.store_id != store_id:
+            raise ServiceError("Order not found", status_code=404)
+        if customer_id is not None and order.customer_id is not None and order.customer_id != customer_id:
+            raise ServiceError("Order not found", status_code=404)
+
+        conversation = _get_conversation_for_order(db, order.id)
+        if conversation is None:
+            conversation = Conversation(
+                store_id=order.store_id,
+                order_id=order.id,
+                customer_id=order.customer_id or customer_id,
+            )
+            db.add(conversation)
+            try:
+                db.commit()
+            except IntegrityError as exc:
+                db.rollback()
+                raise ServiceError("Could not create conversation", status_code=409) from exc
+            db.refresh(conversation)
+        else:
+            _set_order_customer_if_needed(db, conversation, order.customer_id or customer_id)
+            db.commit()
+            db.refresh(conversation)
+        return _load_conversation(db, conversation.id)
+
+    if store_id is None or customer_id is None:
+        raise ServiceError("store_id and customer_id are required", status_code=422)
+
+    store = db.get(Store, store_id)
+    if store is None or not store.is_active:
+        raise ServiceError("Store not found", status_code=404)
+
+    conversation = db.scalar(
+        _conversation_query().where(
+            Conversation.store_id == store_id,
+            Conversation.customer_id == customer_id,
+            Conversation.order_id.is_(None),
+        )
+    )
+    if conversation is None:
+        conversation = Conversation(store_id=store_id, customer_id=customer_id)
+        db.add(conversation)
+        try:
+            db.commit()
+        except IntegrityError as exc:
+            db.rollback()
+            raise ServiceError("Could not create conversation", status_code=409) from exc
+        db.refresh(conversation)
+    return _load_conversation(db, conversation.id)
+
+
+def conversation_to_list_item_for_customer(
+    db: Session,
+    conversation: Conversation,
+) -> ConversationListItem:
+    conversation = _load_conversation(db, conversation.id)
+    return _conversation_list_item(
+        conversation,
+        unread_count=_unread_count(db, conversation.id, for_sender_type=SenderType.SELLER),
+    )
+
+
+def _list_conversations(
+    db: Session,
+    query,
+    *,
+    unread_sender_type: SenderType,
+) -> list[ConversationListItem]:
+    conversations = db.scalars(query.order_by(Conversation.updated_at.desc())).unique().all()
+    items: list[ConversationListItem] = []
+    for conversation in conversations:
+        store = conversation.store
+        if store is None:
+            continue
+        items.append(
+            ConversationListItem(
+                id=conversation.id,
+                store_id=conversation.store_id,
+                store_name=store.name,
+                store_slug=store.slug,
+                customer_id=conversation.customer_id,
+                customer_name=_customer_name_from_conversation(conversation),
+                order_id=conversation.order_id,
+                invoice_code=_order_invoice_code(conversation),
+                order_status=_order_status(conversation),
+                unread_count=_unread_count(db, conversation.id, for_sender_type=unread_sender_type),
+                last_message_body=conversation.messages[-1].body if conversation.messages else None,
+                last_message_at=conversation.messages[-1].created_at if conversation.messages else None,
+                updated_at=conversation.updated_at,
+            )
+        )
+    return items
+
+
+def list_customer_conversations(
+    db: Session,
+    customer_id: int,
+) -> list[ConversationListItem]:
+    query = (
+        _conversation_query()
+        .outerjoin(Order, Conversation.order_id == Order.id)
+        .where(
+            or_(
+                Conversation.customer_id == customer_id,
+                Order.customer_id == customer_id,
+            )
+        )
+    )
+    return _list_conversations(db, query, unread_sender_type=SenderType.SELLER)
+
+
+def list_seller_conversations(db: Session, store_id: int) -> list[ConversationListItem]:
+    query = _conversation_query().where(Conversation.store_id == store_id)
+    return _list_conversations(db, query, unread_sender_type=SenderType.CUSTOMER)
+
+
+def list_admin_conversations(db: Session) -> list[ConversationListItem]:
+    query = _conversation_query()
+    return _list_conversations(db, query, unread_sender_type=SenderType.CUSTOMER)
+
+
+def _build_detail(conversation: Conversation) -> ConversationDetailResponse:
+    return ConversationDetailResponse(
+        id=conversation.id,
+        store_id=conversation.store_id,
+        store_name=conversation.store.name if conversation.store else "",
+        store_slug=conversation.store.slug if conversation.store else "",
+        customer_id=conversation.customer_id,
+        customer_name=_customer_name_from_conversation(conversation),
+        order_id=conversation.order_id,
+        invoice_code=_order_invoice_code(conversation),
+        order_status=_order_status(conversation),
+        created_at=conversation.created_at,
+        updated_at=conversation.updated_at,
+        messages=[_message_to_response(message) for message in conversation.messages],
+    )
 
 
 def get_customer_conversation_detail(
@@ -240,30 +316,16 @@ def get_customer_conversation_detail(
     customer_id: int,
 ) -> ConversationDetailResponse:
     conversation = _load_conversation(db, conversation_id)
-    if conversation.customer_id != customer_id:
-        raise ServiceError("Conversation not found", status_code=404)
-
-    store = db.get(Store, conversation.store_id)
-    customer = db.get(CustomerAccount, conversation.customer_id)
-    if store is None or customer is None:
+    if not (
+        conversation.customer_id == customer_id
+        or (conversation.order is not None and conversation.order.customer_id == customer_id)
+    ):
         raise ServiceError("Conversation not found", status_code=404)
 
     _mark_messages_read(db, conversation_id, reader_is_customer=True)
+    db.commit()
     conversation = _load_conversation(db, conversation_id)
-
-    return ConversationDetailResponse(
-        id=conversation.id,
-        store_id=conversation.store_id,
-        store_name=store.name,
-        store_slug=store.slug,
-        customer_id=conversation.customer_id,
-        customer_name=customer.full_name,
-        order_id=conversation.order_id,
-        invoice_code=_get_invoice_code(db, conversation.order_id),
-        created_at=conversation.created_at,
-        updated_at=conversation.updated_at,
-        messages=[_message_to_response(m) for m in conversation.messages],
-    )
+    return _build_detail(conversation)
 
 
 def get_seller_conversation_detail(
@@ -275,27 +337,42 @@ def get_seller_conversation_detail(
     if conversation.store_id != store_id:
         raise ServiceError("Conversation not found", status_code=404)
 
-    store = db.get(Store, conversation.store_id)
-    customer = db.get(CustomerAccount, conversation.customer_id)
-    if store is None or customer is None:
-        raise ServiceError("Conversation not found", status_code=404)
-
     _mark_messages_read(db, conversation_id, reader_is_customer=False)
+    db.commit()
     conversation = _load_conversation(db, conversation_id)
+    return _build_detail(conversation)
 
-    return ConversationDetailResponse(
-        id=conversation.id,
-        store_id=conversation.store_id,
-        store_name=store.name,
-        store_slug=store.slug,
-        customer_id=conversation.customer_id,
-        customer_name=customer.full_name,
-        order_id=conversation.order_id,
-        invoice_code=_get_invoice_code(db, conversation.order_id),
-        created_at=conversation.created_at,
-        updated_at=conversation.updated_at,
-        messages=[_message_to_response(m) for m in conversation.messages],
+
+def get_admin_conversation_detail(
+    db: Session,
+    conversation_id: int,
+) -> ConversationDetailResponse:
+    conversation = _load_conversation(db, conversation_id)
+    return _build_detail(conversation)
+
+
+def _send_message(
+    db: Session,
+    conversation: Conversation,
+    *,
+    sender_type: SenderType,
+    sender_user_id: int | None,
+    payload: MessageCreate,
+) -> MessageResponse:
+    message = Message(
+        conversation_id=conversation.id,
+        sender_type=sender_type,
+        sender_user_id=sender_user_id,
+        body=payload.body.strip(),
+        attachment_url=payload.attachment_url,
+        attachment_mime_type=payload.attachment_mime_type,
+        is_read=False,
     )
+    conversation.updated_at = datetime.now(UTC)
+    db.add(message)
+    db.commit()
+    db.refresh(message)
+    return _message_to_response(message)
 
 
 def send_customer_message(
@@ -304,24 +381,40 @@ def send_customer_message(
     customer_id: int,
     payload: MessageCreate,
 ) -> MessageResponse:
-    conversation = db.get(Conversation, conversation_id)
-    if conversation is None or conversation.customer_id != customer_id:
+    conversation = _load_conversation(db, conversation_id)
+    if not (
+        conversation.customer_id == customer_id
+        or (conversation.order is not None and conversation.order.customer_id == customer_id)
+    ):
         raise ServiceError("Conversation not found", status_code=404)
-
-    message = Message(
-        conversation_id=conversation_id,
+    return _send_message(
+        db,
+        conversation,
         sender_type=SenderType.CUSTOMER,
         sender_user_id=None,
-        body=payload.body.strip(),
-        attachment_url=payload.attachment_url,
-        is_read=False,
+        payload=payload,
     )
-    conversation.updated_at = datetime.now(UTC)
-    conversation.updated_at = datetime.now(UTC)
-    db.add(message)
-    db.commit()
-    db.refresh(message)
-    return _message_to_response(message)
+
+
+def send_public_order_message(
+    db: Session,
+    order_id: int,
+    payload: MessageCreate,
+) -> MessageResponse:
+    order = _get_order(db, order_id)
+    conversation = get_or_create_conversation(
+        db,
+        order_id=order.id,
+        customer_id=order.customer_id,
+        store_id=order.store_id,
+    )
+    return _send_message(
+        db,
+        conversation,
+        sender_type=SenderType.CUSTOMER,
+        sender_user_id=None,
+        payload=payload,
+    )
 
 
 def send_seller_message(
@@ -331,19 +424,29 @@ def send_seller_message(
     seller: User,
     payload: MessageCreate,
 ) -> MessageResponse:
-    conversation = db.get(Conversation, conversation_id)
-    if conversation is None or conversation.store_id != store_id:
+    conversation = _load_conversation(db, conversation_id)
+    if conversation.store_id != store_id:
         raise ServiceError("Conversation not found", status_code=404)
-
-    message = Message(
-        conversation_id=conversation_id,
+    return _send_message(
+        db,
+        conversation,
         sender_type=SenderType.SELLER,
         sender_user_id=seller.id,
-        body=payload.body.strip(),
-        attachment_url=payload.attachment_url,
-        is_read=False,
+        payload=payload,
     )
-    db.add(message)
-    db.commit()
-    db.refresh(message)
-    return _message_to_response(message)
+
+
+def send_admin_message(
+    db: Session,
+    conversation_id: int,
+    admin: User,
+    payload: MessageCreate,
+) -> MessageResponse:
+    conversation = _load_conversation(db, conversation_id)
+    return _send_message(
+        db,
+        conversation,
+        sender_type=SenderType.SELLER,
+        sender_user_id=admin.id,
+        payload=payload,
+    )

@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict
 
-from app.models.enums import OrderStatus
+from app.models.enums import OrderStatus, StoreOnboardingStatus, StoreOnboardingStep
 
 
 class LowStockProductItem(BaseModel):
@@ -25,6 +25,11 @@ class RecentOrderItem(BaseModel):
 
 
 class SellerDashboardResponse(BaseModel):
+    store_readiness_score: int
+    store_readiness_missing_tasks: list[str]
+    onboarding_status: StoreOnboardingStatus
+    onboarding_current_step: StoreOnboardingStep | None
+    onboarding_completed_at: datetime | None
     total_orders: int
     pending_orders: int
     payment_uploaded_orders: int

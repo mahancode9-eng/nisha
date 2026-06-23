@@ -32,21 +32,23 @@ def register_customer(
     phone: str | None,
     password: str,
     full_name: str,
+    postal_code: str | None = None,
 ) -> CustomerAccount:
     normalized_email = normalize_email(email) if email else None
     normalized_phone = normalize_phone(phone) if phone else None
 
     if not normalized_email and not normalized_phone:
-        raise AuthError("At least one of email or phone is required", status_code=422)
+        raise AuthError("حداقل یکی از ایمیل یا تلفن الزامی است", status_code=422)
 
     if normalized_email and get_customer_by_email(db, normalized_email) is not None:
-        raise AuthError("Email already registered", status_code=409)
+        raise AuthError("ایمیل قبلا ثبت شده است", status_code=409)
     if normalized_phone and get_customer_by_phone(db, normalized_phone) is not None:
-        raise AuthError("Phone already registered", status_code=409)
+        raise AuthError("تلفن قبلا ثبت شده است", status_code=409)
 
     customer = CustomerAccount(
         email=normalized_email,
         phone=normalized_phone,
+        postal_code=postal_code.strip() if postal_code else None,
         password_hash=hash_password(password),
         full_name=full_name.strip(),
     )
@@ -55,7 +57,7 @@ def register_customer(
         db.commit()
     except IntegrityError as exc:
         db.rollback()
-        raise AuthError("Account already exists", status_code=409) from exc
+        raise AuthError("این حساب قبلا ایجاد شده است", status_code=409) from exc
 
     db.refresh(customer)
     return customer
@@ -69,6 +71,6 @@ def authenticate_customer(db: Session, *, login: str, password: str) -> Customer
         customer = get_customer_by_phone(db, login)
 
     if customer is None or not verify_password(password, customer.password_hash):
-        raise AuthError("Invalid login or password", status_code=401)
+        raise AuthError("ورود یا رمز عبور نامعتبر است", status_code=401)
 
     return customer

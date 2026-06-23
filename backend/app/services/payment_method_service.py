@@ -51,6 +51,7 @@ def create_payment_method(
         instructions=data.instructions,
         is_active=data.is_active,
     )
+    _apply_type_field_cleanup(method)
     db.add(method)
     db.commit()
     db.refresh(method)
@@ -108,6 +109,6 @@ def delete_payment_method(db: Session, store: Store, payment_method_id: int) -> 
     except IntegrityError as exc:
         db.rollback()
         raise ServiceError(
-            "Payment method is used by existing orders",
+            "Cannot delete payment method with existing references",
             status_code=409,
         ) from exc

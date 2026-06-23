@@ -5,6 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models.order import Order
+from app.services.exceptions import ServiceError
 
 INVOICE_CODE_PREFIX = "NV-"
 PASSWORD_ALPHABET = string.ascii_letters + string.digits
@@ -20,4 +21,4 @@ def generate_invoice_code(db: Session, *, max_attempts: int = 10) -> str:
         existing = db.scalar(select(Order.id).where(Order.invoice_code == code))
         if existing is None:
             return code
-    raise RuntimeError("Could not generate unique invoice code")
+    raise ServiceError("Could not generate unique invoice code, please retry", status_code=500)

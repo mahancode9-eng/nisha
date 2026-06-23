@@ -55,7 +55,7 @@ def test_insufficient_stock(client, public_store):
     )
 
     assert response.status_code == 422
-    assert "Insufficient stock" in response.json()["detail"]
+    assert response.json()["detail"] == "موجودی برای این مورد کافی نیست: Public Hoodie"
 
 
 def test_inactive_product(client, public_store):

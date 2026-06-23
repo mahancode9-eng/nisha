@@ -7,7 +7,7 @@ def test_service_error_returns_detail_json(client: TestClient, seller_headers: d
         headers=seller_headers,
     )
     assert response.status_code == 404
-    assert response.json() == {"detail": "Product not found"}
+    assert response.json() == {"detail": "محصول پیدا نشد"}
 
 
 def test_validation_error_returns_detail_list(client: TestClient, seller_headers: dict) -> None:

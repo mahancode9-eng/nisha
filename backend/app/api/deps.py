@@ -25,14 +25,14 @@ def get_current_user(
         if payload.get("role") == CUSTOMER_ROLE:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Could not validate credentials",
+                detail="اعتبارنامه قابل تایید نیست",
                 headers={"WWW-Authenticate": "Bearer"},
             )
         user_id = int(payload.get("sub", ""))
     except (ValueError, TypeError):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
+            detail="اعتبارنامه قابل تایید نیست",
             headers={"WWW-Authenticate": "Bearer"},
         ) from None
 
@@ -44,7 +44,7 @@ def get_current_user(
     if user is None or not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
+            detail="اعتبارنامه قابل تایید نیست",
             headers={"WWW-Authenticate": "Bearer"},
         )
     return user
@@ -54,7 +54,7 @@ def require_seller(current_user: User = Depends(get_current_user)) -> User:
     if current_user.role != UserRole.SELLER:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Seller access required",
+            detail="دسترسی فروشنده لازم است",
         )
     return current_user
 
@@ -63,7 +63,7 @@ def get_seller_store(current_user: User = Depends(require_seller)) -> Store:
     if current_user.store is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Store not found",
+            detail="فروشگاه پیدا نشد",
         )
     return current_user.store
 
@@ -72,7 +72,7 @@ def require_admin(current_user: User = Depends(get_current_user)) -> User:
     if current_user.role != UserRole.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin access required",
+            detail="دسترسی مدیر لازم است",
         )
     return current_user
 
@@ -86,14 +86,14 @@ def get_current_customer(
         if payload.get("role") != CUSTOMER_ROLE:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Could not validate credentials",
+                detail="اعتبارنامه قابل تایید نیست",
                 headers={"WWW-Authenticate": "Bearer"},
             )
         customer_id = int(payload.get("sub", ""))
     except (ValueError, TypeError):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
+            detail="اعتبارنامه قابل تایید نیست",
             headers={"WWW-Authenticate": "Bearer"},
         ) from None
 
@@ -101,7 +101,7 @@ def get_current_customer(
     if customer is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
+            detail="اعتبارنامه قابل تایید نیست",
             headers={"WWW-Authenticate": "Bearer"},
         )
     return customer

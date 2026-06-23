@@ -35,6 +35,7 @@ def register(
             db,
             email=str(payload.email) if payload.email else None,
             phone=payload.phone,
+            postal_code=payload.postal_code,
             password=payload.password,
             full_name=payload.full_name,
         )

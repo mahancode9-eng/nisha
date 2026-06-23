@@ -3,10 +3,10 @@ services:
     image: postgres:16-alpine
     environment:
       POSTGRES_USER: nisha
-      POSTGRES_PASSWORD: nisha
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-nisha}
       POSTGRES_DB: nisha
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -18,16 +18,16 @@ services:
   backend:
     build: ./backend
     ports:
-      - "8000:8000"
+      - "127.0.0.1:9000:8000"
     environment:
       ENVIRONMENT: development
-      DATABASE_URL: postgresql://nisha:nisha@db:5432/nisha
+      DATABASE_URL: postgresql://nisha:${POSTGRES_PASSWORD:-nisha}@db:5432/nisha
       CORS_ORIGINS: http://localhost:3000
       UPLOAD_DIR: /app/uploads
       MAX_UPLOAD_SIZE_BYTES: 5242880
       LOW_STOCK_THRESHOLD: 5
       LOG_LEVEL: INFO
-      JWT_SECRET_KEY: dev-docker-secret-change-in-production
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?JWT_SECRET_KEY is required}
       JWT_ALGORITHM: HS256
       JWT_ACCESS_TOKEN_EXPIRE_MINUTES: 10080
     volumes:
@@ -53,7 +53,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8000
+      NEXT_PUBLIC_API_URL: http://localhost:9000
       API_URL: http://backend:8000
     volumes:
       - ./frontend:/app

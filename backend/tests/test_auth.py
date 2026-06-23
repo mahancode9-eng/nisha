@@ -75,7 +75,7 @@ def test_wrong_password_fails(client):
     )
 
     assert response.status_code == 401
-    assert response.json()["detail"] == "Invalid email or password"
+    assert response.json()["detail"] == "ایمیل یا رمز عبور نامعتبر است"
 
 
 def test_inactive_user_cannot_login(client, db):
@@ -102,7 +102,7 @@ def test_inactive_user_cannot_login(client, db):
         json={"email": "inactive@example.com", "password": "securepass"},
     )
     assert response.status_code == 403
-    assert response.json()["detail"] == "Account is inactive"
+    assert response.json()["detail"] == "حساب کاربری غیرفعال است"
 
 
 def test_duplicate_email_fails(client):
@@ -116,4 +116,4 @@ def test_duplicate_email_fails(client):
 
     assert first.status_code == 201
     assert second.status_code == 409
-    assert second.json()["detail"] == "Email already registered"
+    assert second.json()["detail"] == "ایمیل قبلا ثبت شده است"

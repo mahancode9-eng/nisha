@@ -39,7 +39,7 @@ def assert_editable_status(order: Order) -> None:
     if order.status not in EDITABLE_STATUSES:
         raise ServiceError(
             "Order cannot be edited after payment is confirmed",
-            status_code=403,
+            status_code=422,
         )
 
 

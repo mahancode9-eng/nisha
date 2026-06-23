@@ -44,7 +44,7 @@ def test_upload_file_too_large(client, placed_order, monkeypatch):
         files={"file": ("proof.png", PNG_BYTES, "image/png")},
     )
     assert response.status_code == 422
-    assert response.json()["detail"] == "File too large"
+    assert response.json()["detail"] == "حجم فایل بیش از حد مجاز است"
 
 
 def test_track_includes_payment_proofs_shape(client, placed_order):
@@ -121,4 +121,4 @@ def test_edit_blocked_after_confirmation(client, placed_order, db):
             "buyer_name": "Should Fail",
         },
     )
-    assert response.status_code == 403
+    assert response.status_code == 422

@@ -1,18 +1,33 @@
+from __future__ import annotations
+
+import io
 import uuid
+from dataclasses import dataclass
 from pathlib import Path
 
 from fastapi import UploadFile
+from PIL import Image, ImageOps
 
 from app.core.config import settings
 from app.services.exceptions import ServiceError
 
-ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
-ALLOWED_CONTENT_TYPES = {
+ALLOWED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
+ALLOWED_IMAGE_CONTENT_TYPES = {
     "image/jpeg",
     "image/png",
     "image/webp",
     "image/gif",
 }
+
+
+@dataclass(slots=True)
+class UploadedMedia:
+    url: str
+    thumbnail_url: str | None
+    mime_type: str | None
+    width: int | None
+    height: int | None
+    filename: str | None
 
 
 def _detect_extension_from_magic(header: bytes) -> str | None:
@@ -33,7 +48,7 @@ def _extension_from_filename(filename: str | None) -> str | None:
     ext = "." + filename.rsplit(".", 1)[-1].lower()
     if ext == ".jpeg":
         ext = ".jpg"
-    return ext if ext in ALLOWED_EXTENSIONS else None
+    return ext if ext in ALLOWED_IMAGE_EXTENSIONS else None
 
 
 def _extensions_compatible(declared: str, detected: str) -> bool:
@@ -43,51 +58,112 @@ def _extensions_compatible(declared: str, detected: str) -> bool:
     return declared == detected
 
 
-async def save_payment_proof_image(file: UploadFile, order_id: int) -> str:
+async def _read_upload_bytes(file: UploadFile) -> bytes:
+    content = await file.read()
+    if not content:
+        raise ServiceError("Empty file", status_code=422)
+    if len(content) > settings.MAX_UPLOAD_SIZE_BYTES:
+        raise ServiceError("File too large", status_code=422)
+    return content
+
+
+def _build_media_paths(subdir: str, filename: str) -> tuple[Path, str]:
+    upload_dir = Path(settings.UPLOAD_DIR) / subdir
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    destination = upload_dir / filename
+    public_url = f"/uploads/{subdir}/{filename}"
+    return destination, public_url
+
+
+def _save_image_thumbnail(
+    content: bytes,
+    *,
+    subdir: str,
+    stem: str,
+    size: tuple[int, int] = (640, 640),
+) -> tuple[str, int | None, int | None]:
+    with Image.open(io.BytesIO(content)) as image:
+        image = ImageOps.exif_transpose(image)
+        width, height = image.size
+        thumb = image.copy()
+        thumb.thumbnail(size)
+        thumb_name = f"{stem}_thumb.webp"
+        thumb_dir = Path(settings.UPLOAD_DIR) / subdir
+        thumb_dir.mkdir(parents=True, exist_ok=True)
+        thumb_path = thumb_dir / thumb_name
+        thumb.save(thumb_path, format="WEBP", quality=82, method=6)
+    return f"/uploads/{subdir}/{thumb_name}", width, height
+
+
+async def save_uploaded_media(
+    file: UploadFile,
+    *,
+    subdir: str,
+    image_only: bool = False,
+    thumbnail_size: tuple[int, int] = (640, 640),
+) -> UploadedMedia:
     if not file.filename:
         raise ServiceError("File is required", status_code=422)
 
+    content = await _read_upload_bytes(file)
     content_type = (file.content_type or "").lower()
-    if content_type not in ALLOWED_CONTENT_TYPES:
+    declared_ext = _extension_from_filename(file.filename)
+    magic_ext = _detect_extension_from_magic(content[:12])
+    is_image = content_type in ALLOWED_IMAGE_CONTENT_TYPES or magic_ext is not None
+
+    if image_only and not is_image:
         raise ServiceError("Only image files are allowed", status_code=422)
 
-    ext = _extension_from_filename(file.filename)
-    if ext is None:
-        raise ServiceError("Invalid image file extension", status_code=422)
+    if is_image:
+        if content_type and content_type not in ALLOWED_IMAGE_CONTENT_TYPES and magic_ext is None:
+            raise ServiceError("Only image files are allowed", status_code=422)
 
-    header = await file.read(12)
-    if not header:
-        raise ServiceError("Empty file", status_code=422)
+        if declared_ext is None:
+            declared_ext = magic_ext or ".jpg"
+        elif magic_ext is not None and not _extensions_compatible(declared_ext, magic_ext):
+            raise ServiceError("Invalid image file content", status_code=422)
 
-    magic_ext = _detect_extension_from_magic(header)
-    if magic_ext is None or not _extensions_compatible(ext, magic_ext):
-        raise ServiceError("Invalid image file content", status_code=422)
+        stored_name = f"{uuid.uuid4().hex}{declared_ext}"
+        destination, public_url = _build_media_paths(subdir, stored_name)
+        destination.write_bytes(content)
 
-    upload_dir = Path(settings.UPLOAD_DIR) / settings.PAYMENT_PROOF_SUBDIR
-    upload_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            thumbnail_url, width, height = _save_image_thumbnail(
+                content,
+                subdir=subdir,
+                stem=destination.stem,
+                size=thumbnail_size,
+            )
+        except Exception as exc:
+            destination.unlink(missing_ok=True)
+            raise ServiceError("Invalid image file content", status_code=422) from exc
+        return UploadedMedia(
+            url=public_url,
+            thumbnail_url=thumbnail_url,
+            mime_type=content_type or file.content_type,
+            width=width,
+            height=height,
+            filename=file.filename,
+        )
 
-    filename = f"{order_id}_{uuid.uuid4().hex}{magic_ext}"
-    destination = upload_dir / filename
+    suffix = declared_ext or ".bin"
+    stored_name = f"{uuid.uuid4().hex}{suffix}"
+    destination, public_url = _build_media_paths(subdir, stored_name)
+    destination.write_bytes(content)
+    return UploadedMedia(
+        url=public_url,
+        thumbnail_url=None,
+        mime_type=content_type or file.content_type,
+        width=None,
+        height=None,
+        filename=file.filename,
+    )
 
-    total_size = len(header)
-    if total_size > settings.MAX_UPLOAD_SIZE_BYTES:
-        raise ServiceError("File too large", status_code=422)
 
-    oversize = False
-    with destination.open("wb") as output:
-        output.write(header)
-        while True:
-            chunk = await file.read(1024 * 1024)
-            if not chunk:
-                break
-            total_size += len(chunk)
-            if total_size > settings.MAX_UPLOAD_SIZE_BYTES:
-                oversize = True
-                break
-            output.write(chunk)
-
-    if oversize:
-        destination.unlink(missing_ok=True)
-        raise ServiceError("File too large", status_code=422)
-
-    return f"/uploads/{settings.PAYMENT_PROOF_SUBDIR}/{filename}"
+async def save_payment_proof_image(file: UploadFile, order_id: int) -> str:
+    media = await save_uploaded_media(
+        file,
+        subdir=settings.PAYMENT_PROOF_SUBDIR,
+        image_only=True,
+    )
+    return media.url

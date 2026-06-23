@@ -32,6 +32,7 @@ class Message(Base):
     )
     body: Mapped[str] = mapped_column(Text, nullable=False)
     attachment_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    attachment_mime_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
     is_read: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

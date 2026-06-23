@@ -6,17 +6,16 @@ from sqlalchemy import engine_from_config, pool
 from app.core.config import settings
 from app.db.base import Base
 
-from app.models import (  # noqa: F401
-    Order,
-    OrderItem,
-    OrderStatusHistory,
-    PaymentMethod,
-    PaymentProof,
-    Product,
-    ProductImage,
-    Store,
-    User,
-)
+import app.models.conversation  # noqa: F401
+import app.models.admin_audit  # noqa: F401
+import app.models.customer_account  # noqa: F401
+import app.models.customer_portal  # noqa: F401
+import app.models.message  # noqa: F401
+import app.models.order  # noqa: F401
+import app.models.payment_method  # noqa: F401
+import app.models.product  # noqa: F401
+import app.models.store  # noqa: F401
+import app.models.user  # noqa: F401
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)

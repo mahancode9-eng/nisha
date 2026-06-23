@@ -1,5 +1,8 @@
 from sqlalchemy.orm import Session
 
+from app.schemas.chat import ConversationDetailResponse, MessageCreate, MessageResponse
+from app.schemas.customer_portal import CustomerReviewCreateRequest, CustomerReviewResponse
+from app.schemas.public import PublicReviewCreateRequest
 from app.models.enums import OrderStatus
 from app.models.order import PaymentProof
 from app.schemas.guest_order import (
@@ -11,7 +14,7 @@ from app.schemas.guest_order import (
     PaymentProofUploadResponse,
 )
 from app.schemas.public import PublicPaymentMethod, PublicStoreProfile
-from app.services import order_access_service
+from app.services import chat_service, order_access_service, review_service
 from app.services.exceptions import ServiceError
 from app.utils.upload import save_payment_proof_image
 
@@ -38,7 +41,7 @@ async def upload_payment_proof(
                 order=order,
                 old_status=old_status,
                 new_status=OrderStatus.PAYMENT_UPLOADED,
-                note="Payment proof uploaded",
+                note="رسید پرداخت ثبت شد",
             )
 
         db.commit()
@@ -51,7 +54,7 @@ async def upload_payment_proof(
         raise
 
     return PaymentProofUploadResponse(
-        message="Payment proof uploaded",
+        message="رسید پرداخت ثبت شد",
         order_status=order.status,
         proof=PaymentProofResponse.model_validate(proof),
     )
@@ -99,11 +102,63 @@ def edit_order(db: Session, invoice_code: str, data: GuestOrderEdit) -> GuestOrd
     db.refresh(order)
 
     return GuestOrderEditResponse(
-        message="Order updated",
+        message="سفارش به‌روزرسانی شد",
         order_id=order.id,
         status=order.status,
         buyer_name=order.buyer_name,
         buyer_phone=order.buyer_phone,
         buyer_address=order.buyer_address,
         buyer_note=order.buyer_note,
+    )
+
+
+def get_order_chat(
+    db: Session,
+    invoice_code: str,
+    password: str,
+) -> ConversationDetailResponse:
+    order = order_access_service.authenticate_order(db, invoice_code, password)
+    conversation = chat_service.get_or_create_conversation(
+        db,
+        order_id=order.id,
+        customer_id=order.customer_id,
+        store_id=order.store_id,
+    )
+    return chat_service.get_admin_conversation_detail(db, conversation.id)
+
+
+def send_order_chat_message(
+    db: Session,
+    invoice_code: str,
+    password: str,
+    payload: MessageCreate,
+) -> MessageResponse:
+    order = order_access_service.authenticate_order(db, invoice_code, password)
+    return chat_service.send_public_order_message(db, order.id, payload)
+
+
+def create_order_review(
+    db: Session,
+    invoice_code: str,
+    password: str,
+    payload: PublicReviewCreateRequest,
+) -> CustomerReviewResponse:
+    order = order_access_service.authenticate_order(db, invoice_code, password)
+    if payload.order_id != order.id:
+        raise ServiceError("سفارش پیدا نشد", status_code=404)
+    review_payload = CustomerReviewCreateRequest.model_validate(
+        {
+            "order_id": order.id,
+            "rating": payload.rating,
+            "title": payload.title,
+            "comment": payload.comment,
+            "is_public": payload.is_public,
+            "image_urls": payload.image_urls,
+        }
+    )
+    return review_service.create_or_update_review(
+        db,
+        order=order,
+        customer_id=order.customer_id,
+        payload=review_payload,
     )

@@ -17,7 +17,7 @@ def test_seller_cannot_access_admin_dashboard(
 ) -> None:
     response = client.get("/api/v1/admin/dashboard", headers=seller_headers)
     assert response.status_code == 403
-    assert response.json()["detail"] == "Admin access required"
+    assert response.json()["detail"] == "دسترسی مدیر لازم است"
 
 
 def test_admin_activate_deactivate_store(
@@ -65,7 +65,7 @@ def test_seller_cannot_list_admin_orders(
 ) -> None:
     response = client.get("/api/v1/admin/orders", headers=seller_headers)
     assert response.status_code == 403
-    assert response.json()["detail"] == "Admin access required"
+    assert response.json()["detail"] == "دسترسی مدیر لازم است"
 
 
 def test_admin_order_detail(
@@ -84,3 +84,53 @@ def test_admin_order_detail(
     assert len(data["items"]) >= 1
     assert "payment_proofs" in data
     assert isinstance(data["payment_proofs"], list)
+    assert data["invoice_username"] == data["invoice_code"]
+    assert "submissions" in data
+    assert "audit_logs" in data
+
+
+def test_admin_can_update_order_and_create_audit_log(
+    client: TestClient,
+    admin_headers: dict,
+    placed_order: dict,
+) -> None:
+    update = client.patch(
+        f"/api/v1/admin/orders/{placed_order['order_id']}",
+        headers=admin_headers,
+        json={
+            "status": "PREPARING",
+            "note": "Checked by admin",
+        },
+    )
+    assert update.status_code == 200
+    assert update.json()["status"] == "PREPARING"
+
+    detail = client.get(
+        f"/api/v1/admin/orders/{placed_order['order_id']}",
+        headers=admin_headers,
+    )
+    assert detail.status_code == 200
+    logs = detail.json()["audit_logs"]
+    assert len(logs) >= 1
+    assert logs[0]["action"] == "UPDATE"
+
+
+def test_admin_store_detail_includes_history_and_audit_logs(
+    client: TestClient,
+    admin_headers: dict,
+    public_store: dict,
+) -> None:
+    stores_response = client.get("/api/v1/admin/stores", headers=admin_headers)
+    assert stores_response.status_code == 200
+    store_id = stores_response.json()["items"][0]["id"]
+
+    suspend = client.patch(f"/api/v1/admin/stores/{store_id}/suspend", headers=admin_headers)
+    assert suspend.status_code == 200
+
+    detail = client.get(f"/api/v1/admin/stores/{store_id}", headers=admin_headers)
+    assert detail.status_code == 200
+    data = detail.json()
+    assert data["store"]["id"] == store_id
+    assert "badges" in data
+    assert "badge_history" in data
+    assert len(data["audit_logs"]) >= 1

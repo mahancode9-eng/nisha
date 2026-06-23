@@ -9,6 +9,8 @@ PATCH_TRANSITIONS: dict[OrderStatus, set[OrderStatus]] = {
     OrderStatus.SHIPPED: {OrderStatus.PREPARING},
     OrderStatus.DELIVERED: {OrderStatus.SHIPPED},
     OrderStatus.CANCELLED: {
+        OrderStatus.PENDING_PAYMENT,
+        OrderStatus.PAYMENT_UPLOADED,
         OrderStatus.PAYMENT_CONFIRMED,
         OrderStatus.PREPARING,
         OrderStatus.SHIPPED,

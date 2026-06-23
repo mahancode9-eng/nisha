@@ -2,6 +2,10 @@
 .env
 .env.local
 .env.*.local
+.env.development
+.env.production
+.env.test
+.env.staging
 
 # Python
 __pycache__/
@@ -12,6 +16,11 @@ venv/
 *.egg-info/
 dist/
 build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
 
 # Node
 node_modules/

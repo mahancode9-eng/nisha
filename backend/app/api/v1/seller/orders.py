@@ -45,7 +45,21 @@ def list_orders(
         date_to=date_to,
         search=search,
     )
-    items = [SellerOrderListItem.model_validate(order) for order in orders]
+    items = [
+        SellerOrderListItem(
+            id=order.id,
+            invoice_code=order.invoice_code,
+            status=order.status,
+            buyer_name=order.buyer_name,
+            buyer_phone=order.buyer_phone,
+            total_amount=order.total_amount,
+            customer_id=order.customer_id,
+            receipt_status=order.receipt.status if order.receipt else None,
+            complaint_count=len(order.complaints),
+            created_at=order.created_at,
+        )
+        for order in orders
+    ]
     return build_paginated_response(items, total, page, page_size)
 
 
@@ -70,6 +84,9 @@ def get_order(
         buyer_note=order.buyer_note,
         subtotal_amount=order.subtotal_amount,
         total_amount=order.total_amount,
+        customer_id=order.customer_id,
+        receipt_status=order.receipt.status if order.receipt else None,
+        complaint_count=len(order.complaints),
         stock_restored=order.stock_restored,
         created_at=order.created_at,
         updated_at=order.updated_at,
@@ -92,7 +109,7 @@ def confirm_payment(
     except ServiceError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
     return SellerOrderActionResponse(
-        message="Payment confirmed",
+        message="پرداخت تایید شد",
         order_id=order.id,
         status=order.status,
     )
@@ -110,7 +127,7 @@ def reject_payment(
     except ServiceError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
     return SellerOrderActionResponse(
-        message="Payment rejected",
+        message="پرداخت رد شد",
         order_id=order.id,
         status=order.status,
     )
@@ -136,7 +153,7 @@ def update_order_status(
     except ServiceError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
     return SellerOrderActionResponse(
-        message="Order status updated",
+        message="وضعیت سفارش به‌روزرسانی شد",
         order_id=order.id,
         status=order.status,
     )

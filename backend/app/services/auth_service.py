@@ -7,13 +7,14 @@ from app.models.enums import UserRole
 from app.models.store import Store
 from app.models.user import User
 from app.utils.slug import generate_unique_store_slug
+from app.core.messages import translate_backend_message
 
 
 class AuthError(Exception):
     def __init__(self, message: str, status_code: int = 400) -> None:
-        self.message = message
+        self.message = translate_backend_message(message)
         self.status_code = status_code
-        super().__init__(message)
+        super().__init__(self.message)
 
 
 def normalize_email(email: str) -> str:
@@ -28,7 +29,7 @@ def register_seller(db: Session, *, email: str, password: str, full_name: str) -
     normalized_email = normalize_email(email)
 
     if get_user_by_email(db, normalized_email) is not None:
-        raise AuthError("Email already registered", status_code=409)
+        raise AuthError("ایمیل قبلا ثبت شده است", status_code=409)
 
     user = User(
         email=normalized_email,
@@ -52,7 +53,7 @@ def register_seller(db: Session, *, email: str, password: str, full_name: str) -
         db.commit()
     except IntegrityError as exc:
         db.rollback()
-        raise AuthError("Email already registered", status_code=409) from exc
+        raise AuthError("ایمیل قبلا ثبت شده است", status_code=409) from exc
 
     return db.scalar(
         select(User)
@@ -63,16 +64,16 @@ def register_seller(db: Session, *, email: str, password: str, full_name: str) -
 
 def authenticate_user(db: Session, *, email: str, password: str) -> User:
     normalized_email = normalize_email(email)
-    user = get_user_by_email(db, normalized_email)
-
-    if user is None or not verify_password(password, user.password_hash):
-        raise AuthError("Invalid email or password", status_code=401)
-
-    if not user.is_active:
-        raise AuthError("Account is inactive", status_code=403)
-
-    return db.scalar(
+    user = db.scalar(
         select(User)
         .options(selectinload(User.store))
-        .where(User.id == user.id)
+        .where(User.email == normalized_email)
     )
+
+    if user is None or not verify_password(password, user.password_hash):
+        raise AuthError("ایمیل یا رمز عبور نامعتبر است", status_code=401)
+
+    if not user.is_active:
+        raise AuthError("حساب کاربری غیرفعال است", status_code=403)
+
+    return user

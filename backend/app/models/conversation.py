@@ -17,14 +17,13 @@ if TYPE_CHECKING:
 
 class Conversation(TimestampMixin, Base):
     __tablename__ = "conversations"
-    __table_args__ = (
-        UniqueConstraint("store_id", "customer_id", name="uq_conversations_store_customer"),
-    )
+    __table_args__ = (UniqueConstraint("order_id", name="uq_conversations_order_id"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
     store_id: Mapped[int] = mapped_column(ForeignKey("stores.id", ondelete="CASCADE"), index=True)
-    customer_id: Mapped[int] = mapped_column(
+    customer_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("customer_accounts.id", ondelete="CASCADE"),
+        nullable=True,
         index=True,
     )
     order_id: Mapped[int | None] = mapped_column(

@@ -20,11 +20,14 @@ def get_order_for_store(db: Session, store: Store, order_id: int) -> Order:
             selectinload(Order.payment_proofs),
             selectinload(Order.payment_method),
             selectinload(Order.status_history),
+            selectinload(Order.receipt),
+            selectinload(Order.complaints),
+            selectinload(Order.customer),
         )
         .where(Order.id == order_id, Order.store_id == store.id)
     )
     if order is None:
-        raise ServiceError("Order not found", status_code=404)
+        raise ServiceError("سفارش پیدا نشد", status_code=404)
     return order
 
 
@@ -53,6 +56,7 @@ def list_orders(
             or_(Order.invoice_code.ilike(term), Order.buyer_phone.ilike(term))
         )
 
+    query = query.options(selectinload(Order.receipt), selectinload(Order.complaints))
     query = query.order_by(Order.created_at.desc())
     return list(db.scalars(query).all())
 
@@ -79,7 +83,7 @@ def _orders_filter_query(
         query = query.where(
             or_(Order.invoice_code.ilike(term), Order.buyer_phone.ilike(term))
         )
-    return query
+    return query.options(selectinload(Order.receipt), selectinload(Order.complaints))
 
 
 def list_orders_paginated(
@@ -122,7 +126,7 @@ def confirm_payment(db: Session, store: Store, order_id: int, seller: User) -> O
         old_status=old_status,
         new_status=OrderStatus.PAYMENT_CONFIRMED,
         changed_by_user=seller,
-        note="Payment confirmed",
+        note="پرداخت تایید شد",
     )
     db.commit()
     db.refresh(order)
@@ -142,7 +146,7 @@ def reject_payment(db: Session, store: Store, order_id: int, seller: User) -> Or
         old_status=old_status,
         new_status=OrderStatus.PAYMENT_REJECTED,
         changed_by_user=seller,
-        note="Payment rejected",
+        note="پرداخت رد شد",
     )
     db.commit()
     db.refresh(order)

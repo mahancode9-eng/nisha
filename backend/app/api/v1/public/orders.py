@@ -2,12 +2,19 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
+from app.schemas.chat import ConversationDetailResponse, MessageResponse
+from app.schemas.customer_portal import CustomerReviewResponse
 from app.schemas.guest_order import (
     GuestOrderEdit,
     GuestOrderEditResponse,
     OrderTrackRequest,
     OrderTrackResponse,
     PaymentProofUploadResponse,
+)
+from app.schemas.public import (
+    OrderChatAuthRequest,
+    PublicOrderMessageCreateRequest,
+    PublicReviewCreateRequest,
 )
 from app.services import guest_order_service
 from app.services.exceptions import ServiceError
@@ -56,5 +63,41 @@ def edit_order(
 ) -> GuestOrderEditResponse:
     try:
         return guest_order_service.edit_order(db, invoice_code, payload)
+    except ServiceError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+
+
+@router.post("/{invoice_code}/chat", response_model=ConversationDetailResponse)
+def open_chat(
+    invoice_code: str,
+    payload: OrderChatAuthRequest,
+    db: Session = Depends(get_db),
+) -> ConversationDetailResponse:
+    try:
+        return guest_order_service.get_order_chat(db, invoice_code, payload.invoice_edit_password)
+    except ServiceError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+
+
+@router.post("/{invoice_code}/chat/messages", response_model=MessageResponse)
+def send_chat_message(
+    invoice_code: str,
+    payload: PublicOrderMessageCreateRequest,
+    db: Session = Depends(get_db),
+) -> MessageResponse:
+    try:
+        return guest_order_service.send_order_chat_message(db, invoice_code, payload.invoice_edit_password, payload)
+    except ServiceError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+
+
+@router.post("/{invoice_code}/reviews", response_model=CustomerReviewResponse)
+def create_public_review(
+    invoice_code: str,
+    payload: PublicReviewCreateRequest,
+    db: Session = Depends(get_db),
+) -> CustomerReviewResponse:
+    try:
+        return guest_order_service.create_order_review(db, invoice_code, payload.invoice_edit_password, payload)
     except ServiceError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc

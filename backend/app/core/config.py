@@ -4,6 +4,8 @@ from typing import Literal
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+_WEAK_SECRETS = {"change-me-to-a-long-random-secret", ""}
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
@@ -31,6 +33,15 @@ class Settings(BaseSettings):
     def parse_cors_origins(cls, value: str | list[str]) -> str:
         if isinstance(value, list):
             return ",".join(value)
+        return value
+
+    @field_validator("JWT_SECRET_KEY", mode="after")
+    @classmethod
+    def reject_weak_secret(cls, value: str, info) -> str:
+        if value in _WEAK_SECRETS or (info.data.get("ENVIRONMENT") == "production" and len(value) < 32):
+            raise ValueError(
+                "JWT_SECRET_KEY must be at least 32 characters and not a default/placeholder value"
+            )
         return value
 
     @property
