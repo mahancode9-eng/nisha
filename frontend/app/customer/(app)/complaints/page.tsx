@@ -1,0 +1,76 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useToast } from "@/contexts/ToastContext";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { LoadingState } from "@/components/ui/LoadingState";
+import { formatDateTime } from "@/lib/format";
+import { listComplaints } from "@/lib/api/customer/orders";
+import type { CustomerComplaint } from "@/types/customer/order";
+
+const COMPLAINT_REASON_LABELS: Record<string, string> = {
+  NON_DELIVERY: "عدم تحویل",
+  DAMAGED: "آسیب‌دیده",
+  WRONG_ITEM: "کالای اشتباه",
+  OTHER: "سایر",
+};
+
+const COMPLAINT_STATUS_LABELS: Record<CustomerComplaint["status"], string> = {
+  OPEN: "باز",
+  IN_REVIEW: "در حال بررسی",
+  RESOLVED: "حل‌شده",
+};
+
+export default function CustomerComplaintsPage() {
+  const toast = useToast();
+  const [complaints, setComplaints] = useState<CustomerComplaint[] | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await listComplaints();
+        if (!cancelled) setComplaints(data);
+      } catch {
+        if (!cancelled) {
+          setComplaints([]);
+          toast.error("خطا در بارگذاری اعتراض‌ها");
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (complaints === null) {
+    return <LoadingState message="در حال بارگذاری اعتراض‌ها..." />;
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>اعتراض‌ها</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {complaints.length === 0 ? (
+          <EmptyState
+            title="اعتراضی ندارید"
+            description="اعتراض‌های ثبت‌شده برای عدم تحویل اینجا نمایش داده می‌شوند."
+          />
+        ) : (
+          complaints.map((complaint) => (
+            <div key={complaint.id} className="rounded-xl border border-neutral-200 p-4">
+              <p className="font-medium text-neutral-900">{COMPLAINT_REASON_LABELS[complaint.reason] ?? complaint.reason}</p>
+              <p className="mt-1 text-sm text-neutral-700">{complaint.message}</p>
+              <p className="mt-2 text-xs text-neutral-500">
+                {COMPLAINT_STATUS_LABELS[complaint.status]} | {formatDateTime(complaint.created_at)}
+              </p>
+            </div>
+          ))
+        )}
+      </CardContent>
+    </Card>
+  );
+}

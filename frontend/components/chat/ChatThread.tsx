@@ -1,20 +1,24 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { ChatComposer } from "@/components/chat/ChatComposer";
 import { MessageBubble } from "@/components/chat/MessageBubble";
 import { ErrorAlert } from "@/components/ui/ErrorAlert";
 import { LoadingState } from "@/components/ui/LoadingState";
-import type { ConversationDetail } from "@/types/chat";
-import type { SenderType } from "@/types/chat";
+import type { ConversationDetail, SenderType } from "@/types/chat";
 
 type ChatThreadProps = {
   conversation: ConversationDetail | null;
   isLoading: boolean;
   error: string | null;
   ownSenderType: SenderType;
-  onSend: (body: string) => Promise<void>;
-  header: React.ReactNode;
+  onSend: (payload: {
+    body: string;
+    attachment_url?: string | null;
+    attachment_mime_type?: string | null;
+  }) => Promise<void>;
+  header: ReactNode;
+  showComposer?: boolean;
 };
 
 export function ChatThread({
@@ -24,6 +28,7 @@ export function ChatThread({
   ownSenderType,
   onSend,
   header,
+  showComposer = true,
 }: ChatThreadProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -32,12 +37,12 @@ export function ChatThread({
   }, [conversation?.messages.length]);
 
   if (isLoading && !conversation) {
-    return <LoadingState message="Loading conversation…" />;
+    return <LoadingState message="در حال بارگذاری گفتگو..." />;
   }
 
   return (
-    <div className="flex h-[calc(100vh-8rem)] flex-col rounded-xl border border-neutral-200 bg-white lg:h-[calc(100vh-6rem)]">
-      <div className="border-b border-neutral-200 px-4 py-3">{header}</div>
+    <div className="flex h-[calc(100vh-8rem)] flex-col rounded-xl border border-border bg-surface lg:h-[calc(100vh-6rem)]">
+      <div className="border-b border-border px-4 py-3">{header}</div>
       <ErrorAlert message={error ?? ""} className="mx-4 mt-2" />
       <div className="flex-1 space-y-3 overflow-y-auto p-4">
         {conversation?.messages.map((message) => (
@@ -49,7 +54,7 @@ export function ChatThread({
         ))}
         <div ref={bottomRef} />
       </div>
-      <ChatComposer onSend={onSend} disabled={!conversation} />
+      {showComposer && <ChatComposer onSend={onSend} disabled={!conversation} />}
     </div>
   );
 }

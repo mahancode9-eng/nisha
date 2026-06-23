@@ -18,6 +18,7 @@ import {
   setCustomerToken,
   setStoredCustomer,
 } from "@/lib/auth/customer-token";
+import { ApiError } from "@/lib/api/errors";
 import type {
   Customer,
   CustomerLoginRequest,
@@ -57,9 +58,11 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
       setStoredCustomer(me);
       setCustomer(me);
       return me;
-    } catch {
-      clearCustomerToken();
-      setCustomer(null);
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        clearCustomerToken();
+        setCustomer(null);
+      }
       return null;
     }
   }, []);

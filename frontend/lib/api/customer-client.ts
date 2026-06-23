@@ -65,3 +65,31 @@ export function customerApiPost<T>(
 ): Promise<T> {
   return customerApiRequest<T>(path, { ...options, method: "POST", json });
 }
+
+export function customerApiPatch<T>(
+  path: string,
+  json?: unknown,
+  options?: ApiRequestOptions,
+): Promise<T> {
+  return customerApiRequest<T>(path, { ...options, method: "PATCH", json });
+}
+
+export function customerApiDelete<T>(path: string, options?: ApiRequestOptions): Promise<T> {
+  return customerApiRequest<T>(path, { ...options, method: "DELETE" });
+}
+
+export async function customerApiDownload(path: string): Promise<Blob> {
+  const headers = new Headers();
+  const token = getCustomerToken();
+  if (token) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+  const res = await fetch(`${getApiUrl()}${path}`, {
+    method: "GET",
+    headers,
+  });
+  if (!res.ok) {
+    throw await ApiError.fromResponse(res);
+  }
+  return res.blob();
+}
