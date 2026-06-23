@@ -1,31 +1,37 @@
-# Nisha MVP — 5-minute demo script
+# Nisha MVP - 5-minute demo script
 
-Prerequisites: `docker compose up --build`, migrations, and seed (see [README.md](../README.md)).
+Prerequisites: start the stack with Docker Compose, run migrations, and seed demo data if you want the sample seller/store content. See [README.md](../README.md) for the local setup commands.
 
-## 1. Customer shops (2 min)
+## 1. Customer flow (2 min)
 
-1. Open **http://localhost:3000** → **Browse demo store** (or go to `/store/demo-store`).
-2. Add products to cart → **Checkout**.
-3. Fill buyer details, pick a payment method, submit.
-4. **Save** the invoice code and password shown once.
-5. Note payment instructions → upload a payment proof image.
-6. Open **Track order** (`/track-order`) with code + password — confirm status and proofs list.
-7. Optional: open `/invoice/{invoiceCode}`, enter password, print invoice.
+1. Open `http://localhost:3000` and browse the demo store, or go directly to `/store/demo-store`.
+2. Add a product to the cart and go to checkout.
+3. Fill in buyer details, choose a payment method, and submit the order.
+4. Save the invoice code and invoice password shown after checkout.
+5. Upload a payment proof image from the order page.
+6. Open `Track order` at `/track-order` with the invoice code and password to confirm status and proofs.
+7. Open `/invoice/{invoiceCode}`, enter the password, and print the invoice if needed.
 
-## 2. Seller fulfills (2 min)
+## 2. Seller flow (2 min)
 
-1. Log in at **/seller/login** — `seller@example.com` / `seller123456`.
-2. **Dashboard** — metrics, low stock, recent orders. Use **View your store** to open the public page.
-3. **Orders** — find the guest order → open detail.
-4. **Confirm payment** (or reject to restore stock).
-5. Advance status: Preparing → Shipped → Delivered.
+1. Log in at `/seller/login` with `seller@example.com` / `seller123456`.
+2. Open the dashboard to show metrics, low stock, and recent orders.
+3. Open the order detail page for the guest order.
+4. Confirm payment, or reject it to restore stock.
+5. Move the order through the fulfillment statuses if you want to show the lifecycle.
 
-## 3. Admin overview (1 min)
+## 3. Admin flow (1 min)
 
-1. Log in at **/admin/login** — `admin@example.com` / `admin123456`.
-2. **Dashboard** — platform totals and recent orders.
-3. **Stores** — deactivate/reactivate a store; open public link.
-4. **Orders** — browse all stores; open read-only order detail.
+1. Log in at `/admin/login` with `admin@example.com` / `admin123456`.
+2. Show the platform dashboard with totals and recent orders.
+3. Open the stores view and deactivate or reactivate a store.
+4. Open the orders view to browse all stores and inspect or update an order detail.
+
+## UI notes
+
+- The UI defaults to Persian and RTL.
+- Use the shared language switch in the shell if you want to show the English labels.
+- Theme mode can be switched between light, dark, and system from the shared header/shell.
 
 ## Screenshot placeholders
 
