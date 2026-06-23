@@ -17,19 +17,19 @@ export default function SellerRegisterPage() {
     full_name: string;
   }) {
     await register(data);
-    router.replace(paths.seller.dashboard);
+    router.replace(paths.seller.onboarding);
   }
 
   return (
     <GuestOnly role="SELLER">
-      <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4 py-12">
+      <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
         <RegisterForm
           onSubmit={handleRegister}
           footer={
             <>
-              Already have an account?{" "}
-              <Link href={paths.seller.login} className="font-medium text-indigo-600 hover:underline">
-                Sign in
+              حساب کاربری دارید؟{" "}
+              <Link href={paths.seller.login} className="font-medium text-brand hover:underline">
+                وارد شوید
               </Link>
             </>
           }

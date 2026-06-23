@@ -17,7 +17,7 @@ export function ConfirmModal({
   open,
   title,
   message,
-  confirmLabel = "Confirm",
+  confirmLabel = "تایید",
   loading = false,
   onConfirm,
   onClose,
@@ -27,7 +27,7 @@ export function ConfirmModal({
       <p className="text-sm text-neutral-600">{message}</p>
       <div className="mt-6 flex justify-end gap-3">
         <Button variant="secondary" onClick={onClose} disabled={loading}>
-          Cancel
+          لغو
         </Button>
         <Button variant="danger" onClick={onConfirm} loading={loading}>
           {confirmLabel}

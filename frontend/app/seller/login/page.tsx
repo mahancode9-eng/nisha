@@ -7,6 +7,7 @@ import { LoginForm } from "@/components/auth/LoginForm";
 import { useAuth } from "@/contexts/AuthContext";
 import { ApiError } from "@/lib/api/errors";
 import { paths } from "@/lib/auth/paths";
+import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 
 export default function SellerLoginPage() {
   const { login } = useAuth();
@@ -17,7 +18,7 @@ export default function SellerLoginPage() {
     if (user.role !== "SELLER") {
       throw new ApiError(
         403,
-        "This login is for sellers only. Use the admin login for platform administrators.",
+        "این ورود فقط برای فروشندگان است. برای مدیران از ورود مدیر استفاده کنید.",
       );
     }
     router.replace(paths.seller.dashboard);
@@ -25,16 +26,19 @@ export default function SellerLoginPage() {
 
   return (
     <GuestOnly role="SELLER">
-      <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4 py-12">
+      <div className="relative flex min-h-screen items-center justify-center bg-background px-4 py-12">
+        <div className="absolute right-4 top-4 z-10">
+          <ThemeSwitcher variant="button" />
+        </div>
         <LoginForm
-          title="Seller login"
-          subtitle="Sign in to manage your store"
+          title="ورود فروشنده"
+          subtitle="برای مدیریت فروشگاه وارد شوید"
           onSubmit={handleLogin}
           footer={
             <>
-              Don&apos;t have an account?{" "}
-              <Link href={paths.seller.register} className="font-medium text-indigo-600 hover:underline">
-                Register
+              حساب ندارید؟{" "}
+              <Link href={paths.seller.register} className="font-medium text-brand-deep hover:underline">
+                ثبت‌نام
               </Link>
             </>
           }

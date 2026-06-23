@@ -1,13 +1,16 @@
 "use client";
 
-import { use } from "react";
+import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import * as productsApi from "@/lib/api/seller/products";
 import { paths } from "@/lib/auth/paths";
 import { useToast } from "@/contexts/ToastContext";
 import { useSellerFetch } from "@/hooks/useSellerFetch";
+import { ConfirmModal } from "@/components/seller/ConfirmModal";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/seller/PageHeader";
 import { ProductForm } from "@/components/seller/ProductForm";
+import { Button } from "@/components/ui/Button";
 import { LoadingState } from "@/components/ui/LoadingState";
 import type { ProductUpdate } from "@/types/seller/product";
 
@@ -20,6 +23,8 @@ export default function EditProductPage({ params }: PageProps) {
   const productId = parseInt(id, 10);
   const router = useRouter();
   const toast = useToast();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const { data, error, isLoading } = useSellerFetch(
     () => productsApi.getProduct(productId),
@@ -28,23 +33,49 @@ export default function EditProductPage({ params }: PageProps) {
 
   async function handleSubmit(body: ProductUpdate) {
     await productsApi.updateProduct(productId, body);
-    toast.success("Product updated");
+    toast.success("محصول به‌روزرسانی شد");
     router.push(paths.seller.products);
   }
 
-  if (isLoading) return <LoadingState message="Loading product…" />;
+  async function handleDelete() {
+    setDeleting(true);
+    try {
+      await productsApi.deleteProduct(productId);
+      toast.success("محصول حذف شد");
+      router.push(paths.seller.products);
+    } catch {
+      toast.error("حذف محصول ممکن نشد");
+    } finally {
+      setDeleting(false);
+      setShowDeleteModal(false);
+    }
+  }
+
+  if (isLoading) return <LoadingState message="در حال بارگذاری محصول..." />;
   if (error || !data) {
     return (
-      <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
-        {error ?? "Product not found"}
-      </p>
+      <EmptyState title="خطا" description={error ?? "محصول پیدا نشد"} />
     );
   }
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Edit product" description={data.title} />
-      <ProductForm initial={data} onSubmit={handleSubmit} submitLabel="Save changes" />
+      <div className="flex items-center justify-between gap-4">
+        <PageHeader title="ویرایش محصول" description={data.title} />
+        <Button variant="danger" onClick={() => setShowDeleteModal(true)}>
+          حذف محصول
+        </Button>
+      </div>
+      <ProductForm initial={data} onSubmit={handleSubmit} submitLabel="ذخیره تغییرات" />
+      <ConfirmModal
+        open={showDeleteModal}
+        title="حذف محصول"
+        message={`آیا از حذف «${data.title}» اطمینان دارید؟`}
+        confirmLabel="حذف"
+        loading={deleting}
+        onConfirm={handleDelete}
+        onClose={() => setShowDeleteModal(false)}
+      />
     </div>
   );
 }

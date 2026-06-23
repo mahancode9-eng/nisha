@@ -1,6 +1,5 @@
 "use client";
 
-import { useCallback } from "react";
 import * as conversationsApi from "@/lib/api/seller/conversations";
 import { paths } from "@/lib/auth/paths";
 import { useSellerFetch } from "@/hooks/useSellerFetch";
@@ -18,7 +17,7 @@ export default function SellerConversationsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Messages" description="Chat with your customers" />
+      <PageHeader title="پیام‌ها" description="با مشتریان خود گفتگو کنید" />
 
       {isLoading && <TableSkeleton rows={5} columns={1} />}
 
@@ -26,8 +25,8 @@ export default function SellerConversationsPage() {
 
       {!isLoading && data?.length === 0 && (
         <EmptyState
-          title="No messages yet"
-          description="When customers message your store, conversations appear here."
+          title="هنوز پیامی ندارید"
+          description="وقتی مشتریان به فروشگاه شما پیام دهند، گفتگوها اینجا نمایش داده می‌شوند."
         />
       )}
 
@@ -45,7 +44,7 @@ export default function SellerConversationsPage() {
       )}
 
       <button type="button" className="sr-only" onClick={() => void refetch()}>
-        Refresh
+        تازه‌سازی
       </button>
     </div>
   );

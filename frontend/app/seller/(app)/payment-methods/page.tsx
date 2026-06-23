@@ -20,9 +20,9 @@ import type {
 } from "@/types/seller/payment-method";
 
 const TYPE_LABELS: Record<string, string> = {
-  CARD_TO_CARD: "Card to card",
-  CRYPTO: "Crypto",
-  EXTERNAL_GATEWAY: "External gateway",
+  CARD_TO_CARD: "کارت‌به‌کارت",
+  CRYPTO: "رمزارز",
+  EXTERNAL_GATEWAY: "درگاه خارجی",
 };
 
 export default function SellerPaymentMethodsPage() {
@@ -54,10 +54,10 @@ export default function SellerPaymentMethodsPage() {
   async function handleSubmit(body: PaymentMethodCreate | PaymentMethodUpdate) {
     if (editing) {
       await paymentMethodsApi.updatePaymentMethod(editing.id, body as PaymentMethodUpdate);
-      toast.success("Payment method updated");
+      toast.success("روش پرداخت به‌روزرسانی شد");
     } else {
       await paymentMethodsApi.createPaymentMethod(body as PaymentMethodCreate);
-      toast.success("Payment method created");
+      toast.success("روش پرداخت ایجاد شد");
     }
     closeModal();
     await refetch();
@@ -68,24 +68,24 @@ export default function SellerPaymentMethodsPage() {
     setDeleting(true);
     try {
       await paymentMethodsApi.deletePaymentMethod(deleteId);
-      toast.success("Payment method deleted");
+      toast.success("روش پرداخت حذف شد");
       setDeleteId(null);
       await refetch();
     } catch {
-      toast.error("Failed to delete payment method");
+      toast.error("حذف روش پرداخت ناموفق بود");
     } finally {
       setDeleting(false);
     }
   }
 
-  if (isLoading) return <LoadingState message="Loading payment methods…" />;
+  if (isLoading) return <LoadingState message="در حال بارگذاری روش‌های پرداخت..." />;
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Payment methods"
-        description="How customers can pay you"
-        action={<Button onClick={openCreate}>Add method</Button>}
+        title="روش‌های پرداخت"
+        description="مشتریان چگونه می‌توانند به شما پرداخت کنند"
+        action={<Button onClick={openCreate}>افزودن روش</Button>}
       />
 
       {error && (
@@ -96,9 +96,9 @@ export default function SellerPaymentMethodsPage() {
 
       {!error && data?.length === 0 && (
         <EmptyState
-          title="No payment methods"
-          description="Add at least one way for customers to pay."
-          action={<Button onClick={openCreate}>Add method</Button>}
+          title="هنوز روش پرداختی ثبت نشده"
+          description="حداقل یک روش برای پرداخت مشتریان اضافه کنید."
+          action={<Button onClick={openCreate}>افزودن روش</Button>}
         />
       )}
 
@@ -114,11 +114,11 @@ export default function SellerPaymentMethodsPage() {
                   </p>
                 </div>
                 <Badge variant={method.is_active ? "success" : "neutral"}>
-                  {method.is_active ? "Active" : "Inactive"}
+                  {method.is_active ? "فعال" : "غیرفعال"}
                 </Badge>
               </div>
               {method.type === "CARD_TO_CARD" && method.card_number && (
-                <p className="mt-2 text-sm text-neutral-600">Card: {method.card_number}</p>
+                <p className="mt-2 text-sm text-neutral-600">کارت: {method.card_number}</p>
               )}
               {method.type === "CRYPTO" && method.wallet_address && (
                 <p className="mt-2 truncate text-sm text-neutral-600">
@@ -126,11 +126,11 @@ export default function SellerPaymentMethodsPage() {
                 </p>
               )}
               {method.type === "EXTERNAL_GATEWAY" && method.external_url && (
-                <p className="mt-2 truncate text-sm text-indigo-600">{method.external_url}</p>
+                <p className="mt-2 truncate text-sm text-brand">{method.external_url}</p>
               )}
               <div className="mt-4 flex gap-2">
                 <Button variant="ghost" size="sm" onClick={() => openEdit(method)}>
-                  Edit
+                  ویرایش
                 </Button>
                 <Button
                   variant="ghost"
@@ -138,7 +138,7 @@ export default function SellerPaymentMethodsPage() {
                   className="text-red-600"
                   onClick={() => setDeleteId(method.id)}
                 >
-                  Delete
+                  حذف
                 </Button>
               </div>
             </CardContent>
@@ -149,7 +149,7 @@ export default function SellerPaymentMethodsPage() {
       <Modal
         open={modalOpen}
         onClose={closeModal}
-        title={editing ? "Edit payment method" : "New payment method"}
+        title={editing ? "ویرایش روش پرداخت" : "روش پرداخت جدید"}
       >
         <PaymentMethodForm
           initial={editing}
@@ -160,9 +160,9 @@ export default function SellerPaymentMethodsPage() {
 
       <ConfirmModal
         open={deleteId !== null}
-        title="Delete payment method"
-        message="Customers will no longer be able to use this payment option."
-        confirmLabel="Delete"
+        title="حذف روش پرداخت"
+        message="مشتریان دیگر نمی‌توانند از این روش پرداخت استفاده کنند."
+        confirmLabel="حذف"
         loading={deleting}
         onConfirm={handleDelete}
         onClose={() => setDeleteId(null)}

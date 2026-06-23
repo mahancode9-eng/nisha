@@ -20,7 +20,7 @@ export function OrderActions({ status, loading, onAction }: OrderActionsProps) {
 
   if (actions.length === 0) {
     return (
-      <p className="text-sm text-neutral-500">No actions available for this order status.</p>
+      <p className="text-sm text-foreground-muted">برای این وضعیت سفارش، اقدامی در دسترس نیست.</p>
     );
   }
 

@@ -1,7 +1,7 @@
 "use client";
 
-import { use, useCallback } from "react";
 import Link from "next/link";
+import { use, useCallback } from "react";
 import * as conversationsApi from "@/lib/api/seller/conversations";
 import { paths } from "@/lib/auth/paths";
 import { ChatThread } from "@/components/chat/ChatThread";
@@ -29,32 +29,30 @@ export default function SellerConversationPage({ params }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <Link href={paths.seller.conversations} className="text-sm text-indigo-600 hover:underline">
-        ← Back to messages
+      <Link href={paths.seller.conversations} className="text-sm text-brand hover:underline">
+        بازگشت به پیام‌ها
       </Link>
       <ChatThread
         conversation={data}
         isLoading={isLoading}
         error={error}
         ownSenderType="SELLER"
-        onSend={async (body) => {
+        onSend={async (payload) => {
           try {
-            await conversationsApi.sendMessage(conversationId, { body });
+            await conversationsApi.sendMessage(conversationId, payload);
             await refetch();
           } catch {
-            toast.error("Failed to send message");
+            toast.error("ارسال پیام ناموفق بود");
           }
         }}
         header={
           data ? (
             <div>
               <h1 className="font-semibold text-neutral-900">{data.customer_name}</h1>
-              {data.invoice_code && (
-                <p className="text-xs text-neutral-500">Order {data.invoice_code}</p>
-              )}
+              {data.invoice_code && <p className="text-xs text-neutral-500">سفارش {data.invoice_code}</p>}
             </div>
           ) : (
-            <span className="text-neutral-500">Loading…</span>
+            <span className="text-neutral-500">در حال بارگذاری...</span>
           )
         }
       />

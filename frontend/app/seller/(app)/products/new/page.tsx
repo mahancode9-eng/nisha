@@ -14,14 +14,14 @@ export default function NewProductPage() {
 
   async function handleSubmit(data: ProductCreate | import("@/types/seller/product").ProductUpdate) {
     await productsApi.createProduct(data as ProductCreate);
-    toast.success("Product created");
+    toast.success("محصول ایجاد شد");
     router.push(paths.seller.products);
   }
 
   return (
     <div className="space-y-6">
-      <PageHeader title="New product" description="Add a product to your store" />
-      <ProductForm onSubmit={handleSubmit} submitLabel="Create product" />
+      <PageHeader title="محصول جدید" description="یک محصول به فروشگاه خود اضافه کنید" />
+      <ProductForm onSubmit={handleSubmit} submitLabel="ایجاد محصول" />
     </div>
   );
 }

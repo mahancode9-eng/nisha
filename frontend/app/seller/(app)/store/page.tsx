@@ -18,16 +18,16 @@ export default function SellerStorePage() {
 
   async function handleSubmit(body: StoreUpdate) {
     await storeApi.updateStore(body);
-    toast.success("Store settings saved");
+    toast.success("تنظیمات فروشگاه ذخیره شد");
     await refetch();
   }
 
-  if (isLoading) return <LoadingState message="Loading store…" />;
+  if (isLoading) return <LoadingState message="در حال بارگذاری فروشگاه..." />;
   if (error || !data) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Store settings" description="Manage your public store profile" />
-        <ErrorAlert message={error ?? "Failed to load store"} />
+        <PageHeader title="تنظیمات فروشگاه" description="پروفایل عمومی فروشگاه خود را مدیریت کنید" />
+        <ErrorAlert message={error ?? "بارگذاری فروشگاه ممکن نشد"} />
       </div>
     );
   }
@@ -35,11 +35,11 @@ export default function SellerStorePage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Store settings"
-        description="Manage your public store profile"
+        title="تنظیمات فروشگاه"
+        description="پروفایل عمومی فروشگاه خود را مدیریت کنید"
         action={
           <Link href={paths.store(data.slug)} target="_blank" rel="noopener noreferrer">
-            <Button variant="secondary">View your store</Button>
+            <Button variant="secondary">مشاهده فروشگاه</Button>
           </Link>
         }
       />

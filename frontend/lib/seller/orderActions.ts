@@ -35,12 +35,12 @@ export function getAvailableOrderActions(status: OrderStatus): OrderAction[] {
 }
 
 export const ORDER_ACTION_LABELS: Record<OrderAction, string> = {
-  confirm_payment: "Confirm payment",
-  reject_payment: "Reject payment",
-  preparing: "Mark preparing",
-  shipped: "Mark shipped",
-  delivered: "Mark delivered",
-  cancel: "Cancel order",
+  confirm_payment: "تایید پرداخت",
+  reject_payment: "رد پرداخت",
+  preparing: "علامت‌گذاری به‌عنوان در حال آماده‌سازی",
+  shipped: "علامت‌گذاری به‌عنوان ارسال‌شده",
+  delivered: "علامت‌گذاری به‌عنوان تحویل‌شده",
+  cancel: "لغو سفارش",
 };
 
 export function isDestructiveAction(action: OrderAction): boolean {

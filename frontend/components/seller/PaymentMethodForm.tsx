@@ -47,7 +47,7 @@ export function PaymentMethodForm({ initial, onSubmit, onCancel }: PaymentMethod
     e.preventDefault();
     setError(null);
     if (!displayName.trim()) {
-      setError("Display name is required.");
+      setError("نام نمایشی الزامی است.");
       return;
     }
     setLoading(true);
@@ -58,14 +58,14 @@ export function PaymentMethodForm({ initial, onSubmit, onCancel }: PaymentMethod
         is_active: isActive,
       };
       if (initial) {
-        const update: PaymentMethodUpdate = { ...base, type };
+        const update: PaymentMethodUpdate = { ...base, type, card_number: null, owner_name: null, wallet_address: null, external_url: null };
         if (type === "CARD_TO_CARD") {
-          update.card_number = cardNumber.trim();
-          update.owner_name = ownerName.trim();
+          update.card_number = cardNumber.trim() || null;
+          update.owner_name = ownerName.trim() || null;
         } else if (type === "CRYPTO") {
-          update.wallet_address = walletAddress.trim();
+          update.wallet_address = walletAddress.trim() || null;
         } else {
-          update.external_url = externalUrl.trim();
+          update.external_url = externalUrl.trim() || null;
         }
         await onSubmit(update);
       } else {
@@ -81,7 +81,7 @@ export function PaymentMethodForm({ initial, onSubmit, onCancel }: PaymentMethod
         await onSubmit(create);
       }
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Failed to save");
+      setError(err instanceof ApiError ? err.message : "ذخیره ممکن نشد");
     } finally {
       setLoading(false);
     }
@@ -90,25 +90,25 @@ export function PaymentMethodForm({ initial, onSubmit, onCancel }: PaymentMethod
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
-        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
+        <p className="rounded-lg bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-700" role="alert">
           {error}
         </p>
       )}
       <div className="space-y-1.5">
-        <label className="block text-sm font-medium text-neutral-700">Type</label>
+        <label className="block text-sm font-medium text-foreground">نوع</label>
         <select
           value={type}
           onChange={(e) => setType(e.target.value as PaymentMethodType)}
           disabled={!!initial}
-          className="block w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+          className="block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm"
         >
-          <option value="CARD_TO_CARD">Card to card</option>
-          <option value="CRYPTO">Crypto</option>
-          <option value="EXTERNAL_GATEWAY">External gateway</option>
+          <option value="CARD_TO_CARD">کارت‌به‌کارت</option>
+          <option value="CRYPTO">رمزارز</option>
+          <option value="EXTERNAL_GATEWAY">درگاه خارجی</option>
         </select>
       </div>
       <Input
-        label="Display name"
+        label="نام نمایشی"
         value={displayName}
         onChange={(e) => setDisplayName(e.target.value)}
         required
@@ -116,13 +116,13 @@ export function PaymentMethodForm({ initial, onSubmit, onCancel }: PaymentMethod
       {type === "CARD_TO_CARD" && (
         <>
           <Input
-            label="Card number"
+            label="شماره کارت"
             value={cardNumber}
             onChange={(e) => setCardNumber(e.target.value)}
             required
           />
           <Input
-            label="Owner name"
+            label="نام صاحب حساب"
             value={ownerName}
             onChange={(e) => setOwnerName(e.target.value)}
             required
@@ -131,7 +131,7 @@ export function PaymentMethodForm({ initial, onSubmit, onCancel }: PaymentMethod
       )}
       {type === "CRYPTO" && (
         <Input
-          label="Wallet address"
+          label="آدرس کیف پول"
           value={walletAddress}
           onChange={(e) => setWalletAddress(e.target.value)}
           required
@@ -139,7 +139,7 @@ export function PaymentMethodForm({ initial, onSubmit, onCancel }: PaymentMethod
       )}
       {type === "EXTERNAL_GATEWAY" && (
         <Input
-          label="External URL"
+          label="نشانی درگاه"
           type="url"
           value={externalUrl}
           onChange={(e) => setExternalUrl(e.target.value)}
@@ -147,26 +147,26 @@ export function PaymentMethodForm({ initial, onSubmit, onCancel }: PaymentMethod
         />
       )}
       <Textarea
-        label="Instructions"
+        label="توضیحات"
         value={instructions}
         onChange={(e) => setInstructions(e.target.value)}
         rows={3}
       />
-      <label className="flex items-center gap-2 text-sm text-neutral-700">
+      <label className="flex items-center gap-2 text-sm text-foreground">
         <input
           type="checkbox"
           checked={isActive}
           onChange={(e) => setIsActive(e.target.checked)}
-          className="rounded border-neutral-300"
+          className="rounded border-border"
         />
-        Active
+        فعال
       </label>
       <div className="flex justify-end gap-3 pt-2">
         <Button type="button" variant="secondary" onClick={onCancel}>
-          Cancel
+          انصراف
         </Button>
         <Button type="submit" loading={loading}>
-          {initial ? "Update" : "Create"}
+          {initial ? "به‌روزرسانی" : "ایجاد"}
         </Button>
       </div>
     </form>

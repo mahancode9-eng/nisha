@@ -1,4 +1,5 @@
 import type { OrderStatus } from "@/types/order";
+import type { SellerOnboardingStatus, SellerOnboardingStepKey } from "@/types/seller/onboarding";
 
 export type LowStockProductItem = {
   id: number;
@@ -17,6 +18,11 @@ export type RecentOrderItem = {
 };
 
 export type SellerDashboardResponse = {
+  store_readiness_score: number;
+  store_readiness_missing_tasks: string[];
+  onboarding_status: SellerOnboardingStatus;
+  onboarding_current_step: SellerOnboardingStepKey | null;
+  onboarding_completed_at: string | null;
   total_orders: number;
   pending_orders: number;
   payment_uploaded_orders: number;

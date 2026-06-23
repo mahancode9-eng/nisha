@@ -42,11 +42,11 @@ export default function SellerProductsPage() {
     setDeleting(true);
     try {
       await productsApi.deleteProduct(deleteId);
-      toast.success("Product deleted");
+      toast.success("محصول حذف شد");
       setDeleteId(null);
       await refetch();
     } catch {
-      toast.error("Failed to delete product");
+      toast.error("حذف محصول ناموفق بود");
     } finally {
       setDeleting(false);
     }
@@ -57,11 +57,11 @@ export default function SellerProductsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Products"
-        description="Manage your catalog"
+        title="محصولات"
+        description="کاتالوگ خود را مدیریت کنید"
         action={
           <Link href={paths.seller.productNew}>
-            <Button>Add product</Button>
+            <Button>افزودن محصول</Button>
           </Link>
         }
       />
@@ -72,11 +72,11 @@ export default function SellerProductsPage() {
 
       {!isLoading && !error && data && data.total === 0 && (
         <EmptyState
-          title="No products yet"
-          description="Add your first product to start selling."
+          title="هنوز محصولی ندارید"
+          description="اولین محصول خود را اضافه کنید تا فروش را شروع کنید."
           action={
             <Link href={paths.seller.productNew}>
-              <Button>Add product</Button>
+              <Button>افزودن محصول</Button>
             </Link>
           }
         />
@@ -87,11 +87,11 @@ export default function SellerProductsPage() {
           <Table>
             <TableHead>
               <TableRow>
-                <TableHeaderCell>Title</TableHeaderCell>
-                <TableHeaderCell>Price</TableHeaderCell>
-                <TableHeaderCell>Stock</TableHeaderCell>
-                <TableHeaderCell>Status</TableHeaderCell>
-                <TableHeaderCell>Actions</TableHeaderCell>
+                <TableHeaderCell>عنوان</TableHeaderCell>
+                <TableHeaderCell>قیمت</TableHeaderCell>
+                <TableHeaderCell>موجودی</TableHeaderCell>
+                <TableHeaderCell>وضعیت</TableHeaderCell>
+                <TableHeaderCell>عملیات</TableHeaderCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -102,14 +102,14 @@ export default function SellerProductsPage() {
                   <TableCell>{product.stock_quantity}</TableCell>
                   <TableCell>
                     <Badge variant={product.is_active ? "success" : "neutral"}>
-                      {product.is_active ? "Active" : "Inactive"}
+                      {product.is_active ? "فعال" : "غیرفعال"}
                     </Badge>
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">
                       <Link href={paths.seller.productEdit(product.id)}>
                         <Button variant="ghost" size="sm">
-                          Edit
+                          ویرایش
                         </Button>
                       </Link>
                       <Button
@@ -118,7 +118,7 @@ export default function SellerProductsPage() {
                         className="text-red-600 hover:text-red-700"
                         onClick={() => setDeleteId(product.id)}
                       >
-                        Delete
+                        حذف
                       </Button>
                     </div>
                   </TableCell>
@@ -139,9 +139,9 @@ export default function SellerProductsPage() {
 
       <ConfirmModal
         open={deleteId !== null}
-        title="Delete product"
-        message="This cannot be undone. The product will be removed from your store."
-        confirmLabel="Delete"
+        title="حذف محصول"
+        message="این عملیات قابل بازگشت نیست. محصول از فروشگاه شما حذف می‌شود."
+        confirmLabel="حذف"
         loading={deleting}
         onConfirm={handleDelete}
         onClose={() => setDeleteId(null)}

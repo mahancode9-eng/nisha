@@ -8,6 +8,9 @@ export type SellerOrderListItem = {
   buyer_name: string;
   buyer_phone: string;
   total_amount: string;
+  customer_id: number | null;
+  receipt_status: "RECEIVED" | "NOT_RECEIVED" | null;
+  complaint_count: number;
   created_at: string;
 };
 
@@ -44,6 +47,9 @@ export type SellerOrderDetail = {
   buyer_note: string | null;
   subtotal_amount: string;
   total_amount: string;
+  customer_id: number | null;
+  receipt_status: "RECEIVED" | "NOT_RECEIVED" | null;
+  complaint_count: number;
   stock_restored: boolean;
   created_at: string;
   updated_at: string;
