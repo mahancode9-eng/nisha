@@ -7,7 +7,7 @@ type TableSkeletonProps = {
 
 export function TableSkeleton({ rows = 5, columns = 4 }: TableSkeletonProps) {
   return (
-    <div className="space-y-3" aria-busy aria-label="Loading table">
+    <div className="space-y-3" aria-busy aria-label="در حال بارگذاری جدول">
       <div className="flex gap-4">
         {Array.from({ length: columns }).map((_, i) => (
           <Skeleton key={i} className="h-4 flex-1" />

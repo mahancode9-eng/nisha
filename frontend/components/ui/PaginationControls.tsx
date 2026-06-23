@@ -16,9 +16,9 @@ export function PaginationControls({
   if (totalPages <= 1) return null;
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-neutral-200 pt-4">
-      <p className="text-sm text-neutral-600">
-        Page {page} of {totalPages} ({total} total)
+    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
+      <p className="text-sm text-foreground-muted">
+        صفحه {page} از {totalPages} ({total} مورد)
       </p>
       <div className="flex gap-2">
         <Button
@@ -27,7 +27,7 @@ export function PaginationControls({
           disabled={page <= 1}
           onClick={() => onPageChange(page - 1)}
         >
-          Previous
+          قبلی
         </Button>
         <Button
           variant="secondary"
@@ -35,7 +35,7 @@ export function PaginationControls({
           disabled={page >= totalPages}
           onClick={() => onPageChange(page + 1)}
         >
-          Next
+          بعدی
         </Button>
       </div>
     </div>

@@ -8,11 +8,11 @@ type BadgeProps = HTMLAttributes<HTMLSpanElement> & {
 };
 
 const variantClasses: Record<BadgeVariant, string> = {
-  neutral: "bg-neutral-100 text-neutral-700",
-  success: "bg-green-100 text-green-800",
-  warning: "bg-amber-100 text-amber-800",
-  danger: "bg-red-100 text-red-800",
-  info: "bg-blue-100 text-blue-800",
+  neutral: "bg-surface-muted text-foreground",
+  success: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
+  warning: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
+  danger: "bg-red-500/15 text-red-700 dark:text-red-300",
+  info: "bg-brand-soft text-brand-deep",
 };
 
 export function Badge({ className, variant = "neutral", ...props }: BadgeProps) {

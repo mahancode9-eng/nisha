@@ -5,7 +5,7 @@ export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       className={cn(
-        "rounded-xl border border-neutral-200 bg-white shadow-sm",
+        "rounded-3xl border border-border bg-surface shadow-sm",
         className,
       )}
       {...props}
@@ -14,7 +14,7 @@ export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
 }
 
 export function CardHeader({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("border-b border-neutral-100 px-6 py-4", className)} {...props} />;
+  return <div className={cn("border-b border-border px-5 py-4 sm:px-6", className)} {...props} />;
 }
 
 export function CardTitle({
@@ -23,7 +23,7 @@ export function CardTitle({
   ...props
 }: HTMLAttributes<HTMLHeadingElement>) {
   return (
-    <h2 className={cn("text-lg font-semibold text-neutral-900", className)} {...props}>
+    <h2 className={cn("text-lg font-semibold text-foreground", className)} {...props}>
       {children}
     </h2>
   );
@@ -36,5 +36,5 @@ export function CardContent({
   className?: string;
   children: ReactNode;
 }) {
-  return <div className={cn("px-6 py-4", className)}>{children}</div>;
+  return <div className={cn("px-5 py-4 sm:px-6", className)}>{children}</div>;
 }

@@ -5,7 +5,7 @@ import { cn } from "@/lib/cn";
 type ToastItem = {
   id: number;
   message: string;
-  variant: "success" | "error";
+  variant: "success" | "error" | "warning";
 };
 
 type ToastContainerProps = {
@@ -18,7 +18,7 @@ export function ToastContainer({ toasts, onDismiss }: ToastContainerProps) {
 
   return (
     <div
-      className="pointer-events-none fixed bottom-4 right-4 z-[100] flex max-w-sm flex-col gap-2"
+      className="pointer-events-none fixed bottom-4 end-4 z-[100] flex max-w-sm flex-col gap-2"
       aria-live="polite"
     >
       {toasts.map((toast) => (
@@ -27,17 +27,19 @@ export function ToastContainer({ toasts, onDismiss }: ToastContainerProps) {
           className={cn(
             "pointer-events-auto rounded-lg border px-4 py-3 text-sm shadow-lg",
             toast.variant === "success"
-              ? "border-green-200 bg-green-50 text-green-900"
-              : "border-red-200 bg-red-50 text-red-900",
+              ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-900 dark:text-emerald-100"
+              : toast.variant === "warning"
+                ? "border-amber-500/20 bg-amber-500/10 text-amber-900 dark:text-amber-100"
+                : "border-red-500/20 bg-red-500/10 text-red-900 dark:text-red-100",
           )}
         >
           <div className="flex items-start justify-between gap-3">
             <p>{toast.message}</p>
             <button
               type="button"
-              className="shrink-0 text-neutral-500 hover:text-neutral-800"
+              className="shrink-0 text-foreground-muted hover:text-foreground"
               onClick={() => onDismiss(toast.id)}
-              aria-label="Dismiss"
+              aria-label="بستن"
             >
               ×
             </button>
