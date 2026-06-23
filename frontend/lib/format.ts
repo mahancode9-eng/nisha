@@ -1,20 +1,33 @@
+function getLocale(): string {
+  if (typeof document === "undefined") {
+    return "fa-IR";
+  }
+
+  return document.documentElement.lang === "en" ? "en-US" : "fa-IR";
+}
+
 export function formatMoney(value: string | number): string {
   const num = typeof value === "string" ? parseFloat(value) : value;
   if (Number.isNaN(num)) return String(value);
-  return new Intl.NumberFormat(undefined, {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 2,
+  const formatted = new Intl.NumberFormat(getLocale(), {
+    style: "decimal",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
   }).format(num);
+  return `${formatted} تومان`;
 }
 
 export function formatDateTime(iso: string): string {
-  return new Date(iso).toLocaleString(undefined, {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleString(getLocale(), {
     dateStyle: "medium",
     timeStyle: "short",
   });
 }
 
 export function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString(undefined, { dateStyle: "medium" });
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString(getLocale(), { dateStyle: "medium" });
 }
