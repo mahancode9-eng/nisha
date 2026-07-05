@@ -14,6 +14,24 @@ services:
       timeout: 5s
       retries: 5
 
+  db-backup:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      PGHOST: db
+      PGUSER: nisha
+      PGDATABASE: nisha
+      PGPASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      BACKUP_INTERVAL_SECONDS: ${BACKUP_INTERVAL_SECONDS:-86400}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-14}
+    volumes:
+      - ./backups:/backups
+      - ./scripts/db-backup.sh:/usr/local/bin/db-backup.sh:ro
+    entrypoint: ["/bin/sh", "/usr/local/bin/db-backup.sh"]
+    depends_on:
+      db:
+        condition: service_healthy
+
   backend:
     build:
       context: ./backend
