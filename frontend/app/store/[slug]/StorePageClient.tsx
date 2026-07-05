@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import * as storesApi from "@/lib/api/public/stores";
 import { useCart } from "@/contexts/CartContext";
 import { resolveMediaUrl } from "@/lib/media";
 import { resolveContactHref } from "@/lib/seller/contactChannels";
 import { findSellerStoreCategory } from "@/lib/seller/storeCategories";
 import { MessageSellerButton } from "@/components/store/MessageSellerButton";
-import { ProductCard } from "@/components/store/ProductCard";
+import { ProductBrowser } from "@/components/store/ProductBrowser";
 import { Badge } from "@/components/ui/Badge";
 import { Card, CardContent } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -264,15 +264,9 @@ export function StorePageClient({ slug, initialData, initialError }: StorePageCl
             <Badge variant="info">{products.length} موجود</Badge>
           </div>
 
-          {products.length === 0 ? (
-            <EmptyState title="محصولی موجود نیست" description="بعدا دوباره بررسی کنید." />
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              {products.map((product) => (
-                <ProductCard key={product.id} product={product} storeSlug={slug} />
-              ))}
-            </div>
-          )}
+          <Suspense fallback={null}>
+            <ProductBrowser slug={slug} initialProducts={products} />
+          </Suspense>
         </section>
       )}
 

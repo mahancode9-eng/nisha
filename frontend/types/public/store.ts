@@ -45,6 +45,16 @@ export type PublicProduct = {
   image_count: number;
 };
 
+export type ProductSortKey = "newest" | "cheapest" | "most_expensive" | "best_selling";
+
+export type PublicProductListResponse = {
+  items: PublicProduct[];
+  total: number;
+  page: number;
+  page_size: number;
+  has_more: boolean;
+};
+
 export type PublicStoreReview = {
   id: number;
   order_id: number;
