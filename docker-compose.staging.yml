@@ -1,0 +1,26 @@
+# Staging environment - overrides applied on top of the production compose file.
+#
+# Usage (requires Docker Compose v2.24+ for the !override tag):
+#   docker compose -p nisha-staging \
+#     -f docker-compose.prod.yml -f docker-compose.staging.yml \
+#     --env-file .env.staging up -d --build
+#
+# The "-p nisha-staging" project name keeps containers, volumes and networks
+# fully isolated from production, even on the same server.
+
+services:
+  backend:
+    ports: !override
+      - "127.0.0.1:9100:8000"
+    environment:
+      # Sample all traces on staging - traffic is low and we want maximum detail.
+      SENTRY_TRACES_SAMPLE_RATE: ${SENTRY_TRACES_SAMPLE_RATE:-1.0}
+
+  frontend:
+    ports: !override
+      - "127.0.0.1:3100:3000"
+
+  db-backup:
+    environment:
+      # Staging data is disposable - keep backups only a few days.
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-3}
