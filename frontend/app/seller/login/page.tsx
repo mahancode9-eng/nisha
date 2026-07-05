@@ -6,6 +6,7 @@ import { GuestOnly } from "@/components/auth/GuestOnly";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { useAuth } from "@/contexts/AuthContext";
 import { ApiError } from "@/lib/api/errors";
+import * as onboardingApi from "@/lib/api/seller/onboarding";
 import { paths } from "@/lib/auth/paths";
 import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 
@@ -21,6 +22,18 @@ export default function SellerLoginPage() {
         "این ورود فقط برای فروشندگان است. برای مدیران از ورود مدیر استفاده کنید.",
       );
     }
+
+    try {
+      const onboarding = await onboardingApi.getOnboarding();
+      const status = onboarding.state.status;
+      if (status !== "COMPLETED" && status !== "SKIPPED") {
+        router.replace(paths.seller.onboarding);
+        return;
+      }
+    } catch {
+      // Fall through to dashboard if onboarding state is unavailable.
+    }
+
     router.replace(paths.seller.dashboard);
   }
 

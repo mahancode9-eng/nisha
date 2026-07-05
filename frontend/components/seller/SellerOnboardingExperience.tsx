@@ -69,13 +69,19 @@ const STEP_ORDER: StepMeta[] = [
     key: "welcome",
     title: "خوش‌آمدید",
     description: "در چند دقیقه فروشگاه را می‌سازیم و برای فروش آماده می‌کنیم.",
-    helper: "این مسیر به شما کمک می‌کند سریع‌تر به اولین فروش برسید.",
+    helper: "ابتدا با قابلیت‌های پلتفرم آشنا می‌شوید، سپس فروشگاه را قدم‌به‌قدم می‌سازید.",
+  },
+  {
+    key: "education",
+    title: "آشنایی با پلتفرم",
+    description: "قبل از ساخت فروشگاه، ابزارهای اصلی را بشناسید.",
+    helper: "این مرحله کمک می‌کند بدانید بعد از راه‌اندازی چه کارهایی می‌توانید انجام دهید.",
   },
   {
     key: "store_identity",
     title: "هویت فروشگاه",
     description: "نام و ظاهر فروشگاه را تنظیم کنید.",
-    helper: "فروشگاه‌های با لوگو و تصویر شاخص، اعتماد بیشتری می‌گیرند.",
+    helper: "لوگو و تصویر جلد اعتماد مشتری را بیشتر می‌کنند.",
   },
   {
     key: "store_information",
@@ -87,25 +93,19 @@ const STEP_ORDER: StepMeta[] = [
     key: "contact_channels",
     title: "راه‌های ارتباطی",
     description: "کانال‌های ارتباطی فروشگاه را اضافه کنید.",
-    helper: "مشتری وقتی سریع شما را پیدا کند، راحت‌تر خرید می‌کند.",
+    helper: "اختیاری است؛ می‌توانید بعداً از داشبورد تکمیل کنید.",
   },
   {
     key: "first_product",
     title: "اولین محصول",
     description: "اولین محصول فروشگاه را منتشر کنید.",
-    helper: "رسیدن به اولین محصول، مهم‌ترین لحظه فعال‌سازی است.",
-  },
-  {
-    key: "education",
-    title: "آموزش پلتفرم",
-    description: "مهم‌ترین قابلیت‌ها را یک‌جا ببینید.",
-    helper: "این مرحله کمک می‌کند ارزش‌های پلتفرم را سریع بفهمید.",
+    helper: "بدون محصول، مشتری نمی‌تواند خرید کند.",
   },
   {
     key: "activation",
     title: "فعال‌سازی",
     description: "فروشگاه آماده است. مسیرهای بعدی را ببینید.",
-    helper: "حالا می‌توانید از داشبورد، ادامه کار را مدیریت کنید.",
+    helper: "از داشبورد می‌توانید سفارش‌ها، گفتگوها و تنظیمات را مدیریت کنید.",
   },
 ];
 
@@ -423,7 +423,9 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
     try {
       await saveOnboardingProgress(buildNavigationPayload(targetStep));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "ط°ط®غŒط±ظ‡ ظ…ط±ط­ظ„ظ‡ ظ†ط§ظ…ظˆظپظ‚ ط¨ظˆط¯");
+      const msg = err instanceof Error ? err.message : "ذخیره مرحله ناموفق بود";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -431,7 +433,7 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
 
   async function continueWelcome() {
     await saveOnboardingProgress({
-      current_step: "store_identity",
+      current_step: "education",
       completed_steps: [...completedSteps, "welcome"],
       status: "IN_PROGRESS",
     });
@@ -439,7 +441,7 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
 
   async function skipWelcome() {
     await saveOnboardingProgress({
-      current_step: "store_identity",
+      current_step: "education",
       status: "SKIPPED",
     });
     router.replace(paths.seller.dashboard);
@@ -451,9 +453,6 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
     try {
       if (!drafts.storeIdentity.name.trim()) {
         throw new Error("نام فروشگاه را وارد کنید.");
-      }
-      if (!drafts.storeIdentity.logoUrl.trim()) {
-        throw new Error("لوگو برای فروشگاه لازم است.");
       }
 
       await storeApi.updateStore({
@@ -472,7 +471,9 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
         status: "IN_PROGRESS",
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "ذخیره هویت فروشگاه ناموفق بود");
+      const msg = err instanceof Error ? err.message : "ذخیره هویت فروشگاه ناموفق بود";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -517,7 +518,9 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
         status: "IN_PROGRESS",
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "ذخیره اطلاعات فروشگاه ناموفق بود");
+      const msg = err instanceof Error ? err.message : "ذخیره اطلاعات فروشگاه ناموفق بود";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -527,14 +530,12 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
     setLoading(true);
     setError(null);
     try {
-      if (drafts.contactChannels.some((link) => !link.url.trim())) {
-        throw new Error("برای هر راه ارتباطی یک مقدار وارد کنید.");
-      }
-      if (drafts.contactChannels.some((link) => link.platform === "other" && !link.customLabel.trim())) {
+      const activeLinks = drafts.contactChannels.filter((link) => link.url.trim());
+      if (activeLinks.some((link) => link.platform === "other" && !link.customLabel.trim())) {
         throw new Error("برای لینک‌های با برچسب سفارشی، یک عنوان وارد کنید.");
       }
 
-      const social_links = drafts.contactChannels.map((link, index) => ({
+      const social_links = activeLinks.map((link, index) => ({
         label: makeSocialLinkLabel(link.platform, link.customLabel),
         url: resolveContactHref(link.platform, link.url),
         icon_key: link.platform,
@@ -555,7 +556,9 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
         status: "IN_PROGRESS",
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "ذخیره راه‌های ارتباطی ناموفق بود");
+      const msg = err instanceof Error ? err.message : "ذخیره راه‌های ارتباطی ناموفق بود";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -565,6 +568,15 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
     setLoading(true);
     setError(null);
     try {
+      if (serverState.first_product_id) {
+        await saveOnboardingProgress({
+          current_step: "activation",
+          completed_steps: [...completedSteps, "first_product"],
+          status: "IN_PROGRESS",
+        });
+        return;
+      }
+
       if (!drafts.firstProduct.title.trim()) {
         throw new Error("نام محصول را وارد کنید.");
       }
@@ -579,7 +591,7 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
         title: drafts.firstProduct.title.trim(),
         description: drafts.firstProduct.description.trim() || null,
         price: drafts.firstProduct.price.trim(),
-        stock_quantity: 1,
+        stock_quantity: drafts.firstProduct.stockQuantity || 1,
         is_active: true,
         images: [
           {
@@ -592,7 +604,7 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
       });
 
       await saveOnboardingProgress({
-        current_step: "education",
+        current_step: "activation",
         completed_steps: [...completedSteps, "first_product"],
         first_product_id: created.id,
         first_product: {
@@ -602,13 +614,15 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
           description: drafts.firstProduct.description.trim() || null,
           image_url: drafts.firstProduct.imageUrl.trim() || null,
           thumbnail_url: drafts.firstProduct.thumbnailUrl.trim() || null,
-          stock_quantity: 1,
+          stock_quantity: drafts.firstProduct.stockQuantity || 1,
           is_active: true,
         },
         status: "IN_PROGRESS",
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "ایجاد اولین محصول ناموفق بود");
+      const msg = err instanceof Error ? err.message : "ایجاد اولین محصول ناموفق بود";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -616,7 +630,7 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
 
   async function continueEducation() {
     await saveOnboardingProgress({
-      current_step: "activation",
+      current_step: "store_identity",
       completed_steps: [...completedSteps, "education"],
       status: "IN_PROGRESS",
     });
@@ -654,7 +668,9 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
       toast.success("فروشگاه شما آماده است");
       router.replace(paths.seller.dashboard);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "پایان onboarding ناموفق بود");
+      const msg = err instanceof Error ? err.message : "پایان راه‌اندازی ناموفق بود";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -662,17 +678,20 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
 
   const currentChecklist = useMemo(
     () => [
-      { label: "فروشگاه ساخته شد", done: Boolean(drafts.storeIdentity.name.trim()) },
+      { label: "نام فروشگاه ثبت شد", done: Boolean(drafts.storeIdentity.name.trim()) },
       {
         label: "پروفایل تکمیل شد",
         done:
-          Boolean(drafts.storeIdentity.logoUrl.trim()) &&
           Boolean(drafts.storeInformation.description.trim()) &&
           Boolean(drafts.storeInformation.categorySlug.trim()),
       },
+      {
+        label: "راه‌های ارتباطی (اختیاری)",
+        done: drafts.contactChannels.some((link) => link.url.trim()),
+      },
       { label: "اولین محصول اضافه شد", done: Boolean(serverState.first_product_id) },
     ],
-    [drafts.storeIdentity, drafts.storeInformation, serverState.first_product_id],
+    [drafts.storeIdentity, drafts.storeInformation, drafts.contactChannels, serverState.first_product_id],
   );
 
   function renderPreview() {
@@ -681,7 +700,7 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
         return (
           <Card className="overflow-hidden border-white/10 bg-white/5 text-white shadow-[0_20px_80px_rgba(0,0,0,0.25)]">
             <div className="bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.18),_transparent_60%)] px-5 py-6">
-              <p className="text-xs tracking-[0.24em] text-white/70">PRODUCT LED ONBOARDING</p>
+              <p className="text-xs tracking-[0.24em] text-white/70">راه‌اندازی فروشگاه</p>
               <h3 className="mt-3 text-2xl font-semibold">در چند دقیقه فروشگاه‌تان را راه بیندازید</h3>
               <p className="mt-3 text-sm leading-6 text-white/75">
                 این مسیر شما را قدم‌به‌قدم به اولین محصول و اولین فروش نزدیک می‌کند.
@@ -815,10 +834,10 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
       case "education":
         return (
           <div className="grid gap-3 sm:grid-cols-2">
-            <FeatureCard title="مدیریت سفارش" description="سفارش‌ها را پیگیری و وضعیت آن‌ها را به‌روز کنید." />
-            <FeatureCard title="چت با مشتری" description="از مسیر گفتگو، خرید را به نتیجه برسانید." />
-            <FeatureCard title="نظرات" description="بازخورد مشتریان را به اعتماد تبدیل کنید." />
-            <FeatureCard title="تحلیل فروش" description="عملکرد فروشگاه را در یک نگاه دنبال کنید." />
+            <FeatureCard title="مدیریت سفارش" description="سفارش‌ها را از داشبورد پیگیری و وضعیت آن‌ها را به‌روز کنید." />
+            <FeatureCard title="گفتگو با مشتری" description="از بخش گفتگوها مستقیماً با خریداران در ارتباط باشید." />
+            <FeatureCard title="روش‌های پرداخت" description="حساب‌های دریافت وجه را در تنظیمات پرداخت اضافه کنید." />
+            <FeatureCard title="داشبورد فروش" description="درآمد، سفارش‌های اخیر و وضعیت فروشگاه را یک‌جا ببینید." />
           </div>
         );
       case "activation":
@@ -849,7 +868,7 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
           <Card className="border-0 bg-white/5 shadow-none ring-1 ring-white/10 backdrop-blur">
             <CardContent className="space-y-6 py-8 text-white">
               <div className="space-y-3">
-                <p className="text-xs tracking-[0.26em] text-white/60">SELLER ONBOARDING</p>
+                <p className="text-xs tracking-[0.26em] text-white/60">راه‌اندازی فروشنده</p>
                 <h1 className="max-w-xl text-4xl font-semibold leading-tight sm:text-5xl">
                   در چند دقیقه فروشگاه خود را برای فروش آماده کنید
                 </h1>
@@ -858,16 +877,16 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
                 </p>
               </div>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                <FeatureCard title="ساخت فروشگاه" description="نام، ظاهر و اطلاعات اصلی فروشگاه را تنظیم کنید." />
-                <FeatureCard title="معرفی قابلیت‌ها" description="قبل از شروع، ارزش‌های پلتفرم را واضح ببینید." />
-                <FeatureCard title="فعال‌سازی سریع" description="اولین محصول را به‌سرعت منتشر کنید و وارد بازار شوید." />
+                <FeatureCard title="آشنایی با پلتفرم" description="ابتدا با ابزارهای اصلی آشنا می‌شوید." />
+                <FeatureCard title="ساخت فروشگاه" description="نام، ظاهر و اطلاعات فروشگاه را تنظیم کنید." />
+                <FeatureCard title="اولین محصول" description="محصول را منتشر کنید تا مشتری بتواند خرید کند." />
               </div>
               <div className="flex flex-wrap gap-3">
                 <Button type="button" onClick={() => void continueWelcome()}>
                   شروع راه‌اندازی
                 </Button>
                 <Button type="button" variant="secondary" onClick={() => void skipWelcome()}>
-                  فعلاً نه
+                  بعداً از داشبورد
                 </Button>
               </div>
             </CardContent>
@@ -878,9 +897,9 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
           <Card className="border-border bg-surface shadow-sm">
             <CardContent className="space-y-6 py-6">
               <div>
-                <p className="text-xs tracking-[0.2em] text-foreground-muted">{STEP_ORDER[1].title}</p>
+                <p className="text-xs tracking-[0.2em] text-foreground-muted">{activeStep.title}</p>
                 <h2 className="mt-2 text-2xl font-semibold text-foreground">هویت فروشگاه را مشخص کنید</h2>
-                <p className="mt-2 text-sm leading-6 text-foreground-muted">{STEP_ORDER[1].helper}</p>
+                <p className="mt-2 text-sm leading-6 text-foreground-muted">{activeStep.helper}</p>
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <Input
@@ -909,7 +928,9 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
                         },
                       }));
                     } catch (err) {
-                      setError(err instanceof Error ? err.message : "بارگذاری لوگو ناموفق بود");
+                      const msg = err instanceof Error ? err.message : "بارگذاری لوگو ناموفق بود";
+                      setError(msg);
+                      toast.error(msg);
                     } finally {
                       event.target.value = "";
                     }
@@ -945,7 +966,9 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
                         },
                       }));
                     } catch (err) {
-                      setError(err instanceof Error ? err.message : "بارگذاری تصویر جلد ناموفق بود");
+                      const msg = err instanceof Error ? err.message : "بارگذاری تصویر جلد ناموفق بود";
+                      setError(msg);
+                      toast.error(msg);
                     } finally {
                       event.target.value = "";
                     }
@@ -976,9 +999,6 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
                 <Button type="button" onClick={() => void continueStoreIdentity()} loading={loading}>
                   ذخیره و ادامه
                 </Button>
-                <Button type="button" variant="ghost" onClick={() => void moveStep(1)}>
-                  رد کردن این مرحله
-                </Button>
               </div>
             </CardContent>
           </Card>
@@ -988,9 +1008,9 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
           <Card className="border-border bg-surface shadow-sm">
             <CardContent className="space-y-6 py-6">
               <div>
-                <p className="text-xs tracking-[0.2em] text-foreground-muted">{STEP_ORDER[2].title}</p>
+                <p className="text-xs tracking-[0.2em] text-foreground-muted">{activeStep.title}</p>
                 <h2 className="mt-2 text-2xl font-semibold text-foreground">اطلاعات فروشگاه را کامل کنید</h2>
-                <p className="mt-2 text-sm leading-6 text-foreground-muted">{STEP_ORDER[2].helper}</p>
+                <p className="mt-2 text-sm leading-6 text-foreground-muted">{activeStep.helper}</p>
               </div>
               <Textarea
                 label="توضیحات فروشگاه"
@@ -1072,9 +1092,6 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
                 <Button type="button" onClick={() => void continueStoreInformation()} loading={loading}>
                   ذخیره و ادامه
                 </Button>
-                <Button type="button" variant="ghost" onClick={() => void moveStep(1)}>
-                  رد کردن این مرحله
-                </Button>
               </div>
             </CardContent>
           </Card>
@@ -1084,9 +1101,9 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
           <Card className="border-border bg-surface shadow-sm">
             <CardContent className="space-y-6 py-6">
               <div>
-                <p className="text-xs tracking-[0.2em] text-foreground-muted">{STEP_ORDER[3].title}</p>
+                <p className="text-xs tracking-[0.2em] text-foreground-muted">{activeStep.title}</p>
                 <h2 className="mt-2 text-2xl font-semibold text-foreground">راه‌های ارتباطی مشتری را اضافه کنید</h2>
-                <p className="mt-2 text-sm leading-6 text-foreground-muted">{STEP_ORDER[3].helper}</p>
+                <p className="mt-2 text-sm leading-6 text-foreground-muted">{activeStep.helper}</p>
               </div>
               <div className="space-y-3">
                 {drafts.contactChannels.length === 0 ? (
@@ -1248,9 +1265,9 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
           <Card className="border-border bg-surface shadow-sm">
             <CardContent className="space-y-6 py-6">
               <div>
-                <p className="text-xs tracking-[0.2em] text-foreground-muted">{STEP_ORDER[4].title}</p>
+                <p className="text-xs tracking-[0.2em] text-foreground-muted">{activeStep.title}</p>
                 <h2 className="mt-2 text-2xl font-semibold text-foreground">اولین محصول را منتشر کنید</h2>
-                <p className="mt-2 text-sm leading-6 text-foreground-muted">{STEP_ORDER[4].helper}</p>
+                <p className="mt-2 text-sm leading-6 text-foreground-muted">{activeStep.helper}</p>
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <Input
@@ -1303,7 +1320,9 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
                         },
                       }));
                     } catch (err) {
-                      setError(err instanceof Error ? err.message : "بارگذاری تصویر محصول ناموفق بود");
+                      const msg = err instanceof Error ? err.message : "بارگذاری تصویر محصول ناموفق بود";
+                      setError(msg);
+                      toast.error(msg);
                     } finally {
                       event.target.value = "";
                     }
@@ -1332,10 +1351,7 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
                   بازگشت
                 </Button>
                 <Button type="button" onClick={() => void continueFirstProduct()} loading={loading}>
-                  ذخیره و ادامه
-                </Button>
-                <Button type="button" variant="ghost" onClick={() => void moveStep(1)}>
-                  رد کردن این مرحله
+                  {serverState.first_product_id ? "ادامه" : "ذخیره و ادامه"}
                 </Button>
               </div>
             </CardContent>
@@ -1346,16 +1362,15 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
           <Card className="border-border bg-surface shadow-sm">
             <CardContent className="space-y-6 py-6">
               <div>
-                <p className="text-xs tracking-[0.2em] text-foreground-muted">{STEP_ORDER[5].title}</p>
-                <h2 className="mt-2 text-2xl font-semibold text-foreground">قابلیت‌های اصلی را بشناسید</h2>
-                <p className="mt-2 text-sm leading-6 text-foreground-muted">{STEP_ORDER[5].helper}</p>
+                <p className="text-xs tracking-[0.2em] text-foreground-muted">{activeStep.title}</p>
+                <h2 className="mt-2 text-2xl font-semibold text-foreground">ابزارهای اصلی پنل فروشنده</h2>
+                <p className="mt-2 text-sm leading-6 text-foreground-muted">{activeStep.helper}</p>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
-                <FeatureCard title="مدیریت سفارش" description="سفارش‌ها را پیگیری و مدیریت کنید." />
-                <FeatureCard title="گفتگو با مشتری" description="مستقیماً با خریداران در ارتباط باشید." />
-                <FeatureCard title="نظرات" description="اعتماد را با بازخوردهای مثبت تقویت کنید." />
-                <FeatureCard title="تحلیل فروش" description="عملکرد فروشگاه را در یک نگاه ببینید." />
-                <FeatureCard title="نشان اعتماد" description="فروشگاه‌های تأییدشده معمولاً نرخ تبدیل بالاتری دارند." />
+                <FeatureCard title="مدیریت سفارش" description="سفارش‌ها را از داشبورد پیگیری و وضعیت آن‌ها را به‌روز کنید." />
+                <FeatureCard title="گفتگو با مشتری" description="از بخش گفتگوها مستقیماً با خریداران در ارتباط باشید." />
+                <FeatureCard title="روش‌های پرداخت" description="حساب‌های دریافت وجه را در تنظیمات پرداخت اضافه کنید." />
+                <FeatureCard title="داشبورد فروش" description="درآمد، سفارش‌های اخیر و وضعیت فروشگاه را یک‌جا ببینید." />
               </div>
               <div className="flex flex-wrap gap-3">
                 <Button type="button" variant="secondary" onClick={() => void moveStep(-1)}>
@@ -1373,9 +1388,9 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
           <Card className="border-border bg-surface shadow-sm">
             <CardContent className="space-y-6 py-6">
               <div>
-                <p className="text-xs tracking-[0.2em] text-foreground-muted">{STEP_ORDER[6].title}</p>
+                <p className="text-xs tracking-[0.2em] text-foreground-muted">{activeStep.title}</p>
                 <h2 className="mt-2 text-2xl font-semibold text-foreground">فروشگاه شما آماده است</h2>
-                <p className="mt-2 text-sm leading-6 text-foreground-muted">{STEP_ORDER[6].helper}</p>
+                <p className="mt-2 text-sm leading-6 text-foreground-muted">{activeStep.helper}</p>
               </div>
               <div className="space-y-3">
                 {currentChecklist.map((item) => (
@@ -1435,7 +1450,7 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
         <div className="rounded-[2rem] border border-white/10 bg-white/6 p-5 backdrop-blur-xl">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div className="space-y-3 text-white">
-              <p className="text-xs tracking-[0.26em] text-white/60">SELLER SETUP</p>
+              <p className="text-xs tracking-[0.26em] text-white/60">راه‌اندازی فروشگاه</p>
               <h1 className="text-2xl font-semibold sm:text-3xl">{activeStep.title}</h1>
               <p className="max-w-2xl text-sm leading-6 text-white/75">{activeStep.description}</p>
               <p className="text-sm text-white/60">{activeStep.helper}</p>
