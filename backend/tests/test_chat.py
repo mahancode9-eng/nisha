@@ -55,8 +55,9 @@ def test_chat_flow(
 
     seller_list = client.get("/api/v1/seller/conversations", headers=seller_headers)
     assert seller_list.status_code == 200
-    assert len(seller_list.json()) >= 1
-    assert seller_list.json()[0]["unread_count"] >= 1
+    seller_items = seller_list.json()["items"]
+    assert len(seller_items) >= 1
+    assert seller_items[0]["unread_count"] >= 1
 
     seller_detail = client.get(
         f"/api/v1/seller/conversations/{conversation_id}",
