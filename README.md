@@ -1,5 +1,7 @@
 # Nisha
 
+> 🌐 Language: **English** | [فارسی](README.fa.md)
+
 Nisha is a manual-payment commerce platform for small online stores. It ships a Persian-first RTL UI, a purple/black theme system with light, dark, and system modes, a public storefront, guest checkout, seller/admin tooling, and a customer portal. The UI is Persian-only; documentation is written in English.
 
 ## What this repo contains
@@ -132,7 +134,8 @@ Use [docs/PRODUCTION_DEPLOYMENT.md](docs/PRODUCTION_DEPLOYMENT.md) for a Docker 
 | `LOW_STOCK_THRESHOLD` | `5` | Seller dashboard low-stock alert threshold |
 | `JWT_SECRET_KEY` | required | Set a strong secret in production |
 | `JWT_ALGORITHM` | `HS256` | JWT algorithm |
-| `JWT_ACCESS_TOKEN_EXPIRE_MINUTES` | `10080` | Token lifetime in minutes |
+| `JWT_ACCESS_TOKEN_EXPIRE_MINUTES` | `30` | Access token lifetime in minutes |
+| `JWT_REFRESH_TOKEN_EXPIRE_DAYS` | `7` | Refresh token lifetime in days |
 | `LOG_LEVEL` | `INFO` | Logging level |
 
 ### Frontend environment
