@@ -5,7 +5,7 @@ import * as paymentMethodsApi from "@/lib/api/seller/payment-methods";
 import { useToast } from "@/contexts/ToastContext";
 import { useSellerFetch } from "@/hooks/useSellerFetch";
 import { ConfirmModal } from "@/components/seller/ConfirmModal";
-import { PageHeader } from "@/components/seller/PageHeader";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { PaymentMethodForm } from "@/components/seller/PaymentMethodForm";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -83,7 +83,6 @@ export default function SellerPaymentMethodsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="روش‌های پرداخت"
         description="مشتریان چگونه می‌توانند به شما پرداخت کنند"
         action={<Button onClick={openCreate}>افزودن روش</Button>}
       />
@@ -105,7 +104,7 @@ export default function SellerPaymentMethodsPage() {
       <div className="grid gap-4 sm:grid-cols-2">
         {data?.map((method) => (
           <Card key={method.id}>
-            <CardContent className="py-4">
+            <CardContent>
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <p className="font-semibold text-neutral-900">{method.display_name}</p>

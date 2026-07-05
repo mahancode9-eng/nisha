@@ -6,7 +6,7 @@ import * as storeApi from "@/lib/api/seller/store";
 import { paths } from "@/lib/auth/paths";
 import { formatMoney } from "@/lib/format";
 import { useSellerFetch } from "@/hooks/useSellerFetch";
-import { PageHeader } from "@/components/seller/PageHeader";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { StatCard } from "@/components/seller/StatCard";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -32,7 +32,7 @@ export default function SellerDashboardPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <PageHeader title="داشبورد" description="نمای کلی عملکرد فروشگاه شما" />
+        <PageHeader description="نمای کلی عملکرد فروشگاه شما" />
         <StatCardSkeleton count={6} />
         <TableSkeleton rows={3} columns={4} />
       </div>
@@ -42,41 +42,19 @@ export default function SellerDashboardPage() {
   if (error || !data) {
     return (
       <div className="space-y-6">
-        <PageHeader title="داشبورد" description="نمای کلی عملکرد فروشگاه شما" />
+        <PageHeader description="نمای کلی عملکرد فروشگاه شما" />
         <ErrorAlert message={error ?? "بارگذاری داشبورد ممکن نشد"} />
       </div>
     );
   }
 
-  const hasRemainingSetup = data.onboarding_status !== "COMPLETED";
+  const hasRemainingSetup =
+    data.onboarding_status !== "COMPLETED" && data.onboarding_status !== "SKIPPED";
   const readinessPercent = Math.max(0, Math.min(100, data.store_readiness_score));
-  const onboardingStatusLabel =
-    data.onboarding_status === "COMPLETED"
-      ? "کامل"
-      : data.onboarding_status === "SKIPPED"
-        ? "ذخیره شده"
-        : data.onboarding_status === "IN_PROGRESS"
-          ? "در حال انجام"
-          : "شروع نشده";
-  const onboardingStepLabel =
-    data.onboarding_current_step === "store_identity"
-      ? "هویت فروشگاه"
-      : data.onboarding_current_step === "store_information"
-        ? "اطلاعات فروشگاه"
-        : data.onboarding_current_step === "contact_channels"
-          ? "راه‌های ارتباطی"
-          : data.onboarding_current_step === "first_product"
-            ? "اولین محصول"
-            : data.onboarding_current_step === "education"
-              ? "آموزش"
-              : data.onboarding_current_step === "activation"
-                ? "فعال‌سازی"
-                : "خوش‌آمد";
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="داشبورد"
         description="نمای کلی عملکرد فروشگاه شما"
         action={
           store?.slug ? (
@@ -88,60 +66,58 @@ export default function SellerDashboardPage() {
       />
 
       <Card className="overflow-hidden border-brand/20 bg-gradient-to-br from-brand/10 via-surface to-surface shadow-sm">
-        <CardContent className="grid gap-5 py-6 lg:grid-cols-[minmax(0,1fr)_260px] lg:items-center">
-          <div className="space-y-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant={readinessPercent >= 85 ? "success" : "info"}>
-                {readinessPercent}% تکمیل پروفایل
-              </Badge>
-              {hasRemainingSetup ? (
-                <Badge variant="warning">راه‌اندازی در حال انجام</Badge>
-              ) : (
-                <Badge variant="success">راه‌اندازی کامل</Badge>
-              )}
-            </div>
-
-            <div>
-              <h2 className="text-xl font-semibold text-foreground">ادامه تنظیمات فروشگاه</h2>
-              <p className="mt-2 max-w-3xl text-sm leading-6 text-foreground-muted">
-                این کارت خلاصه‌ای از وضعیت شروع کار شما را نشان می‌دهد. هرچه جزئیات بیشتری تکمیل کنید،
-                اعتماد مشتری و شانس تبدیل بالاتر می‌رود.
-              </p>
-            </div>
-
-            {data.store_readiness_missing_tasks.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {data.store_readiness_missing_tasks.map((task) => (
-                  <Badge key={task} variant="neutral">
-                    {task}
-                  </Badge>
-                ))}
-              </div>
+        <CardContent className="space-y-5 py-6">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant={readinessPercent >= 85 ? "success" : "info"}>
+              {readinessPercent}% تکمیل پروفایل
+            </Badge>
+            {hasRemainingSetup ? (
+              <Badge variant="warning">راه‌اندازی در حال انجام</Badge>
+            ) : data.onboarding_status === "SKIPPED" ? (
+              <Badge variant="neutral">راه‌اندازی بعداً</Badge>
             ) : (
-              <p className="text-sm font-medium text-foreground">همه مراحل اصلی تکمیل شده‌اند.</p>
+              <Badge variant="success">راه‌اندازی کامل</Badge>
             )}
           </div>
 
-          <div className="space-y-3 rounded-3xl border border-border bg-surface p-4">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-foreground-muted">پیشرفت راه‌اندازی</span>
-              <span className="font-semibold text-foreground">{readinessPercent}%</span>
+          <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_220px] lg:items-end">
+            <div className="space-y-3">
+              <h2 className="text-xl font-semibold text-foreground">
+                {hasRemainingSetup ? "ادامه تنظیمات فروشگاه" : "وضعیت فروشگاه"}
+              </h2>
+              <p className="max-w-3xl text-sm leading-6 text-foreground-muted">
+                {hasRemainingSetup
+                  ? "هرچه جزئیات بیشتری تکمیل کنید، اعتماد مشتری و شانس تبدیل بالاتر می‌رود."
+                  : "فروشگاه شما فعال است. از تب‌های بالا سفارش‌ها، محصولات و گفتگوها را مدیریت کنید."}
+              </p>
+              {data.store_readiness_missing_tasks.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {data.store_readiness_missing_tasks.map((task) => (
+                    <Badge key={task} variant="neutral">
+                      {task}
+                    </Badge>
+                  ))}
+                </div>
+              )}
             </div>
-            <div className="h-2 overflow-hidden rounded-full bg-surface-muted">
-              <div
-                className="h-full rounded-full bg-brand transition-[width] duration-500"
-                style={{ width: `${readinessPercent}%` }}
-              />
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-foreground-muted">پیشرفت</span>
+                <span className="font-semibold text-foreground">{readinessPercent}%</span>
+              </div>
+              <div className="h-2 overflow-hidden rounded-full bg-surface-muted">
+                <div
+                  className="h-full rounded-full bg-brand transition-[width] duration-500"
+                  style={{ width: `${readinessPercent}%` }}
+                />
+              </div>
+              {hasRemainingSetup && (
+                <Link href={paths.seller.onboarding} className="block">
+                  <Button className="w-full">ادامه راه‌اندازی</Button>
+                </Link>
+              )}
             </div>
-            <div className="space-y-2 text-sm text-foreground-muted">
-              <p>وضعیت مراحل: {onboardingStatusLabel}</p>
-              <p>آخرین مرحله: {onboardingStepLabel}</p>
-            </div>
-            {hasRemainingSetup && (
-              <Link href={paths.seller.onboarding} className="block">
-                <Button className="w-full">ادامه راه‌اندازی</Button>
-              </Link>
-            )}
           </div>
         </CardContent>
       </Card>
@@ -160,11 +136,11 @@ export default function SellerDashboardPage() {
           <CardHeader>
             <CardTitle>محصولات کم‌موجودی</CardTitle>
           </CardHeader>
-          <CardContent className="pt-0">
+          <CardContent>
             {data.low_stock_products.length === 0 ? (
               <EmptyState title="مورد کم‌موجودی ندارید" description="همه محصولات موجودی کافی دارند." />
             ) : (
-              <Table>
+              <Table embedded>
                 <TableHead>
                   <TableRow>
                     <TableHeaderCell>محصول</TableHeaderCell>
@@ -190,11 +166,11 @@ export default function SellerDashboardPage() {
           <CardHeader>
             <CardTitle>سفارش‌های اخیر</CardTitle>
           </CardHeader>
-          <CardContent className="pt-0">
+          <CardContent>
             {data.recent_orders.length === 0 ? (
               <EmptyState title="هنوز سفارشی ثبت نشده" description="سفارش‌ها اینجا نمایش داده می‌شوند." />
             ) : (
-              <Table>
+              <Table embedded>
                 <TableHead>
                   <TableRow>
                     <TableHeaderCell>فاکتور</TableHeaderCell>

@@ -174,26 +174,26 @@ export default function AdminOrderDetailPage({ params }: PageProps) {
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Card>
-          <CardContent className="space-y-1 py-4">
+          <CardContent className="space-y-3">
             <p className="text-xs uppercase tracking-[0.2em] text-foreground-muted">مجموع</p>
             <p className="text-2xl font-bold text-foreground">{formatMoney(data.total_amount)}</p>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="space-y-1 py-4">
+          <CardContent className="space-y-3">
             <p className="text-xs uppercase tracking-[0.2em] text-foreground-muted">تعداد اعتراض</p>
             <p className="text-2xl font-bold text-foreground">{data.complaint_count}</p>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="space-y-1 py-4">
+          <CardContent className="space-y-3">
             <p className="text-xs uppercase tracking-[0.2em] text-foreground-muted">مشتری</p>
             <p className="font-semibold text-foreground">{data.customer?.full_name ?? "خریدار مهمان"}</p>
             <p className="text-sm text-foreground-muted">{data.customer?.email ?? data.buyer_phone}</p>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="space-y-1 py-4">
+          <CardContent className="space-y-3">
             <p className="text-xs uppercase tracking-[0.2em] text-foreground-muted">دسترسی فاکتور</p>
             <p className="font-mono text-sm font-semibold text-foreground">{data.invoice_username}</p>
             <p className="font-mono text-sm text-foreground-muted">{data.invoice_password ?? "برای سفارش قدیمی مخفی شده"}</p>
@@ -206,7 +206,7 @@ export default function AdminOrderDetailPage({ params }: PageProps) {
           <CardHeader>
             <CardTitle>مدیریت سفارش</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4 pt-4">
+          <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <Input
                 label="نام خریدار"
@@ -277,7 +277,7 @@ export default function AdminOrderDetailPage({ params }: PageProps) {
             <CardHeader>
               <CardTitle>اطلاعات مشتری</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2 pt-4 text-sm">
+            <CardContent className="space-y-3 text-sm">
               <p>
                 <span className="text-foreground-muted">نام کامل:</span> {data.customer?.full_name ?? "خریدار مهمان"}
               </p>
@@ -297,7 +297,7 @@ export default function AdminOrderDetailPage({ params }: PageProps) {
             <CardHeader>
               <CardTitle>روش پرداخت</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2 pt-4 text-sm">
+            <CardContent className="space-y-3 text-sm">
               <p className="font-medium text-foreground">{data.payment_method.display_name}</p>
               <Badge variant="info">{data.payment_method.type}</Badge>
               {data.payment_method.instructions && (
@@ -331,8 +331,8 @@ export default function AdminOrderDetailPage({ params }: PageProps) {
             <CardHeader>
               <CardTitle>اقلام</CardTitle>
             </CardHeader>
-            <CardContent className="pt-4">
-              <Table>
+            <CardContent>
+              <Table embedded>
                 <TableHead>
                   <TableRow>
                     <TableHeaderCell>محصول</TableHeaderCell>
@@ -360,7 +360,7 @@ export default function AdminOrderDetailPage({ params }: PageProps) {
             <CardHeader>
               <CardTitle>تاریخچه وضعیت</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3 pt-4 text-sm">
+            <CardContent className="space-y-3 text-sm">
               {data.status_history.map((entry) => (
                 <div key={entry.id} className="rounded-2xl border border-border p-4">
                   <div className="flex flex-wrap items-center gap-2">
@@ -382,7 +382,7 @@ export default function AdminOrderDetailPage({ params }: PageProps) {
           <CardHeader>
             <CardTitle>ارسال‌های فرم سفارشی</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4 pt-4">
+          <CardContent className="space-y-4">
             {data.submissions.length === 0 ? (
               <EmptyState
                 title="ارسال سفارشی ندارد"
@@ -438,7 +438,7 @@ export default function AdminOrderDetailPage({ params }: PageProps) {
           <CardHeader>
             <CardTitle>گفتگوی سفارش</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4 pt-4">
+          <CardContent className="space-y-4">
             {!conversation ? (
               <EmptyState title="گفتگویی وجود ندارد" description="برای این سفارش هنوز اتاق گفتگویی ایجاد نشده است." />
             ) : (
@@ -495,7 +495,7 @@ export default function AdminOrderDetailPage({ params }: PageProps) {
           <CardHeader>
             <CardTitle>اعتراض‌ها</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4 pt-4">
+          <CardContent className="space-y-4">
             {data.complaints.length === 0 ? (
               <EmptyState
                 title="اعتراضی ثبت نشده"
@@ -524,7 +524,7 @@ export default function AdminOrderDetailPage({ params }: PageProps) {
           <CardHeader>
             <CardTitle>لاگ نظارتی ادمین</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4 pt-4">
+          <CardContent className="space-y-4">
             {data.audit_logs.length === 0 ? (
               <EmptyState title="ورودی نظارتی ندارد" description="اقدام‌های ادمین اینجا نمایش داده می‌شوند." />
             ) : (

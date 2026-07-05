@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useToast } from "@/contexts/ToastContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { ListRow } from "@/components/ui/ListRow";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { formatDateTime } from "@/lib/format";
@@ -42,7 +43,7 @@ export default function CustomerComplaintsPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [toast]);
 
   if (complaints === null) {
     return <LoadingState message="در حال بارگذاری اعتراض‌ها..." />;
@@ -61,13 +62,13 @@ export default function CustomerComplaintsPage() {
           />
         ) : (
           complaints.map((complaint) => (
-            <div key={complaint.id} className="rounded-xl border border-neutral-200 p-4">
-              <p className="font-medium text-neutral-900">{COMPLAINT_REASON_LABELS[complaint.reason] ?? complaint.reason}</p>
-              <p className="mt-1 text-sm text-neutral-700">{complaint.message}</p>
-              <p className="mt-2 text-xs text-neutral-500">
+            <ListRow key={complaint.id}>
+              <p className="font-medium text-foreground">{COMPLAINT_REASON_LABELS[complaint.reason] ?? complaint.reason}</p>
+              <p className="mt-1 text-sm text-foreground-muted">{complaint.message}</p>
+              <p className="mt-2 text-xs text-foreground-muted">
                 {COMPLAINT_STATUS_LABELS[complaint.status]} | {formatDateTime(complaint.created_at)}
               </p>
-            </div>
+            </ListRow>
           ))
         )}
       </CardContent>

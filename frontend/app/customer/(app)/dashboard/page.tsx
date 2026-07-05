@@ -5,20 +5,13 @@ import { useEffect, useState } from "react";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { ListRow } from "@/components/ui/ListRow";
+import { StatTile } from "@/components/ui/StatTile";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { formatDateTime, formatMoney } from "@/lib/format";
 import { paths } from "@/lib/auth/paths";
 import { getDashboard } from "@/lib/api/customer/orders";
 import type { CustomerDashboardSummary } from "@/types/customer/order";
-
-function Stat({ label, value }: { label: string; value: string | number }) {
-  return (
-    <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
-      <p className="text-sm text-foreground-muted">{label}</p>
-      <p className="mt-2 text-2xl font-semibold text-foreground">{value}</p>
-    </div>
-  );
-}
 
 export default function CustomerDashboardPage() {
   const [data, setData] = useState<CustomerDashboardSummary | null>(null);
@@ -50,12 +43,12 @@ export default function CustomerDashboardPage() {
   return (
     <div className="space-y-6">
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
-        <Stat label="سفارش‌ها" value={data.total_orders} />
-        <Stat label="فعال" value={data.active_orders} />
-        <Stat label="اعتراض‌ها" value={data.complaints} />
-        <Stat label="دانلودها" value={data.downloads} />
-        <Stat label="گفتگوها" value={data.chats} />
-        <Stat label="نظرات" value={data.reviews} />
+        <StatTile label="سفارش‌ها" value={data.total_orders} />
+        <StatTile label="فعال" value={data.active_orders} />
+        <StatTile label="اعتراض‌ها" value={data.complaints} />
+        <StatTile label="دانلودها" value={data.downloads} />
+        <StatTile label="گفتگوها" value={data.chats} />
+        <StatTile label="نظرات" value={data.reviews} />
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[2fr_1fr]">
@@ -74,9 +67,9 @@ export default function CustomerDashboardPage() {
               />
             ) : (
               data.recent_orders.map((order) => (
-                <div
+                <ListRow
                   key={order.id}
-                  className="flex flex-col gap-3 rounded-xl border border-border p-4 sm:flex-row sm:items-center sm:justify-between"
+                  className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
@@ -94,7 +87,7 @@ export default function CustomerDashboardPage() {
                       رسید: {order.receipt_status ?? "ثبت‌نشده"} | اعتراض‌ها: {order.complaint_count}
                     </p>
                   </div>
-                </div>
+                </ListRow>
               ))
             )}
           </CardContent>

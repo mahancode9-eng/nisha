@@ -6,6 +6,7 @@ import { ApiError } from "@/lib/api/errors";
 import { useToast } from "@/contexts/ToastContext";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { ListRow } from "@/components/ui/ListRow";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Input } from "@/components/ui/Input";
 import { LoadingState } from "@/components/ui/LoadingState";
@@ -17,24 +18,24 @@ import type { CustomerOrderListItem } from "@/types/customer/order";
 
 function OrderRow({ order }: { order: CustomerOrderListItem }) {
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-neutral-200 p-4 sm:flex-row sm:items-center sm:justify-between">
+    <ListRow className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <div className="flex flex-wrap items-center gap-2">
-          <Link href={paths.customer.orderDetail(order.id)} className="font-medium text-neutral-900 hover:underline">
+          <Link href={paths.customer.orderDetail(order.id)} className="font-medium text-foreground hover:underline">
             {order.invoice_code}
           </Link>
           <StatusBadge status={order.status} />
         </div>
-        <p className="mt-1 text-sm text-neutral-500">{order.buyer_name}</p>
-        <p className="text-xs text-neutral-400">{formatDateTime(order.created_at)}</p>
+        <p className="mt-1 text-sm text-foreground-muted">{order.buyer_name}</p>
+        <p className="text-xs text-foreground-muted">{formatDateTime(order.created_at)}</p>
       </div>
-      <div className="text-sm text-neutral-700">
+      <div className="text-sm text-foreground">
         <p>{formatMoney(order.total_amount)}</p>
-        <p className="text-xs text-neutral-500">
+        <p className="text-xs text-foreground-muted">
           رسید: {order.receipt_status ?? "ثبت‌نشده"} | اعتراض‌ها: {order.complaint_count}
         </p>
       </div>
-    </div>
+    </ListRow>
   );
 }
 
@@ -73,7 +74,7 @@ export default function CustomerOrdersPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [toast]);
 
   async function handleClaim(e: FormEvent) {
     e.preventDefault();
@@ -88,7 +89,9 @@ export default function CustomerOrdersPage() {
       setInvoicePassword("");
       await refresh();
     } catch (err) {
-      setClaimError(err instanceof ApiError ? err.message : "بازیابی سفارش ناموفق بود");
+      const message = err instanceof ApiError ? err.message : "بازیابی سفارش ناموفق بود";
+      setClaimError(message);
+      toast.error(message);
     } finally {
       setClaimLoading(false);
     }

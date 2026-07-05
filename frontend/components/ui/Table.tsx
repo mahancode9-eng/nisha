@@ -1,7 +1,20 @@
 import { cn } from "@/lib/cn";
 import type { HTMLAttributes, TdHTMLAttributes, ThHTMLAttributes } from "react";
 
-export function Table({ className, ...props }: HTMLAttributes<HTMLTableElement>) {
+type TableProps = HTMLAttributes<HTMLTableElement> & {
+  /** Use inside Card — no outer border, aligns with card edges */
+  embedded?: boolean;
+};
+
+export function Table({ className, embedded, ...props }: TableProps) {
+  if (embedded) {
+    return (
+      <div className="-mx-5 overflow-x-auto sm:-mx-6">
+        <table className={cn("min-w-full divide-y divide-border", className)} {...props} />
+      </div>
+    );
+  }
+
   return (
     <div className="overflow-x-auto rounded-3xl border border-border bg-surface shadow-sm">
       <table className={cn("min-w-full divide-y divide-border", className)} {...props} />
@@ -25,7 +38,7 @@ export function TableHeaderCell({ className, ...props }: ThHTMLAttributes<HTMLTa
   return (
     <th
       className={cn(
-        "px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-foreground-muted sm:px-5",
+        "px-4 py-3 text-start text-xs font-medium uppercase tracking-wide text-foreground-muted sm:px-5",
         className,
       )}
       {...props}

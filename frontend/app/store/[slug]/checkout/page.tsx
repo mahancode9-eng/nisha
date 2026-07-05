@@ -18,6 +18,7 @@ import { PaymentMethodSelector } from "@/components/store/PaymentMethodSelector"
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { ErrorAlert } from "@/components/ui/ErrorAlert";
 import { Input } from "@/components/ui/Input";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { Textarea } from "@/components/ui/Textarea";
@@ -441,7 +442,7 @@ export default function CheckoutPage({ params }: PageProps) {
         <CardHeader>
           <CardTitle>خلاصه سفارش</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2 pt-0">
+        <CardContent className="space-y-3">
           {items.map((item) => {
             const product = productsById.get(item.productId);
             return (
@@ -466,18 +467,14 @@ export default function CheckoutPage({ params }: PageProps) {
       </Card>
 
       <form id="checkout-form" onSubmit={handleSubmit} className="space-y-6">
-        {error && (
-          <p className="rounded-lg bg-red-50 dark:bg-red-500/10 px-4 py-3 text-sm text-red-700" role="alert">
-            {error}
-          </p>
-        )}
+        {error && <ErrorAlert message={error} />}
 
         {items.some((item) => (productsById.get(item.productId)?.form_fields.length ?? 0) > 0) && (
           <Card>
             <CardHeader>
               <CardTitle>گزینه‌های محصول</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 pt-0">
+            <CardContent className="space-y-4">
               {items.map((item) => {
                 const product = productsById.get(item.productId);
                 if (!product || product.form_fields.length === 0) return null;
@@ -615,7 +612,7 @@ export default function CheckoutPage({ params }: PageProps) {
             <CardHeader>
               <CardTitle>آدرس‌های ذخیره‌شده</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 pt-0">
+            <CardContent className="space-y-4">
               {customerAddresses.length > 0 ? (
                 <label className="block">
                   <span className="mb-1 block text-sm font-medium text-foreground">انتخاب آدرس</span>
@@ -653,7 +650,7 @@ export default function CheckoutPage({ params }: PageProps) {
           <CardHeader>
             <CardTitle>{customer ? "مشخصات گیرنده" : "مشخصات شما"}</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4 pt-0">
+          <CardContent className="space-y-4">
             <Input label="نام کامل" value={buyerName} onChange={(e) => setBuyerName(e.target.value)} required />
             <Input label="تلفن" value={buyerPhone} onChange={(e) => setBuyerPhone(e.target.value)} required pattern="09[0-9]{9}" placeholder="09123456789" title="شماره موبایل باید با 09 شروع شود و 11 رقم باشد" />
             <Textarea
@@ -697,7 +694,7 @@ export default function CheckoutPage({ params }: PageProps) {
           <CardHeader>
             <CardTitle>روش پرداخت</CardTitle>
           </CardHeader>
-          <CardContent className="pt-0">
+          <CardContent>
             <PaymentMethodSelector
               methods={paymentMethods}
               selectedId={paymentMethodId}
@@ -706,7 +703,7 @@ export default function CheckoutPage({ params }: PageProps) {
           </CardContent>
         </Card>
 
-        <div className="sticky bottom-0 bg-background pt-2 pb-4">
+        <div className="sticky bottom-0 bg-background pt-2 pb-[max(1rem,env(safe-area-inset-bottom))]">
           <Button type="submit" className="w-full" size="md" loading={submitting}>
             ثبت سفارش
           </Button>

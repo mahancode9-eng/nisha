@@ -5,6 +5,7 @@ import * as dashboardApi from "@/lib/api/admin/dashboard";
 import { paths } from "@/lib/auth/paths";
 import { formatMoney } from "@/lib/format";
 import { useSellerFetch } from "@/hooks/useSellerFetch";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { StatCard } from "@/components/seller/StatCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorAlert } from "@/components/ui/ErrorAlert";
@@ -26,10 +27,7 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">داشبورد مدیریت</h1>
-        <p className="mt-1 text-foreground-muted">آمار سراسری پلتفرم و فعالیت‌های اخیر</p>
-      </div>
+      <PageHeader description="آمار سراسری پلتفرم و فعالیت‌های اخیر" />
 
       {isLoading && (
         <>
@@ -60,11 +58,11 @@ export default function AdminDashboardPage() {
             <CardHeader>
               <CardTitle>سفارش‌های اخیر</CardTitle>
             </CardHeader>
-            <CardContent className="pt-0">
+            <CardContent>
               {data.recent_orders.length === 0 ? (
                 <EmptyState title="هنوز سفارشی ثبت نشده" description="سفارش‌ها اینجا نمایش داده می‌شوند." />
               ) : (
-                <Table>
+                <Table embedded>
                   <TableHead>
                     <TableRow>
                       <TableHeaderCell>فاکتور</TableHeaderCell>

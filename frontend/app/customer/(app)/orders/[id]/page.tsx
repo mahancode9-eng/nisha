@@ -188,8 +188,8 @@ export default function CustomerOrderDetailPage({ params }: PageProps) {
             <CardHeader>
               <CardTitle>اقلام</CardTitle>
             </CardHeader>
-            <CardContent className="pt-0">
-              <Table>
+            <CardContent>
+              <Table embedded>
                 <TableHead>
                   <TableRow>
                     <TableHeaderCell>آیتم</TableHeaderCell>
@@ -220,7 +220,7 @@ export default function CustomerOrderDetailPage({ params }: PageProps) {
                 دانلود فاکتور
               </Button>
             </CardHeader>
-            <CardContent className="space-y-1 text-sm">
+            <CardContent className="space-y-3 text-sm">
               <p className="font-medium text-neutral-900">{order.buyer_name}</p>
               <p>{order.buyer_phone}</p>
               <p className="whitespace-pre-wrap">{order.buyer_address}</p>
@@ -235,7 +235,7 @@ export default function CustomerOrderDetailPage({ params }: PageProps) {
                 {conversation ? "تازه‌سازی گفتگو" : "باز کردن گفتگو"}
               </Button>
             </CardHeader>
-            <CardContent className="p-0">
+            <CardContent padding="flush">
               {conversation ? (
                 <div className="p-0">
                   <ChatThread
@@ -369,7 +369,7 @@ export default function CustomerOrderDetailPage({ params }: PageProps) {
             <CardHeader>
               <CardTitle>فروشگاه</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2 text-sm">
+            <CardContent className="space-y-3 text-sm">
               <p className="font-medium text-neutral-900">{order.store.name}</p>
               {order.store.phone && <p>{order.store.phone}</p>}
               {order.store.support_contact && <p>{order.store.support_contact}</p>}
@@ -389,7 +389,7 @@ export default function CustomerOrderDetailPage({ params }: PageProps) {
             <CardHeader>
               <CardTitle>روش پرداخت</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2 text-sm">
+            <CardContent className="space-y-3 text-sm">
               <p className="font-medium text-neutral-900">{order.payment_method.display_name}</p>
               {order.payment_method.card_number && <p>کارت: {order.payment_method.card_number}</p>}
               {order.payment_method.wallet_address && (

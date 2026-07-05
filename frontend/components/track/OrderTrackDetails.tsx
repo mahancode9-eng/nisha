@@ -101,7 +101,7 @@ export function OrderTrackDetails({ order, password, onUpdated }: OrderTrackDeta
         <CardHeader>
           <CardTitle>فروشگاه</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-1 pt-0 text-sm">
+        <CardContent className="space-y-3 text-sm">
           <p className="font-medium">{order.store.name}</p>
           {order.store.phone && <p>تلفن: {order.store.phone}</p>}
           {order.store.support_contact && <p>پشتیبانی: {order.store.support_contact}</p>}
@@ -112,8 +112,8 @@ export function OrderTrackDetails({ order, password, onUpdated }: OrderTrackDeta
         <CardHeader>
           <CardTitle>آیتم‌ها</CardTitle>
         </CardHeader>
-        <CardContent className="pt-0">
-          <Table>
+        <CardContent>
+          <Table embedded>
             <TableHead>
               <TableRow>
                 <TableHeaderCell>محصول</TableHeaderCell>
@@ -146,7 +146,7 @@ export function OrderTrackDetails({ order, password, onUpdated }: OrderTrackDeta
             </Button>
           )}
         </CardHeader>
-        <CardContent className="pt-0">
+        <CardContent>
           {editing ? (
             <form onSubmit={handleEdit} className="space-y-4">
               <Input label="نام" value={buyerName} onChange={(e) => setBuyerName(e.target.value)} required />
@@ -180,7 +180,7 @@ export function OrderTrackDetails({ order, password, onUpdated }: OrderTrackDeta
           <CardHeader>
             <CardTitle>رسیدهای پرداخت</CardTitle>
           </CardHeader>
-          <CardContent className="pt-0">
+          <CardContent>
             <div className="grid gap-4 sm:grid-cols-2">
               {order.payment_proofs.map((proof) => (
                 <div key={proof.id}>

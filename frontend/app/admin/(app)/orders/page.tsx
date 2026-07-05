@@ -6,11 +6,13 @@ import * as ordersApi from "@/lib/api/admin/orders";
 import { paths } from "@/lib/auth/paths";
 import { formatDateTime, formatMoney } from "@/lib/format";
 import { useSellerFetch } from "@/hooks/useSellerFetch";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorAlert } from "@/components/ui/ErrorAlert";
 import { Input } from "@/components/ui/Input";
+import { Card, CardContent } from "@/components/ui/Card";
 import { PaginationControls } from "@/components/ui/PaginationControls";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { TableSkeleton } from "@/components/ui/TableSkeleton";
@@ -103,12 +105,11 @@ export default function AdminOrdersPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">سفارش‌ها</h1>
-        <p className="mt-1 text-foreground-muted">تمام سفارش‌های پلتفرم را جستجو و مدیریت کنید</p>
-      </div>
+      <PageHeader description="تمام سفارش‌های پلتفرم را جستجو و مدیریت کنید" />
 
-      <form onSubmit={applyFilters} className="grid gap-3 rounded-2xl border border-border bg-surface p-4 md:grid-cols-2 xl:grid-cols-5">
+      <Card>
+        <CardContent>
+      <form onSubmit={applyFilters} className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
         <Input
           label="جستجو"
           value={draft.search}
@@ -157,6 +158,8 @@ export default function AdminOrdersPage() {
           </Button>
         </div>
       </form>
+        </CardContent>
+      </Card>
 
       {isLoading && <TableSkeleton rows={6} columns={7} />}
 

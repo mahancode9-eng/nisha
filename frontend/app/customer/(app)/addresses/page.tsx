@@ -5,6 +5,7 @@ import { ApiError } from "@/lib/api/errors";
 import { useToast } from "@/contexts/ToastContext";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { ListRow } from "@/components/ui/ListRow";
 import { ConfirmModal } from "@/components/seller/ConfirmModal";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Input } from "@/components/ui/Input";
@@ -154,7 +155,7 @@ export default function CustomerAddressesPage() {
             <EmptyState title="آدرسی ذخیره نشده" description="یک آدرس اضافه کنید تا پرداخت سریع‌تر شود." />
           ) : (
             addresses.map((address) => (
-              <div key={address.id} className="rounded-xl border border-border p-4">
+              <ListRow key={address.id}>
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="font-medium text-foreground">
@@ -172,7 +173,7 @@ export default function CustomerAddressesPage() {
                     </Button>
                   </div>
                 </div>
-              </div>
+              </ListRow>
             ))
           )}
         </CardContent>

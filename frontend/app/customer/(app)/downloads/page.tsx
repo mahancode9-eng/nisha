@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useToast } from "@/contexts/ToastContext";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { ListRow } from "@/components/ui/ListRow";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { formatDateTime } from "@/lib/format";
@@ -30,7 +31,7 @@ export default function CustomerDownloadsPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [toast]);
 
   async function handleDownload(orderId: number, invoiceCode: string) {
     try {
@@ -60,15 +61,15 @@ export default function CustomerDownloadsPage() {
           <EmptyState title="دانلودی ندارید" description="برای دانلود فاکتور، سفارشی ثبت یا بازیابی کنید." />
         ) : (
           orders.map((order) => (
-            <div key={order.id} className="flex flex-col gap-3 rounded-xl border border-neutral-200 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <ListRow key={order.id} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="font-medium text-neutral-900">{order.invoice_code}</p>
-                <p className="text-sm text-neutral-500">{formatDateTime(order.created_at)}</p>
+                <p className="font-medium text-foreground">{order.invoice_code}</p>
+                <p className="text-sm text-foreground-muted">{formatDateTime(order.created_at)}</p>
               </div>
               <Button variant="secondary" onClick={() => handleDownload(order.id, order.invoice_code)}>
                 دانلود فاکتور
               </Button>
-            </div>
+            </ListRow>
           ))
         )}
       </CardContent>

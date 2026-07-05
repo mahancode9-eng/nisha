@@ -116,7 +116,7 @@ export default function SellerOrderDetailPage({ params }: PageProps) {
         <CardHeader>
           <CardTitle>اقدامات</CardTitle>
         </CardHeader>
-        <CardContent className="pt-0">
+        <CardContent>
           <OrderActions
             status={data.status}
             loading={actionLoading}
@@ -130,7 +130,7 @@ export default function SellerOrderDetailPage({ params }: PageProps) {
           <CardHeader>
             <CardTitle>خریدار</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2 pt-0 text-sm">
+          <CardContent className="space-y-3 text-sm">
             <p>
               <span className="text-neutral-500">نام:</span> {data.buyer_name}
             </p>
@@ -152,7 +152,7 @@ export default function SellerOrderDetailPage({ params }: PageProps) {
           <CardHeader>
             <CardTitle>مالکیت</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2 pt-0 text-sm">
+          <CardContent className="space-y-3 text-sm">
             <p>
               <span className="text-neutral-500">شناسه مشتری:</span>{" "}
               {data.customer_id ?? "سفارش مهمان"}
@@ -172,7 +172,7 @@ export default function SellerOrderDetailPage({ params }: PageProps) {
         <CardHeader>
           <CardTitle>روش پرداخت</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2 pt-0 text-sm">
+        <CardContent className="space-y-3 text-sm">
           <p className="font-medium">{data.payment_method.display_name}</p>
           <Badge variant="info">{data.payment_method.type}</Badge>
           {data.payment_method.instructions && (
@@ -185,8 +185,8 @@ export default function SellerOrderDetailPage({ params }: PageProps) {
         <CardHeader>
           <CardTitle>اقلام</CardTitle>
         </CardHeader>
-        <CardContent className="pt-0">
-          <Table>
+        <CardContent>
+          <Table embedded>
             <TableHead>
               <TableRow>
                 <TableHeaderCell>محصول</TableHeaderCell>
@@ -222,7 +222,7 @@ export default function SellerOrderDetailPage({ params }: PageProps) {
           <CardHeader>
             <CardTitle>رسیدهای پرداخت</CardTitle>
           </CardHeader>
-          <CardContent className="pt-0">
+          <CardContent>
             <div className="grid gap-4 sm:grid-cols-2">
               {data.payment_proofs.map((proof) => (
                 <div key={proof.id} className="space-y-2">
@@ -252,7 +252,7 @@ export default function SellerOrderDetailPage({ params }: PageProps) {
         <CardHeader>
           <CardTitle>تاریخچه وضعیت</CardTitle>
         </CardHeader>
-        <CardContent className="pt-0">
+        <CardContent>
           {data.status_history.length === 0 ? (
             <p className="text-sm text-neutral-500">هنوز سابقه‌ای وجود ندارد.</p>
           ) : (

@@ -7,11 +7,13 @@ import { paths } from "@/lib/auth/paths";
 import { formatDateTime } from "@/lib/format";
 import { useToast } from "@/contexts/ToastContext";
 import { useSellerFetch } from "@/hooks/useSellerFetch";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorAlert } from "@/components/ui/ErrorAlert";
 import { Input } from "@/components/ui/Input";
+import { Card, CardContent } from "@/components/ui/Card";
 import { PaginationControls } from "@/components/ui/PaginationControls";
 import { TableSkeleton } from "@/components/ui/TableSkeleton";
 import {
@@ -81,28 +83,29 @@ export default function AdminStoresPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">فروشگاه‌ها</h1>
-          <p className="mt-1 text-foreground-muted">مدیریت فروشگاه‌های فروشنده، تاییدها و نشان‌های اعتماد</p>
-        </div>
-        <Badge variant="info">{data?.total ?? 0} فروشگاه</Badge>
-      </div>
+      <PageHeader
+        description="مدیریت فروشگاه‌های فروشنده، تاییدها و نشان‌های اعتماد"
+        action={<Badge variant="info">{data?.total ?? 0} فروشگاه</Badge>}
+      />
 
-      <form onSubmit={applyFilters} className="flex flex-wrap items-end gap-3 rounded-2xl border border-border bg-surface p-4">
-        <div className="min-w-[280px] flex-1">
-          <Input
-          label="جستجوی فروشگاه"
-            value={draft.search}
-            onChange={(e) => setDraft({ search: e.target.value })}
-          placeholder="نام فروشگاه، اسلاگ، ایمیل مالک"
-        />
-      </div>
-        <Button type="submit">جستجو</Button>
-        <Button type="button" variant="secondary" onClick={resetFilters}>
-          بازنشانی
-        </Button>
-      </form>
+      <Card>
+        <CardContent>
+          <form onSubmit={applyFilters} className="flex flex-wrap items-end gap-3">
+            <div className="min-w-[280px] flex-1">
+              <Input
+                label="جستجوی فروشگاه"
+                value={draft.search}
+                onChange={(e) => setDraft({ search: e.target.value })}
+                placeholder="نام فروشگاه، اسلاگ، ایمیل مالک"
+              />
+            </div>
+            <Button type="submit">جستجو</Button>
+            <Button type="button" variant="secondary" onClick={resetFilters}>
+              بازنشانی
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
 
       {isLoading && <TableSkeleton rows={6} columns={7} />}
 

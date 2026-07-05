@@ -136,21 +136,21 @@ export default function AdminStoreDetailPage({ params }: PageProps) {
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
-          <CardContent className="space-y-1 py-4">
+          <CardContent className="space-y-3">
             <p className="text-xs uppercase tracking-[0.2em] text-foreground-muted">مالک</p>
             <p className="font-semibold text-foreground">{owner_email}</p>
             <p className="text-sm text-foreground-muted">شناسه فروشگاه #{store.id}</p>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="space-y-1 py-4">
+          <CardContent className="space-y-3">
             <p className="text-xs uppercase tracking-[0.2em] text-foreground-muted">کاتالوگ</p>
             <p className="text-2xl font-bold text-foreground">{product_count}</p>
             <p className="text-sm text-foreground-muted">محصولات</p>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="space-y-1 py-4">
+          <CardContent className="space-y-3">
             <p className="text-xs uppercase tracking-[0.2em] text-foreground-muted">سفارش‌ها</p>
             <p className="text-2xl font-bold text-foreground">{order_count}</p>
             <p className="text-sm text-foreground-muted">کل سفارش‌ها</p>
@@ -163,7 +163,7 @@ export default function AdminStoreDetailPage({ params }: PageProps) {
           <CardHeader>
             <CardTitle>پروفایل</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-5 pt-4">
+          <CardContent className="space-y-5">
             <div className="flex flex-wrap items-start gap-4">
               {logoUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -258,7 +258,7 @@ export default function AdminStoreDetailPage({ params }: PageProps) {
           <CardHeader>
             <CardTitle>نشان‌های اعتماد</CardTitle>
           </CardHeader>
-            <CardContent className="space-y-4 pt-4">
+            <CardContent className="space-y-4">
               <BadgeList badges={badges} />
               <div className="flex flex-wrap gap-2">
                 {badge_history.slice(0, 6).map((entry) => (
@@ -274,7 +274,7 @@ export default function AdminStoreDetailPage({ params }: PageProps) {
           <CardHeader>
             <CardTitle>اقدام‌های سریع</CardTitle>
           </CardHeader>
-            <CardContent className="space-y-3 pt-4">
+            <CardContent className="space-y-3">
               <Button
                 className="w-full"
                 variant={store.is_active ? "secondary" : "primary"}
@@ -299,7 +299,7 @@ export default function AdminStoreDetailPage({ params }: PageProps) {
           <CardHeader>
             <CardTitle>تاریخچه نشان‌ها</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3 pt-4">
+          <CardContent className="space-y-3">
             {badge_history.length === 0 ? (
               <EmptyState title="تاریخچه‌ای نیست" description="تخصیص نشان‌ها اینجا نمایش داده می‌شود." />
             ) : (
@@ -322,7 +322,7 @@ export default function AdminStoreDetailPage({ params }: PageProps) {
           <CardHeader>
             <CardTitle>لاگ نظارتی</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3 pt-4">
+          <CardContent className="space-y-3">
             {audit_logs.length === 0 ? (
               <EmptyState title="لاگ نظارتی ندارد" description="اقدام‌های ادمین اینجا نمایش داده می‌شوند." />
             ) : (
