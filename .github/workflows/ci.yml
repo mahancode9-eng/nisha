@@ -76,18 +76,18 @@ jobs:
           NEXT_PUBLIC_API_URL: http://localhost:8000
 
   security-audit:
-  name: Security — dependency audit
-  runs-on: ubuntu-latest
-  steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
-      with:
-        python-version: "3.12"
-    - name: Audit Python dependencies
-      working-directory: backend
-      run: |
-        pip install pip-audit
-        pip-audit -r requirements.txt || true
-    - name: Audit npm dependencies
-      working-directory: frontend
-      run: npm audit --audit-level=high || true
+    name: Security — dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Audit Python dependencies
+        working-directory: backend
+        run: |
+          pip install pip-audit
+          pip-audit -r requirements.txt || true
+      - name: Audit npm dependencies
+        working-directory: frontend
+        run: npm audit --audit-level=high || true
