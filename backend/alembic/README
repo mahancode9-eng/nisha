@@ -1,0 +1,6 @@
+Generic single-database configuration for Nisha.
+
+Run migrations from the backend directory:
+
+    alembic revision --autogenerate -m "description"
+    alembic upgrade head

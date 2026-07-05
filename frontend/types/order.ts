@@ -1,0 +1,9 @@
+export type OrderStatus =
+  | "PENDING_PAYMENT"
+  | "PAYMENT_UPLOADED"
+  | "PAYMENT_CONFIRMED"
+  | "PAYMENT_REJECTED"
+  | "PREPARING"
+  | "SHIPPED"
+  | "DELIVERED"
+  | "CANCELLED";
