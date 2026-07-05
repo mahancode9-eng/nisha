@@ -6,6 +6,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { ErrorBoundaryWrapper } from "@/components/layout/ErrorBoundaryWrapper";
+import { getThemeInitializerScript } from "@/lib/theme";
 import "./globals.css";
 
 const vazirmatn = Vazirmatn({
@@ -48,8 +49,6 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
   themeColor: "#7c3aed",
   viewportFit: "cover",
 };
@@ -62,16 +61,16 @@ export default function RootLayout({
   return (
     <html lang="fa" dir="rtl" suppressHydrationWarning>
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: getThemeInitializerScript(),
+          }}
+        />
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-        <link rel="apple-touch-icon" href="/icon.svg" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <style>{`
-          @supports (padding: env(safe-area-inset-top)) {
-            body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
-          }
-        `}</style>
       </head>
       <body className={`${vazirmatn.variable} min-h-screen bg-background text-foreground antialiased`}>
         <LanguageProvider>
@@ -85,17 +84,19 @@ export default function RootLayout({
             </AuthProvider>
           </ThemeProvider>
         </LanguageProvider>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-          if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-              navigator.serviceWorker.register('/sw.js').catch(() => {});
-            });
-          }
-        `,
-          }}
-        />
+        {process.env.NODE_ENV === "production" && (
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `
+            if ('serviceWorker' in navigator) {
+              window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(() => {});
+              });
+            }
+          `,
+            }}
+          />
+        )}
       </body>
     </html>
   );
