@@ -5,6 +5,7 @@ from app.core.security import verify_password
 from app.models.enums import OrderStatus
 from app.models.order import Order, OrderStatusHistory
 from app.models.user import User
+from app.services import order_notification_service
 from app.services.exceptions import ServiceError
 
 EDITABLE_STATUSES = {OrderStatus.PENDING_PAYMENT, OrderStatus.PAYMENT_UPLOADED}
@@ -69,3 +70,6 @@ def append_status_history(
             note=note,
         )
     )
+    # Roadmap task 12: every recorded status change also enqueues the
+    # matching buyer/seller notifications (best-effort, never raises).
+    order_notification_service.notify_status_change(db, order, new_status)
