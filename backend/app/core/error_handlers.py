@@ -9,6 +9,11 @@ from fastapi.responses import JSONResponse
 from app.core.config import settings
 from app.services.exceptions import ServiceError
 
+try:
+    import sentry_sdk
+except ImportError:  # pragma: no cover
+    sentry_sdk = None
+
 logger = logging.getLogger(__name__)
 
 _VALIDATION_MESSAGE_MAP = {
@@ -70,6 +75,8 @@ async def validation_error_handler(
 
 
 async def unhandled_exception_handler(_request: Request, exc: Exception) -> JSONResponse:
+    if sentry_sdk is not None and settings.SENTRY_DSN:
+        sentry_sdk.capture_exception(exc)
     if settings.ENVIRONMENT == "development":
         logger.exception("Unhandled error: %s", exc)
     else:

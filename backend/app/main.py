@@ -24,7 +24,18 @@ from app.core.error_handlers import (
 )
 from app.core.limiter import limiter, rate_limit_exceeded_handler
 from app.core.logging_config import RequestLoggingMiddleware, setup_logging
+from app.core.security_headers import SecurityHeadersMiddleware
 from app.services.exceptions import ServiceError
+
+if settings.SENTRY_DSN:
+    import sentry_sdk
+
+    sentry_sdk.init(
+        dsn=settings.SENTRY_DSN,
+        environment=settings.ENVIRONMENT,
+        traces_sample_rate=settings.SENTRY_TRACES_SAMPLE_RATE,
+        send_default_pii=False,
+    )
 
 
 @asynccontextmanager
@@ -58,6 +69,7 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
 app.add_middleware(SlowAPIMiddleware)
 
+app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(RequestLoggingMiddleware)
 app.add_middleware(
     CORSMiddleware,

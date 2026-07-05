@@ -28,7 +28,10 @@ class Settings(BaseSettings):
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     LOG_LEVEL: str = "INFO"
+    LOG_JSON: bool = False
     RATE_LIMIT_ENABLED: bool = True
+    SENTRY_DSN: str = ""
+    SENTRY_TRACES_SAMPLE_RATE: float = 0.0
 
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod

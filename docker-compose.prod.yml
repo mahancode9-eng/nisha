@@ -1,7 +1,14 @@
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
 services:
   db:
     image: postgres:16-alpine
     restart: unless-stopped
+    logging: *default-logging
     environment:
       POSTGRES_USER: nisha
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
@@ -17,6 +24,7 @@ services:
   db-backup:
     image: postgres:16-alpine
     restart: unless-stopped
+    logging: *default-logging
     environment:
       PGHOST: db
       PGUSER: nisha
@@ -38,6 +46,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile.prod
     restart: unless-stopped
+    logging: *default-logging
     ports:
       - "127.0.0.1:9000:8000"
     environment:
@@ -49,6 +58,9 @@ services:
       MAX_UPLOAD_SIZE_BYTES: 5242880
       LOW_STOCK_THRESHOLD: 5
       LOG_LEVEL: INFO
+      LOG_JSON: "true"
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      SENTRY_TRACES_SAMPLE_RATE: ${SENTRY_TRACES_SAMPLE_RATE:-0.1}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:?JWT_SECRET_KEY is required}
       JWT_ALGORITHM: HS256
       JWT_ACCESS_TOKEN_EXPIRE_MINUTES: 30
@@ -78,6 +90,7 @@ services:
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:?NEXT_PUBLIC_API_URL is required}
     restart: unless-stopped
+    logging: *default-logging
     ports:
       - "127.0.0.1:3000:3000"
     environment:
