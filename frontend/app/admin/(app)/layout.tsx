@@ -19,7 +19,7 @@ export default function AdminAppLayout({ children }: { children: React.ReactNode
   return (
     <AdminAuthGuard>
       <WorkspaceShell
-        variant="sidebar"
+        variant="tabs"
         brandLabel="Nisha"
         roleLabel="پنل مدیریت"
         title="فضای عملیات"

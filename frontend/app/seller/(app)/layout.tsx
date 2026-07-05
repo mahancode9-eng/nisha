@@ -22,7 +22,7 @@ export default function SellerAppLayout({ children }: { children: React.ReactNod
   return (
     <SellerAuthGuard>
       <WorkspaceShell
-        variant="sidebar"
+        variant="tabs"
         brandLabel="Nisha"
         roleLabel="مرکز فروشنده"
         title="مدیریت فروشگاه"
