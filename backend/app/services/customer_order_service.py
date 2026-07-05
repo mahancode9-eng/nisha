@@ -338,7 +338,7 @@ def get_dashboard_summary(db: Session, customer: CustomerAccount) -> CustomerDas
     reviews = db.scalar(
         select(func.count()).select_from(CustomerReview).where(CustomerReview.customer_id == customer.id)
     ) or 0
-    chats = len(chat_service.list_customer_conversations(db, customer.id))
+    chats = chat_service.list_customer_conversations(db, customer.id).total
     downloads = total_orders
     return CustomerDashboardSummary(
         total_orders=total_orders,
