@@ -62,7 +62,27 @@ The committed Dockerfiles are development defaults:
 - `backend/Dockerfile` runs `uvicorn ... --reload`
 - `frontend/Dockerfile` runs `npm run dev`
 
-For production, override them with non-reloading commands. A small VPS setup can keep the same images and only change the container commands:
+For production, use the dedicated production compose file and Dockerfiles:
+
+```bash
+# Create backend/.env and frontend/.env (see section 2), then:
+docker compose -f docker-compose.prod.yml up -d --build
+```
+
+Production assets:
+
+- `docker-compose.prod.yml` — no source bind-mounts, `restart: unless-stopped`, required env vars
+- `backend/Dockerfile.prod` — Uvicorn without `--reload`
+- `frontend/Dockerfile.prod` — multi-stage `npm ci` → `npm run build` → `npm run start`
+
+Required environment variables for `docker-compose.prod.yml`:
+
+- `POSTGRES_PASSWORD`
+- `JWT_SECRET_KEY`
+- `CORS_ORIGINS` (public frontend origin, e.g. `https://app.example.com`)
+- `NEXT_PUBLIC_API_URL` (public API origin, e.g. `https://api.example.com`)
+
+If you prefer command overrides on the dev Dockerfiles instead, you can still override commands manually:
 
 ```yaml
 services:
@@ -74,9 +94,17 @@ services:
     restart: unless-stopped
 ```
 
-If you later want a more optimized deployment, create dedicated production Dockerfiles with multi-stage builds. The runbook below still applies.
-
 ## 4. Start the stack
+
+### Production
+
+```bash
+docker compose -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.prod.yml ps
+docker compose -f docker-compose.prod.yml logs -f backend
+```
+
+### Development
 
 1. Bring up PostgreSQL first:
 

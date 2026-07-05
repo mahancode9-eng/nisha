@@ -5,8 +5,7 @@ This file is for implementation notes, decisions, and follow-up items. It is int
 ## Current decisions
 
 - Documentation is English.
-- The UI stays Persian-first and RTL by default.
-- English remains available through the shared language switch.
+- The UI is Persian-only and RTL.
 - Production documentation assumes Docker Compose on a Linux VPS.
 - The committed Dockerfiles are development defaults; production should override the runtime commands.
 

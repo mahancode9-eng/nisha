@@ -1,6 +1,6 @@
 # Nisha
 
-Nisha is a manual-payment commerce platform for small online stores. It ships a Persian-first RTL UI, a purple/black theme system with light, dark, and system modes, a public storefront, guest checkout, seller/admin tooling, and a customer portal. English documentation stays in the repo, and the UI language can be switched from the shared shell. Persian is the default UI language.
+Nisha is a manual-payment commerce platform for small online stores. It ships a Persian-first RTL UI, a purple/black theme system with light, dark, and system modes, a public storefront, guest checkout, seller/admin tooling, and a customer portal. The UI is Persian-only; documentation is written in English.
 
 ## What this repo contains
 
@@ -73,7 +73,7 @@ docker compose up --build
 
 4. The backend automatically applies Alembic migrations on startup when it connects to PostgreSQL.
 
-5. Seed demo data only if you want the sample seller/store content:
+5. Seed demo data only if you want the sample seller/store content. **Do not run the seed script in production.**
 
 ```bash
 docker compose exec backend python -m scripts.seed
@@ -210,7 +210,7 @@ Important:
 - List endpoints return paginated JSON with `items`, `total`, `page`, `page_size`, and `total_pages`.
 - Uploaded files are served from `/uploads/...`.
 - Seller/admin accounts use the seller/admin bearer token. Customer accounts use a separate customer token.
-- The UI defaults to Persian and RTL. English remains available through the shared language switch.
+- The UI is Persian-only and RTL.
 - Theme preference persists per device and can follow light, dark, or system mode.
 
 ## Demo credentials

@@ -52,12 +52,26 @@ Use the app bundle for Play Store submissions.
 
 ### Signing
 
-Configure Android signing in:
+1. Create a release keystore outside the repository.
+2. Copy `android/key.properties.example` to `android/key.properties`.
+3. Fill in the keystore path and passwords in `key.properties`.
+4. Build with `flutter build appbundle --release`.
 
-- `android/app/build.gradle.kts`
-- A local `key.properties` file that is not committed
+`android/app/build.gradle.kts` reads `key.properties` when present and uses the release signing config. If the file is missing, release builds fall back to debug signing for local testing only.
 
-Keep the keystore in a secure location outside the repository.
+Never commit:
+
+- `android/key.properties`
+- `*.jks` / `*.keystore` files
+
+Example `key.properties`:
+
+```properties
+storePassword=your-store-password
+keyPassword=your-key-password
+keyAlias=upload
+storeFile=/absolute/path/to/upload-keystore.jks
+```
 
 ## iOS Release
 

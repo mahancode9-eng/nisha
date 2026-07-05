@@ -40,3 +40,12 @@ postgres_data/
 # OS
 .DS_Store
 Thumbs.db
+
+# Logs and runtime artifacts
+*.log
+backend/uploads/
+
+# Flutter release signing (never commit)
+nisha_flutter/android/key.properties
+nisha_flutter/android/**/*.jks
+nisha_flutter/android/**/*.keystore
