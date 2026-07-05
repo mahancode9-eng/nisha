@@ -3,12 +3,12 @@ from __future__ import annotations
 import io
 import uuid
 from dataclasses import dataclass
-from pathlib import Path
 
 from fastapi import UploadFile
 from PIL import Image, ImageOps
 
 from app.core.config import settings
+from app.core.storage import get_storage
 from app.services.exceptions import ServiceError
 
 ALLOWED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
@@ -67,12 +67,8 @@ async def _read_upload_bytes(file: UploadFile) -> bytes:
     return content
 
 
-def _build_media_paths(subdir: str, filename: str) -> tuple[Path, str]:
-    upload_dir = Path(settings.UPLOAD_DIR) / subdir
-    upload_dir.mkdir(parents=True, exist_ok=True)
-    destination = upload_dir / filename
-    public_url = f"/uploads/{subdir}/{filename}"
-    return destination, public_url
+def _store_media(subdir: str, filename: str, content: bytes, content_type: str | None) -> str:
+    return get_storage().save(f"{subdir}/{filename}", content, content_type=content_type)
 
 
 def _save_image_thumbnail(
@@ -87,12 +83,11 @@ def _save_image_thumbnail(
         width, height = image.size
         thumb = image.copy()
         thumb.thumbnail(size)
-        thumb_name = f"{stem}_thumb.webp"
-        thumb_dir = Path(settings.UPLOAD_DIR) / subdir
-        thumb_dir.mkdir(parents=True, exist_ok=True)
-        thumb_path = thumb_dir / thumb_name
-        thumb.save(thumb_path, format="WEBP", quality=82, method=6)
-    return f"/uploads/{subdir}/{thumb_name}", width, height
+        buffer = io.BytesIO()
+        thumb.save(buffer, format="WEBP", quality=82, method=6)
+    thumb_name = f"{stem}_thumb.webp"
+    thumbnail_url = _store_media(subdir, thumb_name, buffer.getvalue(), "image/webp")
+    return thumbnail_url, width, height
 
 
 async def save_uploaded_media(
@@ -124,18 +119,18 @@ async def save_uploaded_media(
             raise ServiceError("Invalid image file content", status_code=422)
 
         stored_name = f"{uuid.uuid4().hex}{declared_ext}"
-        destination, public_url = _build_media_paths(subdir, stored_name)
-        destination.write_bytes(content)
+        stem = stored_name.rsplit(".", 1)[0]
+        public_url = _store_media(subdir, stored_name, content, content_type or file.content_type)
 
         try:
             thumbnail_url, width, height = _save_image_thumbnail(
                 content,
                 subdir=subdir,
-                stem=destination.stem,
+                stem=stem,
                 size=thumbnail_size,
             )
         except Exception as exc:
-            destination.unlink(missing_ok=True)
+            get_storage().delete(f"{subdir}/{stored_name}")
             raise ServiceError("Invalid image file content", status_code=422) from exc
         return UploadedMedia(
             url=public_url,
@@ -148,8 +143,7 @@ async def save_uploaded_media(
 
     suffix = declared_ext or ".bin"
     stored_name = f"{uuid.uuid4().hex}{suffix}"
-    destination, public_url = _build_media_paths(subdir, stored_name)
-    destination.write_bytes(content)
+    public_url = _store_media(subdir, stored_name, content, content_type or file.content_type)
     return UploadedMedia(
         url=public_url,
         thumbnail_url=None,
