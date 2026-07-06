@@ -34,6 +34,14 @@ export type PublicProductImage = ProductImage;
 
 export type PublicProductFormField = ProductFormField;
 
+export type PublicProductVariant = {
+  id: number;
+  name: string;
+  price_override: string | null;
+  stock_quantity: number;
+  sort_order: number;
+};
+
 export type PublicProduct = {
   id: number;
   title: string;
@@ -44,6 +52,7 @@ export type PublicProduct = {
   video_mime_type?: string | null;
   images: PublicProductImage[];
   form_fields: PublicProductFormField[];
+  variants?: PublicProductVariant[];
   image_count: number;
 };
 

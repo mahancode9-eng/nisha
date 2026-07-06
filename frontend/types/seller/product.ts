@@ -61,6 +61,26 @@ export type ProductFormFieldInput = {
   options?: ProductFieldOption[] | null;
 };
 
+export type ProductVariant = {
+  id: number;
+  product_id: number;
+  name: string;
+  price_override: string | null;
+  stock_quantity: number;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ProductVariantInput = {
+  name: string;
+  price_override?: number | string | null;
+  stock_quantity?: number;
+  sort_order?: number;
+  is_active?: boolean;
+};
+
 export type Product = {
   id: number;
   store_id: number;
@@ -73,6 +93,7 @@ export type Product = {
   video_mime_type?: string | null;
   images: ProductImage[];
   form_fields: ProductFormField[];
+  variants: ProductVariant[];
   created_at: string;
   updated_at: string;
 };
@@ -88,6 +109,7 @@ export type ProductCreate = {
   image_urls?: string[] | null;
   images?: ProductImageInput[] | null;
   form_fields?: ProductFormFieldInput[] | null;
+  variants?: ProductVariantInput[] | null;
 };
 
 export type ProductUpdate = {
@@ -101,6 +123,7 @@ export type ProductUpdate = {
   image_urls?: string[] | null;
   images?: ProductImageInput[] | null;
   form_fields?: ProductFormFieldInput[] | null;
+  variants?: ProductVariantInput[] | null;
 };
 
 export type ProductImageReorderRequest = {

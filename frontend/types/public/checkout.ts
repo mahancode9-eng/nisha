@@ -3,6 +3,7 @@ import type { PaymentMethodType } from "@/types/seller/payment-method";
 
 export type OrderItemInput = {
   product_id: number;
+  variant_id?: number | null;
   quantity: number;
   field_values?: OrderItemFieldValueInput[];
 };
@@ -25,6 +26,8 @@ export type GuestOrderCreate = {
 
 export type CheckoutOrderItemSummary = {
   product_id: number;
+  variant_id?: number | null;
+  variant_name?: string | null;
   product_title: string;
   quantity: number;
   unit_price: string;

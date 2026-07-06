@@ -9,6 +9,7 @@ export type OrderTrackRequest = {
 export type OrderTrackItem = {
   product_id: number | null;
   product_title: string;
+  variant_name?: string | null;
   quantity: number;
   unit_price: string;
   total_price: string;
