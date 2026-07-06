@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ChangeEvent } from "react";
 import { ApiError } from "@/lib/api/errors";
-import { uploadPublicImage } from "@/lib/api/public/uploads";
+import { uploadPublicImage, uploadPublicVideo } from "@/lib/api/public/uploads";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -24,6 +24,9 @@ type ProductFormProps = {
 
 type EditableImage = ProductImageInput & { clientKey: string };
 type EditableField = ProductFormFieldInput & { clientKey: string; optionsText: string; validationText: string };
+
+const MAX_IMAGES = 8;
+const MAX_VIDEO_BYTES = 52_428_800; // 50MB — must match MAX_VIDEO_UPLOAD_SIZE_BYTES in the backend
 
 const FIELD_TYPES: ProductFieldType[] = [
   "TEXT",
@@ -139,10 +142,16 @@ export function ProductForm({
   const [fields, setFields] = useState<EditableField[]>(
     initial ? normalizeFields(initial.form_fields) : [],
   );
+  const [videoUrl, setVideoUrl] = useState(initial?.video_url ?? "");
+  const [videoMimeType, setVideoMimeType] = useState(initial?.video_mime_type ?? "");
+  const [videoError, setVideoError] = useState<string | null>(null);
+  const [videoUploading, setVideoUploading] = useState(false);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [imageError, setImageError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const fileInputs = useRef<Record<string, HTMLInputElement | null>>({});
+  const videoInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     setTitle(initial?.title ?? "");
@@ -152,6 +161,8 @@ export function ProductForm({
     setIsActive(initial?.is_active ?? true);
     setImages(initial && initial.images.length > 0 ? normalizeImages(initial.images) : [emptyImage()]);
     setFields(initial ? normalizeFields(initial.form_fields) : []);
+    setVideoUrl(initial?.video_url ?? "");
+    setVideoMimeType(initial?.video_mime_type ?? "");
   }, [initial]);
 
   const hasPrimaryImage = useMemo(() => images.some((image) => image.image_url.trim()), [images]);
@@ -172,6 +183,22 @@ export function ProductForm({
     setFields((prev) => prev.filter((_, i) => i !== index));
   }
 
+  function handleImageDrop(targetIndex: number) {
+    if (dragIndex === null || dragIndex === targetIndex) {
+      setDragIndex(null);
+      return;
+    }
+    const from = dragIndex;
+    setImages((prev) => {
+      if (from < 0 || from >= prev.length) return prev;
+      const next = [...prev];
+      const [moved] = next.splice(from, 1);
+      next.splice(targetIndex, 0, moved);
+      return next;
+    });
+    setDragIndex(null);
+  }
+
   async function handleFileChange(index: number, event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -189,6 +216,28 @@ export function ProductForm({
     } catch (err) {
       setImageError(err instanceof ApiError ? err.message : "بارگذاری تصویر ناموفق بود");
     } finally {
+      event.target.value = "";
+    }
+  }
+
+  async function handleVideoChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setVideoError(null);
+    if (file.size > MAX_VIDEO_BYTES) {
+      setVideoError("حجم ویدیو باید حداکثر ۵۰ مگابایت باشد.");
+      event.target.value = "";
+      return;
+    }
+    setVideoUploading(true);
+    try {
+      const uploaded = await uploadPublicVideo(file);
+      setVideoUrl(uploaded.url);
+      setVideoMimeType(uploaded.mime_type ?? "");
+    } catch (err) {
+      setVideoError(err instanceof ApiError ? err.message : "بارگذاری ویدیو ناموفق بود");
+    } finally {
+      setVideoUploading(false);
       event.target.value = "";
     }
   }
@@ -261,6 +310,11 @@ export function ProductForm({
       }))
       .filter((image) => image.image_url);
 
+    if (payloadImages.length > MAX_IMAGES) {
+      setError("حداکثر ۸ تصویر برای هر محصول مجاز است.");
+      return;
+    }
+
     let payloadFields: ProductFormFieldInput[];
     try {
       payloadFields = fields.map((field, index) => {
@@ -290,6 +344,8 @@ export function ProductForm({
         price: priceNum,
         stock_quantity: stockNum,
         is_active: isActive,
+        video_url: videoUrl.trim() || null,
+        video_mime_type: videoUrl.trim() ? videoMimeType.trim() || null : null,
         images: payloadImages.length > 0 ? payloadImages : null,
         form_fields: payloadFields.length > 0 ? payloadFields : null,
       });
@@ -366,19 +422,44 @@ export function ProductForm({
               <div>
                 <p className="text-xs tracking-[0.2em] text-foreground-muted">گالری</p>
                 <p className="text-sm text-foreground-muted">
-                  تصاویر را بارگذاری کنید، تصویر اصلی را تعیین کنید و ترتیب آن‌ها را برای گالری عمومی مشخص کنید.
+                  تا ۸ تصویر بارگذاری کنید و با کشیدن کارت‌ها (یا دکمه‌های بالا/پایین) ترتیب گالری را مشخص کنید؛ تصویر اول، تصویر اصلی است.
                 </p>
               </div>
-              <div className="flex gap-2">
-                <Button type="button" variant="secondary" onClick={() => setImages((prev) => [...prev, emptyImage()])}>
+              <div className="flex items-center gap-2">
+                <span className="whitespace-nowrap text-xs text-foreground-muted">{images.length} / {MAX_IMAGES}</span>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={images.length >= MAX_IMAGES}
+                  onClick={() => setImages((prev) => (prev.length >= MAX_IMAGES ? prev : [...prev, emptyImage()]))}
+                >
                   افزودن تصویر
                 </Button>
               </div>
             </div>
             <div className="space-y-4">
               {images.map((image, index) => (
-                <div key={image.clientKey} className="grid gap-4 rounded-2xl border border-border p-4 lg:grid-cols-[180px_1fr]">
+                <div
+                  key={image.clientKey}
+                  onDragOver={(event) => event.preventDefault()}
+                  onDrop={(event) => {
+                    event.preventDefault();
+                    handleImageDrop(index);
+                  }}
+                  className={`grid gap-4 rounded-2xl border p-4 transition lg:grid-cols-[180px_1fr] ${
+                    dragIndex === index ? "border-brand opacity-60" : "border-border"
+                  }`}
+                >
                   <div className="space-y-3">
+                    <div
+                      draggable
+                      onDragStart={() => setDragIndex(index)}
+                      onDragEnd={() => setDragIndex(null)}
+                      title="برای جابه‌جایی بکشید"
+                      className="flex cursor-grab items-center justify-center gap-1 rounded-lg border border-dashed border-border px-2 py-1 text-xs text-foreground-muted active:cursor-grabbing"
+                    >
+                      ⠿ کشیدن برای جابه‌جایی
+                    </div>
                     <div className="aspect-square overflow-hidden rounded-xl bg-surface-muted">
                       {image.image_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -496,6 +577,65 @@ export function ProductForm({
             </div>
             {hasPrimaryImage ? null : (
               <p className="text-sm text-amber-700 dark:text-amber-300">حداقل یک نشانی تصویر اضافه کنید یا یک تصویر بارگذاری کنید تا محصول در صفحه عمومی نمایش داده شود.</p>
+            )}
+          </section>
+
+          <section className="space-y-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs tracking-[0.2em] text-foreground-muted">ویدیوی محصول</p>
+                <p className="text-sm text-foreground-muted">
+                  یک ویدیوی MP4 یا WebM با حجم حداکثر ۵۰ مگابایت بارگذاری کنید (اختیاری). ویدیو در انتهای گالری صفحه محصول نمایش داده می‌شود.
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  loading={videoUploading}
+                  onClick={() => videoInputRef.current?.click()}
+                >
+                  بارگذاری ویدیو
+                </Button>
+                {videoUrl.trim() && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
+                    onClick={() => {
+                      setVideoUrl("");
+                      setVideoMimeType("");
+                      setVideoError(null);
+                    }}
+                  >
+                    حذف ویدیو
+                  </Button>
+                )}
+              </div>
+            </div>
+            <input
+              ref={videoInputRef}
+              type="file"
+              accept="video/mp4,video/webm"
+              className="hidden"
+              onChange={(event) => void handleVideoChange(event)}
+            />
+            {videoError && (
+              <p className="rounded-lg bg-amber-50 dark:bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-300" role="alert">
+                {videoError}
+              </p>
+            )}
+            {videoUrl.trim() ? (
+              <div className="space-y-3 rounded-2xl border border-border p-4">
+                <video src={videoUrl} controls preload="metadata" className="max-h-72 w-full rounded-xl bg-black object-contain" />
+                <Input
+                  label="آدرس ویدیو"
+                  value={videoUrl}
+                  onChange={(e) => setVideoUrl(e.target.value)}
+                />
+              </div>
+            ) : (
+              <p className="text-sm text-foreground-muted">هنوز ویدیویی برای این محصول انتخاب نشده است.</p>
             )}
           </section>
 

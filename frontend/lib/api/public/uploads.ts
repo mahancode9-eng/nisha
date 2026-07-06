@@ -12,3 +12,9 @@ export function uploadPublicImage(file: File): Promise<MediaUploadResponse> {
   form.append("file", file);
   return apiPostForm<MediaUploadResponse>("/api/v1/public/uploads/images", form, false);
 }
+
+export function uploadPublicVideo(file: File): Promise<MediaUploadResponse> {
+  const form = new FormData();
+  form.append("file", file);
+  return apiPostForm<MediaUploadResponse>("/api/v1/public/uploads/videos", form, false);
+}

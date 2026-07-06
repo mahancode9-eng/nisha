@@ -40,6 +40,8 @@ export type PublicProduct = {
   description: string | null;
   price: string;
   stock_quantity: number;
+  video_url?: string | null;
+  video_mime_type?: string | null;
   images: PublicProductImage[];
   form_fields: PublicProductFormField[];
   image_count: number;

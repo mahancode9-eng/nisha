@@ -69,6 +69,8 @@ export type Product = {
   price: string;
   stock_quantity: number;
   is_active: boolean;
+  video_url?: string | null;
+  video_mime_type?: string | null;
   images: ProductImage[];
   form_fields: ProductFormField[];
   created_at: string;
@@ -81,6 +83,8 @@ export type ProductCreate = {
   price: number | string;
   stock_quantity?: number;
   is_active?: boolean;
+  video_url?: string | null;
+  video_mime_type?: string | null;
   image_urls?: string[] | null;
   images?: ProductImageInput[] | null;
   form_fields?: ProductFormFieldInput[] | null;
@@ -92,6 +96,8 @@ export type ProductUpdate = {
   price?: number | string;
   stock_quantity?: number;
   is_active?: boolean;
+  video_url?: string | null;
+  video_mime_type?: string | null;
   image_urls?: string[] | null;
   images?: ProductImageInput[] | null;
   form_fields?: ProductFormFieldInput[] | null;
