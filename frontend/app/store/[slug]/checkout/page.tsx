@@ -23,7 +23,7 @@ import { Input } from "@/components/ui/Input";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { Textarea } from "@/components/ui/Textarea";
 import { paths } from "@/lib/auth/paths";
-import type { CheckoutResponse, OrderItemFieldValueInput } from "@/types/public/checkout";
+import type { CheckoutResponse, DiscountPreviewResponse, OrderItemFieldValueInput } from "@/types/public/checkout";
 import type { PublicPaymentMethod, PublicProduct, PublicProductFormField } from "@/types/public/store";
 import type { CustomerAddress } from "@/types/customer/profile";
 
@@ -128,12 +128,21 @@ export default function CheckoutPage({ params }: PageProps) {
   const [saveAddress, setSaveAddress] = useState(false);
   const [addressLabel, setAddressLabel] = useState("");
 
+  // Roadmap task 17: optional discount code applied to the order.
+  const [discountCode, setDiscountCode] = useState("");
+  const [appliedDiscount, setAppliedDiscount] = useState<DiscountPreviewResponse | null>(null);
+  const [discountError, setDiscountError] = useState<string | null>(null);
+  const [discountChecking, setDiscountChecking] = useState(false);
+
   const selectedAddress = useMemo(
     () => customerAddresses.find((address) => String(address.id) === selectedAddressId) ?? null,
     [customerAddresses, selectedAddressId],
   );
 
   const productsById = useMemo(() => new Map(storeProducts.map((product) => [product.id, product])), [storeProducts]);
+
+  const discountAmount = appliedDiscount ? parseFloat(appliedDiscount.discount_amount) : 0;
+  const payableTotal = Math.max(subtotal - discountAmount, 0);
 
   useEffect(() => {
     if (successOrder) return;
@@ -258,6 +267,29 @@ export default function CheckoutPage({ params }: PageProps) {
     }));
   }
 
+  async function handleApplyDiscount() {
+    const code = discountCode.trim();
+    if (!code) return;
+    setDiscountChecking(true);
+    setDiscountError(null);
+    try {
+      const preview = await storesApi.previewDiscount(slug, { code, subtotal });
+      setAppliedDiscount(preview);
+      toast.success("کد تخفیف اعمال شد");
+    } catch (err) {
+      setAppliedDiscount(null);
+      setDiscountError(err instanceof ApiError ? err.message : "بررسی کد تخفیف ممکن نشد");
+    } finally {
+      setDiscountChecking(false);
+    }
+  }
+
+  function handleRemoveDiscount() {
+    setAppliedDiscount(null);
+    setDiscountCode("");
+    setDiscountError(null);
+  }
+
   async function handleFieldFileUpload(
     productId: number,
     fieldKey: string,
@@ -337,6 +369,7 @@ export default function CheckoutPage({ params }: PageProps) {
         buyer_address: buyerAddress.trim(),
         buyer_note: buyerNote.trim() || null,
         payment_method_id: paymentMethodId,
+        discount_code: appliedDiscount ? appliedDiscount.code : null,
         items: items.map((item) => ({
           product_id: item.productId,
           quantity: item.quantity,
@@ -459,9 +492,52 @@ export default function CheckoutPage({ params }: PageProps) {
               </div>
             );
           })}
-          <div className="flex justify-between border-t border-border pt-2 font-semibold">
-            <span>جمع کل</span>
-            <span>{formatMoney(subtotal)}</span>
+
+          <div className="space-y-2 border-t border-border pt-3">
+            <div className="flex flex-wrap items-end gap-2">
+              <div className="grow">
+                <Input
+                  label="کد تخفیف (اختیاری)"
+                  value={discountCode}
+                  onChange={(e) => setDiscountCode(e.target.value)}
+                  disabled={Boolean(appliedDiscount)}
+                  placeholder="مثلا SAVE10"
+                />
+              </div>
+              {appliedDiscount ? (
+                <Button type="button" variant="ghost" onClick={handleRemoveDiscount}>
+                  حذف کد
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => void handleApplyDiscount()}
+                  loading={discountChecking}
+                  disabled={!discountCode.trim()}
+                >
+                  اعمال کد
+                </Button>
+              )}
+            </div>
+            {discountError && <p className="text-sm text-red-600">{discountError}</p>}
+          </div>
+
+          <div className="space-y-1 border-t border-border pt-2">
+            <div className="flex justify-between text-sm">
+              <span>جمع کل</span>
+              <span>{formatMoney(subtotal)}</span>
+            </div>
+            {appliedDiscount && (
+              <div className="flex justify-between text-sm text-emerald-600">
+                <span>تخفیف ({appliedDiscount.code})</span>
+                <span>− {formatMoney(appliedDiscount.discount_amount)}</span>
+              </div>
+            )}
+            <div className="flex justify-between font-semibold">
+              <span>مبلغ قابل پرداخت</span>
+              <span>{formatMoney(payableTotal)}</span>
+            </div>
           </div>
         </CardContent>
       </Card>
