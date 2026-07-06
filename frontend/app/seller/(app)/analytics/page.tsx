@@ -36,11 +36,12 @@ function BarChart({ points, unit }: { points: ChartPoint[]; unit: string }) {
     <div className="flex h-40 gap-px" dir="ltr">
       {points.map((point) => {
         const pct = Math.max(2, Math.round((point.value / max) * 100));
+        const barStyle = { height: pct + "%" };
         return (
           <div key={point.label} className="group relative flex h-full flex-1 items-end">
             <div
               className="w-full rounded-t bg-brand/60 transition-colors group-hover:bg-brand"
-              style= height: pct + "%" 
+              style={barStyle}
             />
             <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded border border-border bg-surface-muted px-2 py-1 text-xs text-foreground group-hover:block">
               {point.label}: {formatNumber(point.value)} {unit}
