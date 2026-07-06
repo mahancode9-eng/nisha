@@ -6,7 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
-from app.models.product import OrderItemFieldValue, Product, ProductFieldType, ProductFormField, ProductImage
+from app.models.product import OrderItemFieldValue, Product, ProductFieldType, ProductFormField, ProductImage, ProductVariant
 from app.models.store import Store
 from app.schemas.product import (
     MAX_PRODUCT_IMAGES,
@@ -16,6 +16,7 @@ from app.schemas.product import (
     ProductImageInput,
     ProductImageReorderRequest,
     ProductUpdate,
+    ProductVariantInput,
 )
 from app.services.exceptions import ServiceError
 
@@ -44,6 +45,12 @@ def _coerce_form_field_input(field: ProductFormFieldInput | dict) -> ProductForm
     if isinstance(field, ProductFormFieldInput):
         return field
     return ProductFormFieldInput.model_validate(field)
+
+
+def _coerce_variant_input(variant: ProductVariantInput | dict) -> ProductVariantInput:
+    if isinstance(variant, ProductVariantInput):
+        return variant
+    return ProductVariantInput.model_validate(variant)
 
 
 def _commit_or_raise(db: Session, message: str) -> None:
@@ -130,12 +137,53 @@ def _replace_form_fields(db: Session, product: Product, fields: list[ProductForm
     _attach_form_fields(db, product, fields)
 
 
+def _attach_variants(
+    db: Session,
+    product: Product,
+    variants: list[ProductVariantInput] | list[dict],
+) -> None:
+    """Create variant rows for a product (roadmap task 16).
+
+    When at least one active variant exists, the parent product's
+    ``stock_quantity`` is kept in sync as the sum of active variant stocks
+    so storefront listing and the in-stock filter stay correct.
+    """
+    coerced = [_coerce_variant_input(variant) for variant in variants]
+    for index, variant in enumerate(coerced):
+        db.add(
+            ProductVariant(
+                product_id=product.id,
+                name=variant.name,
+                price_override=variant.price_override,
+                stock_quantity=variant.stock_quantity,
+                sort_order=variant.sort_order if variant.sort_order is not None else index,
+                is_active=variant.is_active,
+            )
+        )
+    if any(variant.is_active for variant in coerced):
+        product.stock_quantity = sum(
+            variant.stock_quantity for variant in coerced if variant.is_active
+        )
+
+
+def _replace_variants(
+    db: Session,
+    product: Product,
+    variants: list[ProductVariantInput] | list[dict],
+) -> None:
+    for variant in list(product.variants):
+        db.delete(variant)
+    db.flush()
+    _attach_variants(db, product, variants)
+
+
 def _products_base_query(store: Store):
     return (
         select(Product)
         .options(
             selectinload(Product.images),
             selectinload(Product.form_fields),
+            selectinload(Product.variants),
         )
         .where(Product.store_id == store.id)
     )
@@ -167,6 +215,7 @@ def get_product(db: Session, store: Store, product_id: int) -> Product:
         .options(
             selectinload(Product.images),
             selectinload(Product.form_fields),
+            selectinload(Product.variants),
         )
         .where(Product.id == product_id, Product.store_id == store.id)
     )
@@ -197,6 +246,9 @@ def create_product(db: Session, store: Store, data: ProductCreate) -> Product:
     if data.form_fields:
         _attach_form_fields(db, product, data.form_fields)
 
+    if data.variants:
+        _attach_variants(db, product, data.variants)
+
     _commit_or_raise(db, "Could not create product")
     db.refresh(product)
     return get_product(db, store, product.id)
@@ -214,6 +266,7 @@ def update_product(
     image_urls = update_data.pop("image_urls", None)
     images = update_data.pop("images", None)
     form_fields = update_data.pop("form_fields", None)
+    variants = update_data.pop("variants", None)
     for field, value in update_data.items():
         setattr(product, field, value)
 
@@ -224,6 +277,9 @@ def update_product(
 
     if form_fields is not None:
         _replace_form_fields(db, product, form_fields)
+
+    if variants is not None:
+        _replace_variants(db, product, variants)
 
     _commit_or_raise(db, "Could not update product")
     return get_product(db, store, product_id)

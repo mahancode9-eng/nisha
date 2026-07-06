@@ -12,6 +12,7 @@ from app.schemas.public import (
     PublicPaymentMethod,
     PublicProduct,
     PublicProductListResponse,
+    PublicProductVariant,
     PublicStorePageResponse,
     PublicStoreProfile,
     PublicStoreReview,
@@ -36,6 +37,11 @@ def _public_product(product) -> PublicProduct:
         video_mime_type=product.video_mime_type,
         images=[ProductImageResponse.model_validate(img) for img in product.images],
         form_fields=[ProductFormFieldResponse.model_validate(field) for field in product.form_fields],
+        variants=[
+            PublicProductVariant.model_validate(variant)
+            for variant in product.variants
+            if variant.is_active
+        ],
         image_count=len(product.images),
     )
 

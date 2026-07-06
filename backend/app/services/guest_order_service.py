@@ -80,6 +80,7 @@ def track_order(db: Session, invoice_code: str, password: str) -> OrderTrackResp
             OrderTrackItemResponse(
                 product_id=item.product_id,
                 product_title=item.product_title_snapshot,
+                variant_name=item.variant_name_snapshot,
                 quantity=item.quantity,
                 unit_price=item.unit_price_snapshot,
                 total_price=item.total_price,
