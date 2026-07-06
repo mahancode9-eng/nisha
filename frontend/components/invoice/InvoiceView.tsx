@@ -54,7 +54,10 @@ export function InvoiceView({ order }: { order: OrderTrackResponse }) {
         <TableBody>
           {order.items.map((item, idx) => (
             <TableRow key={idx}>
-              <TableCell>{item.product_title}</TableCell>
+              <TableCell>
+                {item.product_title}
+                {item.variant_name ? ` — ${item.variant_name}` : ""}
+              </TableCell>
               <TableCell>{item.quantity}</TableCell>
               <TableCell>{formatMoney(item.unit_price)}</TableCell>
               <TableCell>{formatMoney(item.total_price)}</TableCell>
