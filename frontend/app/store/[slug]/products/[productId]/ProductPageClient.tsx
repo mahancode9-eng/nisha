@@ -45,6 +45,7 @@ export function ProductPageClient({ slug, productId }: ProductPageClientProps) {
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const [selectedVariantId, setSelectedVariantId] = useState<number | null>(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const touchStartX = useRef<number | null>(null);
 
@@ -59,6 +60,7 @@ export function ProductPageClient({ slug, productId }: ProductPageClientProps) {
           setData(result);
           setSelectedImage(0);
           setQuantity(1);
+          setSelectedVariantId(null);
           setLightboxOpen(false);
         }
       } catch {
@@ -101,6 +103,15 @@ export function ProductPageClient({ slug, productId }: ProductPageClientProps) {
 
   const { store, product, review_summary, public_reviews } = data;
 
+  const variants = product.variants ?? [];
+  const selectedVariant =
+    variants.find((v) => v.id === selectedVariantId) ??
+    variants.find((v) => v.stock_quantity > 0) ??
+    variants[0] ??
+    null;
+  const effectiveStock = selectedVariant ? selectedVariant.stock_quantity : product.stock_quantity;
+  const effectivePrice = selectedVariant?.price_override ?? product.price;
+
   const mediaItems: GalleryMediaItem[] = product.images.map((item) => ({
     kind: "image" as const,
     key: `image-${item.id}`,
@@ -114,7 +125,7 @@ export function ProductPageClient({ slug, productId }: ProductPageClientProps) {
 
   const activeIndex = mediaItems.length > 0 ? Math.min(selectedImage, mediaItems.length - 1) : 0;
   const activeMedia = mediaItems[activeIndex] ?? null;
-  const lineTotal = parseFloat(product.price) * quantity;
+  const lineTotal = parseFloat(effectivePrice) * quantity;
 
   function goToMedia(index: number) {
     if (mediaItems.length < 2) return;
@@ -143,8 +154,16 @@ export function ProductPageClient({ slug, productId }: ProductPageClientProps) {
   }
 
   function handleAddToCart() {
-    addItem(product, quantity);
-    toast.success("محصول به سبد خرید اضافه شد");
+    if (effectiveStock <= 0) {
+      toast.error("این محصول ناموجود است");
+      return;
+    }
+    addItem(product, quantity, selectedVariant);
+    toast.success(
+      selectedVariant
+        ? `«${product.title} — ${selectedVariant.name}» به سبد خرید اضافه شد`
+        : "محصول به سبد خرید اضافه شد",
+    );
   }
 
   return (
@@ -260,10 +279,41 @@ export function ProductPageClient({ slug, productId }: ProductPageClientProps) {
               <div>
                 <p className="text-sm text-foreground-muted">{store.name}</p>
                 <h1 className="mt-1 text-2xl font-bold text-foreground sm:text-3xl">{product.title}</h1>
-                <p className="mt-2 text-xl font-semibold text-foreground sm:text-2xl">{formatMoney(product.price)}</p>
+                <p className="mt-2 text-xl font-semibold text-foreground sm:text-2xl">{formatMoney(effectivePrice)}</p>
               </div>
               {product.description && <p className="text-sm leading-6 text-foreground-muted">{product.description}</p>}
               <div className="space-y-3 rounded-3xl border border-border bg-surface-muted p-4">
+                {variants.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs tracking-[0.2em] text-foreground-muted">انتخاب واریانت</p>
+                    <div className="flex flex-wrap gap-2">
+                      {variants.map((variant) => {
+                        const active = selectedVariant?.id === variant.id;
+                        const outOfStock = variant.stock_quantity <= 0;
+                        return (
+                          <button
+                            key={variant.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedVariantId(variant.id);
+                              setQuantity(1);
+                            }}
+                            disabled={outOfStock}
+                            className={`rounded-full border px-4 py-2 text-sm transition ${
+                              active
+                                ? "border-brand bg-surface font-medium text-brand"
+                                : "border-border text-foreground hover:border-brand"
+                            } ${outOfStock ? "cursor-not-allowed opacity-50" : ""}`}
+                          >
+                            {variant.name}
+                            {variant.price_override ? ` — ${formatMoney(variant.price_override)}` : ""}
+                            {outOfStock ? " (ناموجود)" : ""}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <p className="text-xs tracking-[0.2em] text-foreground-muted">تعداد</p>
@@ -287,8 +337,8 @@ export function ProductPageClient({ slug, productId }: ProductPageClientProps) {
                       type="button"
                       variant="secondary"
                       size="md"
-                      onClick={() => setQuantity((current) => Math.min(product.stock_quantity, current + 1))}
-                      disabled={quantity >= product.stock_quantity}
+                      onClick={() => setQuantity((current) => Math.min(effectiveStock, current + 1))}
+                      disabled={quantity >= effectiveStock}
                       aria-label="افزایش تعداد"
                     >
                       +
@@ -299,7 +349,7 @@ export function ProductPageClient({ slug, productId }: ProductPageClientProps) {
                   <span className="text-foreground-muted">جمع این ردیف</span>
                   <span className="font-semibold text-foreground">{formatMoney(lineTotal)}</span>
                 </div>
-                <Button onClick={handleAddToCart} disabled={product.stock_quantity <= 0}>
+                <Button onClick={handleAddToCart} disabled={effectiveStock <= 0}>
                   افزودن به سبد خرید
                 </Button>
               </div>
@@ -317,8 +367,18 @@ export function ProductPageClient({ slug, productId }: ProductPageClientProps) {
               <p className="text-xs tracking-[0.2em] text-foreground-muted">جزئیات محصول</p>
               <div className="grid gap-3 text-sm text-foreground">
                 <p>
-                  موجودی: <span className="font-medium text-foreground">{product.stock_quantity}</span>
+                  موجودی: <span className="font-medium text-foreground">{effectiveStock}</span>
                 </p>
+                {variants.length > 0 && (
+                  <div className="space-y-1">
+                    <p className="font-medium text-foreground">واریانت‌ها</p>
+                    {variants.map((variant) => (
+                      <p key={variant.id} className="text-foreground-muted">
+                        {variant.name} — {formatMoney(variant.price_override ?? product.price)} — موجودی {variant.stock_quantity}
+                      </p>
+                    ))}
+                  </div>
+                )}
                 <p>
                   تصاویر: <span className="font-medium text-foreground">{product.image_count}</span>
                 </p>
