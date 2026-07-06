@@ -15,7 +15,7 @@ from app.core.security import hash_password
 from app.models.enums import OrderStatus, ProductFieldType
 from app.models.order import Order, OrderItem
 from app.models.payment_method import PaymentMethod
-from app.models.product import OrderItemFieldValue, Product, ProductFormField
+from app.models.product import OrderItemFieldValue, Product, ProductFormField, ProductVariant
 from app.schemas.public import (
     CheckoutOrderItemSummary,
     CheckoutResponse,
@@ -37,6 +37,8 @@ class LineItem:
     product: Product
     unit_price: Decimal
     total_price: Decimal
+    variant_id: int | None = None
+    variant_name: str | None = None
 
 
 def _get_payment_method(
@@ -65,7 +67,10 @@ def _load_products_for_update(
     products = list(
         db.scalars(
             select(Product)
-            .options(selectinload(Product.form_fields))
+            .options(
+                selectinload(Product.form_fields),
+                selectinload(Product.variants),
+            )
             .where(Product.id.in_(product_ids), Product.store_id == store_id)
             .with_for_update()
         ).all()
@@ -88,13 +93,47 @@ def _build_line_items(
                 f"Product is not available: {product.title}",
                 status_code=422,
             )
-        if item.quantity > product.stock_quantity:
-            raise ServiceError(
-                f"Insufficient stock for {product.title}",
-                status_code=422,
-            )
 
-        unit_price = Decimal(product.price)
+        # Roadmap task 16: products may define purchasable variants. When a
+        # product has active variants the buyer must pick one; price and
+        # stock then come from the selected variant.
+        active_variants = [v for v in product.variants if v.is_active]
+        variant: ProductVariant | None = None
+        if active_variants:
+            if item.variant_id is None:
+                raise ServiceError(
+                    f"انتخاب واریانت برای «{product.title}» الزامی است",
+                    status_code=422,
+                )
+            variant = next((v for v in active_variants if v.id == item.variant_id), None)
+            if variant is None:
+                raise ServiceError(
+                    f"واریانت انتخاب‌شده برای «{product.title}» معتبر نیست",
+                    status_code=422,
+                )
+            if item.quantity > variant.stock_quantity:
+                raise ServiceError(
+                    f"Insufficient stock for {product.title} ({variant.name})",
+                    status_code=422,
+                )
+            unit_price = (
+                Decimal(variant.price_override)
+                if variant.price_override is not None
+                else Decimal(product.price)
+            )
+        else:
+            if item.variant_id is not None:
+                raise ServiceError(
+                    f"محصول «{product.title}» واریانت ندارد",
+                    status_code=422,
+                )
+            if item.quantity > product.stock_quantity:
+                raise ServiceError(
+                    f"Insufficient stock for {product.title}",
+                    status_code=422,
+                )
+            unit_price = Decimal(product.price)
+
         line_items.append(
             LineItem(
                 product_id=product.id,
@@ -102,6 +141,8 @@ def _build_line_items(
                 product=product,
                 unit_price=unit_price,
                 total_price=unit_price * item.quantity,
+                variant_id=variant.id if variant is not None else None,
+                variant_name=variant.name if variant is not None else None,
             )
         )
 
@@ -110,19 +151,44 @@ def _build_line_items(
 
 def _decrement_stock(db: Session, line_items: Sequence[LineItem]) -> None:
     for line in line_items:
-        result = db.execute(
-            update(Product)
-            .where(
-                Product.id == line.product_id,
-                Product.stock_quantity >= line.quantity,
+        if line.variant_id is not None:
+            result = db.execute(
+                update(ProductVariant)
+                .where(
+                    ProductVariant.id == line.variant_id,
+                    ProductVariant.stock_quantity >= line.quantity,
+                )
+                .values(stock_quantity=ProductVariant.stock_quantity - line.quantity)
             )
-            .values(stock_quantity=Product.stock_quantity - line.quantity)
-        )
-        if result.rowcount != 1:
-            raise ServiceError(
-                f"Insufficient stock for {line.product.title}",
-                status_code=422,
+            if result.rowcount != 1:
+                raise ServiceError(
+                    f"Insufficient stock for {line.product.title}",
+                    status_code=422,
+                )
+            # Keep the parent product stock (sum of variant stocks) in sync
+            # so storefront listing and in-stock filters stay correct.
+            db.execute(
+                update(Product)
+                .where(
+                    Product.id == line.product_id,
+                    Product.stock_quantity >= line.quantity,
+                )
+                .values(stock_quantity=Product.stock_quantity - line.quantity)
             )
+        else:
+            result = db.execute(
+                update(Product)
+                .where(
+                    Product.id == line.product_id,
+                    Product.stock_quantity >= line.quantity,
+                )
+                .values(stock_quantity=Product.stock_quantity - line.quantity)
+            )
+            if result.rowcount != 1:
+                raise ServiceError(
+                    f"Insufficient stock for {line.product.title}",
+                    status_code=422,
+                )
 
 
 def _field_map(product: Product) -> dict[str, ProductFormField]:
@@ -274,6 +340,8 @@ def create_guest_order(
             order_item = OrderItem(
                 order_id=order.id,
                 product_id=line.product_id,
+                variant_id=line.variant_id,
+                variant_name_snapshot=line.variant_name,
                 product_title_snapshot=line.product.title,
                 unit_price_snapshot=line.unit_price,
                 quantity=line.quantity,
@@ -319,6 +387,8 @@ def create_guest_order(
         items=[
             CheckoutOrderItemSummary(
                 product_id=item.product_id,
+                variant_id=item.variant_id,
+                variant_name=item.variant_name_snapshot,
                 product_title=item.product_title_snapshot,
                 quantity=item.quantity,
                 unit_price=item.unit_price_snapshot,

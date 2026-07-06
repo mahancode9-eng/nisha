@@ -2,7 +2,7 @@ from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from app.models.order import Order
-from app.models.product import Product
+from app.models.product import Product, ProductVariant
 
 
 def restore_order_stock(db: Session, order: Order) -> bool:
@@ -19,6 +19,17 @@ def restore_order_stock(db: Session, order: Order) -> bool:
     for item in order.items:
         if item.product_id is None:
             continue
+        if item.variant_id is not None:
+            db.execute(
+                select(ProductVariant)
+                .where(ProductVariant.id == item.variant_id)
+                .with_for_update()
+            )
+            db.execute(
+                update(ProductVariant)
+                .where(ProductVariant.id == item.variant_id)
+                .values(stock_quantity=ProductVariant.stock_quantity + item.quantity)
+            )
         db.execute(
             select(Product)
             .where(Product.id == item.product_id)
