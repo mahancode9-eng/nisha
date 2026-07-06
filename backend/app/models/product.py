@@ -40,6 +40,12 @@ class Product(TimestampMixin, Base):
         cascade="all, delete-orphan",
         order_by="ProductImage.sort_order",
     )
+    variants: Mapped[list["ProductVariant"]] = relationship(
+        "ProductVariant",
+        back_populates="product",
+        cascade="all, delete-orphan",
+        order_by="ProductVariant.sort_order",
+    )
     form_fields: Mapped[list["ProductFormField"]] = relationship(
         "ProductFormField",
         back_populates="product",
@@ -50,6 +56,33 @@ class Product(TimestampMixin, Base):
         "OrderItem",
         back_populates="product",
     )
+
+
+class ProductVariant(TimestampMixin, Base):
+    """A purchasable variation of a product (roadmap task 16).
+
+    Examples: size (S/M/L), color, bundle size. Each variant has its own
+    stock and an optional price override. Products without variants keep
+    working exactly as before; when a product has active variants, the
+    parent ``stock_quantity`` is kept in sync as the sum of active variant
+    stocks so storefront listing/filtering stays correct.
+    """
+
+    __tablename__ = "product_variants"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    product_id: Mapped[int] = mapped_column(
+        ForeignKey("products.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    price_override: Mapped[Optional[Decimal]] = mapped_column(Numeric(12, 2), nullable=True)
+    stock_quantity: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    sort_order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
+    product: Mapped["Product"] = relationship("Product", back_populates="variants")
 
 
 class ProductImage(Base):

@@ -145,6 +145,12 @@ class OrderItem(Base):
         nullable=True,
         index=True,
     )
+    variant_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("product_variants.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    variant_name_snapshot: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     product_title_snapshot: Mapped[str] = mapped_column(String(255), nullable=False)
     unit_price_snapshot: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
     quantity: Mapped[int] = mapped_column(Integer, nullable=False)
