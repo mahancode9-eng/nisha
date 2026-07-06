@@ -69,6 +69,13 @@ class Order(TimestampMixin, Base):
         index=True,
     )
     subtotal_amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+    discount_code: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    discount_amount: Mapped[Decimal] = mapped_column(
+        Numeric(12, 2),
+        default=Decimal("0"),
+        server_default="0",
+        nullable=False,
+    )
     total_amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
     stock_restored: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
