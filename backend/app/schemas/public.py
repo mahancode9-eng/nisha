@@ -189,6 +189,7 @@ class GuestOrderCreate(BaseModel):
     buyer_address: str = Field(min_length=1)
     buyer_note: str | None = Field(default=None, max_length=1000)
     payment_method_id: int
+    discount_code: str | None = Field(default=None, max_length=50)
     items: list[OrderItemInput] = Field(min_length=1)
 
     @model_validator(mode="after")
@@ -238,6 +239,8 @@ class CheckoutResponse(BaseModel):
     order_id: int
     status: OrderStatus
     subtotal_amount: Decimal
+    discount_code: str | None = None
+    discount_amount: Decimal = Decimal("0")
     total_amount: Decimal
     items: list[CheckoutOrderItemSummary]
     payment_method: CheckoutPaymentInstructions
@@ -272,3 +275,38 @@ class PublicReviewCreateRequest(OrderChatAuthRequest):
     comment: str | None = None
     is_public: bool = False
     image_urls: list[str] = Field(default_factory=list)
+
+
+# ---------------------------------------------------------------------------
+# Discount preview (roadmap task 17)
+# ---------------------------------------------------------------------------
+
+
+class PublicDiscountPreviewRequest(BaseModel):
+    code: str = Field(min_length=1, max_length=50)
+    subtotal: Decimal = Field(gt=0)
+
+
+class PublicDiscountPreviewResponse(BaseModel):
+    code: str
+    discount_amount: Decimal
+    payable_amount: Decimal
+
+
+# ---------------------------------------------------------------------------
+# Sitemap data for the storefront frontend (roadmap task 18)
+# ---------------------------------------------------------------------------
+
+
+class PublicSitemapStore(BaseModel):
+    slug: str
+
+
+class PublicSitemapProduct(BaseModel):
+    store_slug: str
+    product_id: int
+
+
+class PublicSitemapResponse(BaseModel):
+    stores: list[PublicSitemapStore] = Field(default_factory=list)
+    products: list[PublicSitemapProduct] = Field(default_factory=list)

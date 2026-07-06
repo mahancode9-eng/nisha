@@ -23,7 +23,7 @@ from app.schemas.public import (
     OrderItemFieldValueInput,
     OrderItemInput,
 )
-from app.services import order_notification_service
+from app.services import discount_service, order_notification_service
 from app.services.exceptions import ServiceError
 from app.services.product_service import build_form_field_snapshot
 from app.services.public_store_service import get_active_store_by_slug
@@ -231,6 +231,21 @@ def create_guest_order(
         _decrement_stock(db, line_items)
 
         subtotal = sum((line.total_price for line in line_items), Decimal("0"))
+
+        # Roadmap task 17: apply an optional discount code to the order.
+        # getattr keeps compatibility with checkout payloads that do not
+        # define the field (e.g. older customer checkout schemas).
+        discount_amount = Decimal("0")
+        applied_code: str | None = None
+        requested_code = getattr(data, "discount_code", None)
+        if requested_code:
+            discount = discount_service.get_valid_discount(
+                db, store.id, requested_code, subtotal
+            )
+            discount_amount = discount_service.compute_discount_amount(discount, subtotal)
+            discount_service.consume_discount(db, discount)
+            applied_code = discount.code
+
         plain_password = generate_invoice_password()
         invoice_code = generate_invoice_code(db)
 
@@ -246,7 +261,9 @@ def create_guest_order(
             payment_method_id=payment_method.id,
             status=OrderStatus.PENDING_PAYMENT,
             subtotal_amount=subtotal,
-            total_amount=subtotal,
+            discount_code=applied_code,
+            discount_amount=discount_amount,
+            total_amount=subtotal - discount_amount,
             stock_restored=False,
         )
         db.add(order)
@@ -296,6 +313,8 @@ def create_guest_order(
         order_id=order.id,
         status=order.status,
         subtotal_amount=order.subtotal_amount,
+        discount_code=order.discount_code,
+        discount_amount=order.discount_amount,
         total_amount=order.total_amount,
         items=[
             CheckoutOrderItemSummary(
