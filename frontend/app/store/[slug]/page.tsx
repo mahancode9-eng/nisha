@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { StorePageClient } from "./StorePageClient";
+import { VisitPing } from "./VisitPing";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 const API_BASE =
@@ -76,6 +77,7 @@ export default async function StorePage({ params }: PageProps) {
   return (
     <>
       {jsonLdProps && <script type="application/ld+json" dangerouslySetInnerHTML={jsonLdProps} />}
+      <VisitPing slug={slug} />
       <StorePageClient slug={slug} />
     </>
   );

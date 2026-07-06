@@ -1,6 +1,9 @@
 export const paths = {
   home: "/",
   trackOrder: "/track-order",
+  terms: "/terms",
+  privacy: "/privacy",
+  complaintsPolicy: "/complaints",
   seller: {
     login: "/seller/login",
     register: "/seller/register",
@@ -15,6 +18,8 @@ export const paths = {
     orderDetail: (id: number | string) => `/seller/orders/${id}`,
     conversations: "/seller/conversations",
     conversationDetail: (id: number | string) => `/seller/conversations/${id}`,
+    discounts: "/seller/discounts",
+    analytics: "/seller/analytics",
   },
   admin: {
     login: "/admin/login",
@@ -27,6 +32,7 @@ export const paths = {
     orderDetail: (id: number | string) => `/admin/orders/${id}`,
     chatDetail: (id: number | string) => `/admin/chats/${id}`,
     storeBadges: (id: number | string) => `/admin/stores/${id}/badges`,
+    complaints: "/admin/complaints",
   },
   customer: {
     login: "/customer/login",
