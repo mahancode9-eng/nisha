@@ -10,10 +10,17 @@ export type User = {
 };
 
 export type TokenResponse = {
-  access_token: string;
+  access_token?: string | null;
+  refresh_token?: string | null;
   token_type: string;
-  user: User;
+  user?: User | null;
+  needs_email_verification?: boolean;
+  email?: string | null;
 };
+
+export type RegisterResult =
+  | { status: "authenticated"; user: User }
+  | { status: "verification_required"; email: string };
 
 export type LoginRequest = {
   email: string;

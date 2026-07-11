@@ -28,7 +28,7 @@ export default function SellerConversationPage({ params }: PageProps) {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <Link href={paths.seller.conversations} className="text-sm text-brand hover:underline">
         بازگشت به پیام‌ها
       </Link>

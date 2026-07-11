@@ -154,7 +154,7 @@ class _CustomerRegisterPageState extends ConsumerState<CustomerRegisterPage> {
     });
 
     try {
-      await ref.read(sessionControllerProvider.notifier).signUpCustomer(
+      final pendingEmail = await ref.read(sessionControllerProvider.notifier).signUpCustomer(
             email: email.isEmpty ? null : email,
             phone: phone.isEmpty ? null : phone,
             postalCode: _postalCodeController.text.trim().isEmpty
@@ -164,6 +164,12 @@ class _CustomerRegisterPageState extends ConsumerState<CustomerRegisterPage> {
             fullName: _fullNameController.text.trim(),
           );
       if (!mounted) {
+        return;
+      }
+      if (pendingEmail != null) {
+        context.go(
+          '${RoutePaths.verifyEmail}/pending?email=${Uri.encodeComponent(pendingEmail)}&kind=customer',
+        );
         return;
       }
       context.go(RoutePaths.customerDashboard);

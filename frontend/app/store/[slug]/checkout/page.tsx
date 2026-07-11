@@ -557,7 +557,7 @@ export default function CheckoutPage({ params }: PageProps) {
         </CardContent>
       </Card>
 
-      <form id="checkout-form" onSubmit={handleSubmit} className="space-y-6">
+      <form id="checkout-form" onSubmit={handleSubmit} className="page-stack">
         {error && <ErrorAlert message={error} />}
 
         {uniqueProductLines.some((item) => (productsById.get(item.productId)?.form_fields.length ?? 0) > 0) && (

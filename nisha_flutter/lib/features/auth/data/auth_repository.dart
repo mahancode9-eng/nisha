@@ -106,6 +106,54 @@ class AuthRepository {
     );
   }
 
+  Future<void> verifyEmail({
+    required String token,
+    required String kind,
+  }) {
+    return _apiClient.post(
+      '/public/verify-email',
+      (_) {},
+      data: <String, dynamic>{'token': token, 'kind': kind},
+    );
+  }
+
+  Future<void> resendVerificationEmail({
+    required String email,
+    required String kind,
+  }) {
+    return _apiClient.post(
+      '/public/verify-email/resend',
+      (_) {},
+      data: <String, dynamic>{'email': email, 'kind': kind},
+    );
+  }
+
+  Future<SellerRecoveryStartResponse> requestSellerRecovery({
+    required String email,
+  }) {
+    return _apiClient.post(
+      '/auth/password-recovery/request',
+      (data) => SellerRecoveryStartResponse.fromJson(_asJsonMap(data)),
+      data: <String, dynamic>{'email': email},
+    );
+  }
+
+  Future<SellerTokenResponse> verifySellerRecovery({
+    required int recoveryId,
+    required String code,
+    required String newPassword,
+  }) {
+    return _apiClient.post(
+      '/auth/password-recovery/verify',
+      (data) => SellerTokenResponse.fromJson(_asJsonMap(data)),
+      data: <String, dynamic>{
+        'recovery_id': recoveryId,
+        'code': code,
+        'new_password': newPassword,
+      },
+    );
+  }
+
   Map<String, dynamic> _asJsonMap(Object? data) {
     if (data is Map<String, dynamic>) {
       return data;

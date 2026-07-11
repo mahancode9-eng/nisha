@@ -53,7 +53,7 @@ export default function AdminReviewsPage() {
   const items = data ?? [];
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <PageHeader
         description="نظرات خریداران را پیش از عمومی شدن بررسی کنید."
         action={

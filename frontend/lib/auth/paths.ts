@@ -7,6 +7,7 @@ export const paths = {
   seller: {
     login: "/seller/login",
     register: "/seller/register",
+    recover: "/seller/recover",
     onboarding: "/seller/onboarding",
     dashboard: "/seller/dashboard",
     store: "/seller/store",
@@ -23,6 +24,7 @@ export const paths = {
   },
   admin: {
     login: "/admin/login",
+    recover: "/admin/recover",
     dashboard: "/admin/dashboard",
     stores: "/admin/stores",
     storeDetail: (id: number | string) => `/admin/stores/${id}`,
@@ -38,6 +40,7 @@ export const paths = {
     login: "/customer/login",
     register: "/customer/register",
     recover: "/customer/recover",
+    verifyEmail: "/verify-email",
     dashboard: "/customer/dashboard",
     profile: "/customer/profile",
     addresses: "/customer/addresses",

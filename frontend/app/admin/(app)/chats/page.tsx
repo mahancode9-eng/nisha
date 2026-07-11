@@ -17,7 +17,7 @@ export default function AdminChatsPage() {
   const { data, error, isLoading } = useSellerFetch(fetchChats, []);
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <PageHeader description="نمایش فقط‌خواندنی همه گفتگوهای سفارش و قدیمی" />
 
       {isLoading && <TableSkeleton rows={5} columns={1} />}

@@ -12,9 +12,16 @@ type LoginFormProps = {
   subtitle?: string;
   onSubmit: (email: string, password: string) => Promise<void>;
   footer?: React.ReactNode;
+  forgotPasswordHref?: string;
 };
 
-export function LoginForm({ title, subtitle, onSubmit, footer }: LoginFormProps) {
+export function LoginForm({
+  title,
+  subtitle,
+  onSubmit,
+  footer,
+  forgotPasswordHref,
+}: LoginFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -63,6 +70,13 @@ export function LoginForm({ title, subtitle, onSubmit, footer }: LoginFormProps)
           <Button type="submit" className="w-full" loading={loading}>
             ورود
           </Button>
+          {forgotPasswordHref && (
+            <p className="text-center text-sm">
+              <a href={forgotPasswordHref} className="font-medium text-brand-deep hover:underline">
+                رمز عبور را فراموش کرده‌اید؟
+              </a>
+            </p>
+          )}
         </form>
         {footer && <div className="mt-6 text-center text-sm text-foreground-muted">{footer}</div>}
       </CardContent>

@@ -62,7 +62,7 @@ export default function StoreBadgesPage({ params }: PageProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <div>
         <h1 className="text-2xl font-bold text-foreground">نشان‌های فروشگاه</h1>
         <p className="mt-1 text-foreground-muted">نشان‌های اعتماد فروشگاه #{storeId} را مدیریت کنید.</p>
@@ -72,7 +72,7 @@ export default function StoreBadgesPage({ params }: PageProps) {
       <ErrorAlert message={!isLoading && error ? error : ""} />
 
       {!isLoading && data && (
-        <div className="space-y-6">
+        <div className="page-stack">
           <div className="grid gap-3 md:grid-cols-3">
             {BADGE_TYPES.map((badgeType) => {
               const isActive = badgeMap.has(badgeType);

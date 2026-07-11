@@ -10,6 +10,7 @@ from app.models.customer_portal import CustomerPasswordRecovery
 from app.models.enums import RecoveryChannel
 from app.services.auth_service import AuthError, normalize_email
 from app.services.customer_auth_service import get_customer_by_email, get_customer_by_phone, normalize_phone
+from app.services.notification_service import enqueue_email, enqueue_sms
 
 _MAX_RECOVERY_REQUESTS_PER_WINDOW = 3
 _RECOVERY_WINDOW_MINUTES = 15
@@ -77,6 +78,16 @@ def request_password_recovery(
         expires_at=datetime.now(timezone.utc) + timedelta(minutes=_RECOVERY_WINDOW_MINUTES),
     )
     db.add(recovery)
+    db.flush()
+    payload = {"code": code}
+    if channel == RecoveryChannel.EMAIL:
+        recipient = normalized_login if "@" in normalized_login else (customer.email or normalized_login)
+        if recipient and "@" in recipient:
+            enqueue_email(db, recipient, "password_recovery_code", payload)
+    elif channel == RecoveryChannel.SMS:
+        recipient = customer.phone or normalized_login
+        if recipient:
+            enqueue_sms(db, recipient, "password_recovery_code", payload)
     db.commit()
     db.refresh(recovery)
     return recovery, code
@@ -111,6 +122,8 @@ def verify_password_recovery(
         raise AuthError("Account not found", status_code=404)
 
     customer.password_hash = hash_password(new_password)
+    if recovery.channel == RecoveryChannel.EMAIL:
+        customer.email_verified_at = customer.email_verified_at or _utcnow()
     recovery.consumed_at = _utcnow()
     db.add_all([customer, recovery])
     db.commit()

@@ -100,7 +100,7 @@ export default function AdminStoresPage() {
   const items = data?.items ?? [];
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <PageHeader
         description="مدیریت فروشگاه‌های فروشنده، تاییدها و نشان‌های اعتماد"
         action={<Badge variant="info">{data?.total ?? 0} فروشگاه</Badge>}

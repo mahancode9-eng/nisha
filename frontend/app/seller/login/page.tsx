@@ -47,6 +47,7 @@ export default function SellerLoginPage() {
           title="ورود فروشنده"
           subtitle="برای مدیریت فروشگاه وارد شوید"
           onSubmit={handleLogin}
+          forgotPasswordHref={paths.seller.recover}
           footer={
             <>
               حساب ندارید؟{" "}

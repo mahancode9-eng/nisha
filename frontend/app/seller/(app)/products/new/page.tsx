@@ -19,7 +19,7 @@ export default function NewProductPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <PageHeader title="محصول جدید" description="یک محصول به فروشگاه خود اضافه کنید" size="page" />
       <ProductForm onSubmit={handleSubmit} submitLabel="ایجاد محصول" />
     </div>

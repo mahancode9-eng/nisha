@@ -148,7 +148,7 @@ export default function AdminOrderDetailPage({ params }: PageProps) {
   const conversation = data.conversation;
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <div className="space-y-2">
         <Link href={paths.admin.orders} className="text-sm text-brand hover:underline">
           بازگشت به سفارش‌ها
@@ -272,7 +272,7 @@ export default function AdminOrderDetailPage({ params }: PageProps) {
           </CardContent>
         </Card>
 
-        <div className="space-y-6">
+        <div className="page-stack">
           <Card>
             <CardHeader>
               <CardTitle>اطلاعات مشتری</CardTitle>

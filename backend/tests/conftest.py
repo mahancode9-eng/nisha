@@ -26,7 +26,9 @@ import app.models.conversation  # noqa: F401
 import app.models.customer_account  # noqa: F401
 import app.models.customer_portal  # noqa: F401
 import app.models.message  # noqa: F401
+import app.models.email_verification  # noqa: F401
 import app.models.notification  # noqa: F401
+import app.models.user_password_recovery  # noqa: F401
 import app.models.order  # noqa: F401
 import app.models.payment_method  # noqa: F401
 import app.models.product  # noqa: F401
@@ -59,7 +61,39 @@ def db() -> Generator[Session, None, None]:
         session.close()
 
 
-def register_seller(client: TestClient, *, email: str, full_name: str) -> dict[str, str]:
+def mark_user_email_verified(db: Session, email: str) -> None:
+    from datetime import datetime, timezone
+
+    from app.models.user import User
+    from app.services.auth_service import normalize_email
+
+    user = db.scalar(select(User).where(User.email == normalize_email(email)))
+    assert user is not None
+    user.email_verified_at = datetime.now(timezone.utc)
+    db.commit()
+
+
+def mark_customer_email_verified(db: Session, email: str) -> None:
+    from datetime import datetime, timezone
+
+    from app.models.customer_account import CustomerAccount
+    from app.services.auth_service import normalize_email
+
+    customer = db.scalar(
+        select(CustomerAccount).where(CustomerAccount.email == normalize_email(email))
+    )
+    assert customer is not None
+    customer.email_verified_at = datetime.now(timezone.utc)
+    db.commit()
+
+
+def register_seller(
+    client: TestClient,
+    db: Session,
+    *,
+    email: str,
+    full_name: str,
+) -> dict[str, str]:
     response = client.post(
         "/api/v1/auth/register",
         json={
@@ -69,23 +103,31 @@ def register_seller(client: TestClient, *, email: str, full_name: str) -> dict[s
         },
     )
     assert response.status_code == 201
-    token = response.json()["access_token"]
+    mark_user_email_verified(db, email)
+    login = client.post(
+        "/api/v1/auth/login",
+        json={"email": email, "password": "securepass"},
+    )
+    assert login.status_code == 200
+    token = login.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
 
 
 @pytest.fixture
-def seller_headers(client: TestClient) -> dict[str, str]:
+def seller_headers(client: TestClient, db: Session) -> dict[str, str]:
     return register_seller(
         client,
+        db,
         email="seller-a@example.com",
         full_name="Seller A",
     )
 
 
 @pytest.fixture
-def other_seller_headers(client: TestClient) -> dict[str, str]:
+def other_seller_headers(client: TestClient, db: Session) -> dict[str, str]:
     return register_seller(
         client,
+        db,
         email="seller-b@example.com",
         full_name="Seller B",
     )
@@ -136,14 +178,22 @@ def admin_headers(client: TestClient, db: Session) -> dict[str, str]:
 
     admin = db.scalar(select(User).where(User.email == "admin@example.com"))
     if admin is None:
+        from datetime import datetime, timezone
+
         admin = User(
             email="admin@example.com",
             password_hash=hash_password("admin123456"),
             full_name="Platform Admin",
             role=UserRole.ADMIN,
             is_active=True,
+            email_verified_at=datetime.now(timezone.utc),
         )
         db.add(admin)
+        db.commit()
+    elif admin.email_verified_at is None:
+        from datetime import datetime, timezone
+
+        admin.email_verified_at = datetime.now(timezone.utc)
         db.commit()
 
     response = client.post(

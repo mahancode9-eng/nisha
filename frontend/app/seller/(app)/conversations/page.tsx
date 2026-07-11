@@ -16,7 +16,7 @@ export default function SellerConversationsPage() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <PageHeader description="با مشتریان خود گفتگو کنید" />
 
       {isLoading && <TableSkeleton rows={5} columns={1} />}

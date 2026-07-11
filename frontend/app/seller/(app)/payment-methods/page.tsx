@@ -81,7 +81,7 @@ export default function SellerPaymentMethodsPage() {
   if (isLoading) return <LoadingState message="در حال بارگذاری روش‌های پرداخت..." />;
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <PageHeader
         description="مشتریان چگونه می‌توانند به شما پرداخت کنند"
         action={<Button onClick={openCreate}>افزودن روش</Button>}

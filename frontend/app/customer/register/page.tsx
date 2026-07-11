@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { EmailVerificationPending } from "@/components/auth/EmailVerificationPending";
 import { useCustomerAuth } from "@/contexts/CustomerAuthContext";
 import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 import { Button } from "@/components/ui/Button";
@@ -20,25 +21,50 @@ export default function CustomerRegisterPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null);
+  const [showLoginHint, setShowLoginHint] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
+    setShowLoginHint(false);
     try {
-      await register({
+      const result = await register({
         full_name: fullName,
         email: email || undefined,
         phone: phone || undefined,
         postal_code: postalCode || undefined,
         password,
       });
+      if (result.status === "verification_required") {
+        setPendingEmail(result.email);
+        return;
+      }
       router.replace(paths.customer.dashboard);
     } catch (err) {
+      if (err instanceof ApiError && err.status === 409) {
+        setShowLoginHint(true);
+      }
       setError(err instanceof ApiError ? err.message : "ثبت‌نام ناموفق بود");
     } finally {
       setSubmitting(false);
     }
+  }
+
+  if (pendingEmail) {
+    return (
+      <div className="relative flex min-h-screen items-center justify-center bg-background px-4 py-12">
+        <div className="absolute right-4 top-4 z-10">
+          <ThemeSwitcher variant="button" />
+        </div>
+        <EmailVerificationPending
+          email={pendingEmail}
+          kind="customer"
+          loginHref={paths.customer.login}
+        />
+      </div>
+    );
   }
 
   return (
@@ -83,6 +109,14 @@ export default function CustomerRegisterPage() {
           {error && (
             <p className="rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-200" role="alert">
               {error}
+            </p>
+          )}
+          {showLoginHint && (
+            <p className="text-center text-sm text-foreground-muted">
+              این ایمیل قبلاً تأیید شده است.{" "}
+              <Link href={paths.customer.login} className="font-medium text-brand-deep hover:underline">
+                وارد شوید
+              </Link>
             </p>
           )}
           <Button type="submit" className="w-full" loading={submitting}>

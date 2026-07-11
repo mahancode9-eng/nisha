@@ -23,13 +23,14 @@ import type {
   Customer,
   CustomerLoginRequest,
   CustomerRegisterRequest,
+  CustomerRegisterResult,
 } from "@/types/customer/auth";
 
 type CustomerAuthContextValue = {
   customer: Customer | null;
   isLoading: boolean;
   login: (payload: CustomerLoginRequest) => Promise<Customer>;
-  register: (payload: CustomerRegisterRequest) => Promise<Customer>;
+  register: (payload: CustomerRegisterRequest) => Promise<CustomerRegisterResult>;
   logout: () => void;
   refreshCustomer: () => Promise<Customer | null>;
   setSession: (accessToken: string, nextCustomer: Customer) => void;
@@ -81,6 +82,9 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback(
     async (payload: CustomerLoginRequest) => {
       const data = await customerAuthApi.login(payload);
+      if (!data.access_token || !data.customer) {
+        throw new ApiError(403, "ایمیل تأیید نشده است");
+      }
       setSession(data.access_token, data.customer);
       return data.customer;
     },
@@ -88,10 +92,16 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
   );
 
   const register = useCallback(
-    async (payload: CustomerRegisterRequest) => {
+    async (payload: CustomerRegisterRequest): Promise<CustomerRegisterResult> => {
       const data = await customerAuthApi.register(payload);
+      if (data.needs_email_verification && data.email) {
+        return { status: "verification_required", email: data.email };
+      }
+      if (!data.access_token || !data.customer) {
+        throw new ApiError(500, "ثبت‌نام کامل نشد");
+      }
       setSession(data.access_token, data.customer);
-      return data.customer;
+      return { status: "authenticated", customer: data.customer };
     },
     [setSession],
   );

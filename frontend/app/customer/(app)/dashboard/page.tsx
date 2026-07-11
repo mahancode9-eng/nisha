@@ -41,8 +41,8 @@ export default function CustomerDashboardPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
+    <div className="page-stack">
+      <section className="grid grid-cols-2 gap-3 md:gap-4 xl:grid-cols-6">
         <StatTile label="سفارش‌ها" value={data.total_orders} />
         <StatTile label="فعال" value={data.active_orders} />
         <StatTile label="اعتراض‌ها" value={data.complaints} />

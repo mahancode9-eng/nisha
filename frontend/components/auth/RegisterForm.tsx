@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import { ApiError } from "@/lib/api/errors";
 import { Button } from "@/components/ui/Button";
@@ -14,22 +15,28 @@ type RegisterFormProps = {
     full_name: string;
   }) => Promise<void>;
   footer?: React.ReactNode;
+  loginHref?: string;
 };
 
-export function RegisterForm({ onSubmit, footer }: RegisterFormProps) {
+export function RegisterForm({ onSubmit, footer, loginHref }: RegisterFormProps) {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [showLoginHint, setShowLoginHint] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
+    setShowLoginHint(false);
     setLoading(true);
     try {
       await onSubmit({ email, password, full_name: fullName });
     } catch (err) {
+      if (err instanceof ApiError && err.status === 409) {
+        setShowLoginHint(true);
+      }
       setError(err instanceof ApiError ? err.message : "ثبت‌نام ناموفق بود");
     } finally {
       setLoading(false);
@@ -47,6 +54,14 @@ export function RegisterForm({ onSubmit, footer }: RegisterFormProps) {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <ErrorAlert message={error ?? ""} />
+          {showLoginHint && loginHref && (
+            <p className="text-center text-sm text-foreground-muted">
+              این ایمیل قبلاً تأیید شده است.{" "}
+              <Link href={loginHref} className="font-medium text-brand hover:underline">
+                وارد شوید
+              </Link>
+            </p>
+          )}
           <Input
             label="نام کامل"
             name="full_name"

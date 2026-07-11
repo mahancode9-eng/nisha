@@ -80,7 +80,7 @@ export default function AdminComplaintsPage() {
   const items = data?.items ?? [];
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <PageHeader
         description="رسیدگی به شکایت خریداران و پیگیری وضعیت آن‌ها"
         action={<Badge variant="info">{data?.total ?? 0} شکایت</Badge>}

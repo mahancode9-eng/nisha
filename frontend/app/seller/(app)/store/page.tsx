@@ -25,7 +25,7 @@ export default function SellerStorePage() {
   if (isLoading) return <LoadingState message="در حال بارگذاری فروشگاه..." />;
   if (error || !data) {
     return (
-      <div className="space-y-6">
+      <div className="page-stack">
         <PageHeader description="پروفایل عمومی فروشگاه خود را مدیریت کنید" />
         <ErrorAlert message={error ?? "بارگذاری فروشگاه ممکن نشد"} />
       </div>
@@ -33,7 +33,7 @@ export default function SellerStorePage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <PageHeader
         description="پروفایل عمومی فروشگاه خود را مدیریت کنید"
         action={

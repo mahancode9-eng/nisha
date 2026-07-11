@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { paths } from "@/lib/auth/paths";
 import { ApiError } from "@/lib/api/errors";
+import { resendVerificationEmail } from "@/lib/api/verify-email";
 import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 
 export default function CustomerLoginForm() {
@@ -21,6 +22,7 @@ export default function CustomerLoginForm() {
   const [loginId, setLoginId] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [resendEmail, setResendEmail] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -36,6 +38,9 @@ export default function CustomerLoginForm() {
     try {
       await login({ login: loginId, password });
     } catch (err) {
+      if (err instanceof ApiError && err.status === 403 && loginId.includes("@")) {
+        setResendEmail(loginId);
+      }
       setError(err instanceof ApiError ? err.message : "ورود ناموفق بود");
     } finally {
       setSubmitting(false);
@@ -68,6 +73,25 @@ export default function CustomerLoginForm() {
             <p className="rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-200" role="alert">
               {error}
             </p>
+          )}
+          {resendEmail && (
+            <button
+              type="button"
+              className="w-full text-sm font-medium text-brand-deep hover:underline"
+              onClick={async () => {
+                try {
+                  await resendVerificationEmail(resendEmail, "customer");
+                  setError("ایمیل تأیید دوباره ارسال شد.");
+                  setResendEmail(null);
+                } catch (resendErr) {
+                  setError(
+                    resendErr instanceof ApiError ? resendErr.message : "ارسال مجدد ناموفق بود",
+                  );
+                }
+              }}
+            >
+              ارسال مجدد ایمیل تأیید
+            </button>
           )}
           <Button type="submit" className="w-full" loading={submitting}>
             ورود

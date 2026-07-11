@@ -5,6 +5,9 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/customer_login_page.dart';
 import '../../features/auth/presentation/customer_register_page.dart';
 import '../../features/auth/presentation/customer_recovery_page.dart';
+import '../../features/auth/presentation/email_verification_pending_page.dart';
+import '../../features/auth/presentation/seller_recovery_page.dart';
+import '../../features/auth/presentation/verify_email_page.dart';
 import '../../features/auth/presentation/seller_login_page.dart';
 import '../../features/auth/presentation/seller_register_page.dart';
 import '../../features/public/presentation/home/public_home_page.dart';
@@ -175,6 +178,27 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RoutePaths.customerRecover,
         builder: (context, state) => const CustomerRecoveryPage(),
+      ),
+      GoRoute(
+        path: RoutePaths.sellerRecover,
+        builder: (context, state) => const SellerRecoveryPage(),
+      ),
+      GoRoute(
+        path: RoutePaths.verifyEmail,
+        builder: (context, state) => VerifyEmailPage(
+          token: state.uri.queryParameters['token'] ?? '',
+          kind: state.uri.queryParameters['kind'] ?? 'customer',
+        ),
+      ),
+      GoRoute(
+        path: '${RoutePaths.verifyEmail}/pending',
+        builder: (context, state) => EmailVerificationPendingPage(
+          email: state.uri.queryParameters['email'] ?? '',
+          kind: state.uri.queryParameters['kind'] ?? 'customer',
+          loginPath: state.uri.queryParameters['kind'] == 'seller'
+              ? RoutePaths.sellerLogin
+              : RoutePaths.customerLogin,
+        ),
       ),
       GoRoute(
         path: RoutePaths.sellerDashboard,

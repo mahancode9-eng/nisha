@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/auth/data/auth_repository.dart';
 import '../../features/auth/models/auth_models.dart';
+import '../api/api_exception.dart';
 import 'app_session.dart';
 import 'session_storage.dart';
 
@@ -44,6 +45,9 @@ class SessionController extends Notifier<AppSession> {
       email: email,
       password: password,
     );
+    if (response.accessToken.isEmpty) {
+      throw const ApiException(message: 'Email not verified', statusCode: 403);
+    }
     await storage.saveSellerSession(response);
     state = SellerSession(
       user: response.user,
@@ -51,7 +55,7 @@ class SessionController extends Notifier<AppSession> {
     );
   }
 
-  Future<void> signUpSeller({
+  Future<String?> signUpSeller({
     required String email,
     required String password,
     required String fullName,
@@ -63,11 +67,18 @@ class SessionController extends Notifier<AppSession> {
       password: password,
       fullName: fullName,
     );
+    if (response.needsEmailVerification) {
+      return response.email ?? email;
+    }
+    if (response.accessToken.isEmpty) {
+      throw StateError('Registration did not return a token');
+    }
     await storage.saveSellerSession(response);
     state = SellerSession(
       user: response.user,
       token: response.accessToken,
     );
+    return null;
   }
 
   Future<void> signInCustomer({
@@ -80,6 +91,9 @@ class SessionController extends Notifier<AppSession> {
       login: login,
       password: password,
     );
+    if (response.accessToken.isEmpty) {
+      throw const ApiException(message: 'Email not verified', statusCode: 403);
+    }
     await storage.saveCustomerSession(response);
     state = CustomerSession(
       customer: response.customer,
@@ -87,7 +101,7 @@ class SessionController extends Notifier<AppSession> {
     );
   }
 
-  Future<void> signUpCustomer({
+  Future<String?> signUpCustomer({
     String? email,
     String? phone,
     String? postalCode,
@@ -103,9 +117,60 @@ class SessionController extends Notifier<AppSession> {
       password: password,
       fullName: fullName,
     );
+    if (response.needsEmailVerification) {
+      return response.email ?? email;
+    }
+    if (response.accessToken.isEmpty) {
+      throw StateError('Registration did not return a token');
+    }
     await storage.saveCustomerSession(response);
     state = CustomerSession(
       customer: response.customer,
+      token: response.accessToken,
+    );
+    return null;
+  }
+
+  Future<void> verifyEmail({
+    required String token,
+    required String kind,
+  }) {
+    return ref.read(authRepositoryProvider).verifyEmail(token: token, kind: kind);
+  }
+
+  Future<void> resendVerificationEmail({
+    required String email,
+    required String kind,
+  }) {
+    return ref
+        .read(authRepositoryProvider)
+        .resendVerificationEmail(email: email, kind: kind);
+  }
+
+  Future<SellerRecoveryStartResponse> requestSellerRecovery({
+    required String email,
+  }) {
+    return ref.read(authRepositoryProvider).requestSellerRecovery(email: email);
+  }
+
+  Future<void> verifySellerRecovery({
+    required int recoveryId,
+    required String code,
+    required String newPassword,
+  }) async {
+    final repository = ref.read(authRepositoryProvider);
+    final storage = ref.read(sessionStorageProvider);
+    final response = await repository.verifySellerRecovery(
+      recoveryId: recoveryId,
+      code: code,
+      newPassword: newPassword,
+    );
+    if (response.accessToken.isEmpty) {
+      throw StateError('Recovery did not return a token');
+    }
+    await storage.saveSellerSession(response);
+    state = SellerSession(
+      user: response.user,
       token: response.accessToken,
     );
   }

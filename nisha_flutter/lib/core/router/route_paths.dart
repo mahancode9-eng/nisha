@@ -13,6 +13,8 @@ class RoutePaths {
   static const String customerLogin = '/auth/customer/login';
   static const String customerRegister = '/auth/customer/register';
   static const String customerRecover = '/auth/customer/recover';
+  static const String sellerRecover = '/auth/seller/recover';
+  static const String verifyEmail = '/auth/verify-email';
 
   static const String sellerDashboard = '/seller/dashboard';
   static const String sellerProducts = '/seller/products';

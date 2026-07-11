@@ -59,7 +59,7 @@ export default function EditProductPage({ params }: PageProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <div className="flex items-center justify-between gap-4">
         <PageHeader title="ویرایش محصول" description={data.title} size="page" />
         <Button variant="danger" onClick={() => setShowDeleteModal(true)}>

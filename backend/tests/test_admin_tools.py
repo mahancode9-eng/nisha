@@ -5,7 +5,10 @@ from app.models.order import Order
 from app.models.store import Store
 
 
-def register_customer(client, **overrides):
+from tests.conftest import mark_customer_email_verified
+
+
+def register_customer(client, db, **overrides):
     payload = {
         "email": "tools-buyer@example.com",
         "phone": "+989125555555",
@@ -16,7 +19,16 @@ def register_customer(client, **overrides):
     payload.update(overrides)
     response = client.post("/api/v1/customer/register", json=payload)
     assert response.status_code == 201
-    return response.json()
+    data = response.json()
+    if data.get("needs_email_verification") and payload.get("email"):
+        mark_customer_email_verified(db, payload["email"])
+        login = client.post(
+            "/api/v1/customer/login",
+            json={"login": payload["email"], "password": payload["password"]},
+        )
+        assert login.status_code == 200
+        return login.json()
+    return data
 
 
 def create_complaint(client, placed_order, db):
@@ -24,7 +36,7 @@ def create_complaint(client, placed_order, db):
     order.status = OrderStatus.SHIPPED
     db.commit()
 
-    token = register_customer(client)
+    token = register_customer(client, db)
     headers = {"Authorization": f"Bearer {token['access_token']}"}
 
     claim = client.post(

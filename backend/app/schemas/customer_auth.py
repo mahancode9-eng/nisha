@@ -31,6 +31,8 @@ class CustomerResponse(BaseModel):
 
 
 class CustomerTokenResponse(BaseModel):
-    access_token: str
+    access_token: str | None = None
     token_type: str = "bearer"
-    customer: CustomerResponse
+    customer: CustomerResponse | None = None
+    needs_email_verification: bool = False
+    email: str | None = None

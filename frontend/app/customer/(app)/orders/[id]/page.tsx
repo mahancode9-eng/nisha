@@ -169,7 +169,7 @@ export default function CustomerOrderDetailPage({ params }: PageProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="text-2xl font-bold text-neutral-900">{order.invoice_code}</h1>
         <StatusBadge status={order.status} />
@@ -183,7 +183,7 @@ export default function CustomerOrderDetailPage({ params }: PageProps) {
       )}
 
       <div className="grid gap-6 xl:grid-cols-[2fr_1fr]">
-        <div className="space-y-6">
+        <div className="page-stack">
           <Card>
             <CardHeader>
               <CardTitle>اقلام</CardTitle>
@@ -364,7 +364,7 @@ export default function CustomerOrderDetailPage({ params }: PageProps) {
           )}
         </div>
 
-        <div className="space-y-6">
+        <div className="page-stack">
           <Card>
             <CardHeader>
               <CardTitle>فروشگاه</CardTitle>

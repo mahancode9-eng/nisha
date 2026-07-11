@@ -92,11 +92,15 @@ class SellerTokenResponse {
     required this.accessToken,
     required this.tokenType,
     required this.user,
+    this.needsEmailVerification = false,
+    this.email,
   });
 
   final String accessToken;
   final String tokenType;
   final SellerUser user;
+  final bool needsEmailVerification;
+  final String? email;
 
   factory SellerTokenResponse.fromJson(Map<String, dynamic> json) {
     return SellerTokenResponse(
@@ -105,6 +109,8 @@ class SellerTokenResponse {
       user: SellerUser.fromJson(
         (json['user'] as Map<String, dynamic>? ?? const <String, dynamic>{}),
       ),
+      needsEmailVerification: json['needs_email_verification'] as bool? ?? false,
+      email: json['email'] as String?,
     );
   }
 }
@@ -114,11 +120,15 @@ class CustomerTokenResponse {
     required this.accessToken,
     required this.tokenType,
     required this.customer,
+    this.needsEmailVerification = false,
+    this.email,
   });
 
   final String accessToken;
   final String tokenType;
   final CustomerUser customer;
+  final bool needsEmailVerification;
+  final String? email;
 
   factory CustomerTokenResponse.fromJson(Map<String, dynamic> json) {
     return CustomerTokenResponse(
@@ -127,6 +137,8 @@ class CustomerTokenResponse {
       customer: CustomerUser.fromJson(
         (json['customer'] as Map<String, dynamic>? ?? const <String, dynamic>{}),
       ),
+      needsEmailVerification: json['needs_email_verification'] as bool? ?? false,
+      email: json['email'] as String?,
     );
   }
 }
@@ -175,6 +187,29 @@ class CustomerRecoveryVerifyResponse {
       customer: CustomerUser.fromJson(
         (json['customer'] as Map<String, dynamic>? ?? const <String, dynamic>{}),
       ),
+    );
+  }
+}
+
+class SellerRecoveryStartResponse {
+  const SellerRecoveryStartResponse({
+    required this.recoveryId,
+    required this.expiresAt,
+    this.deliveryHint,
+    this.debugCode,
+  });
+
+  final int recoveryId;
+  final DateTime expiresAt;
+  final String? deliveryHint;
+  final String? debugCode;
+
+  factory SellerRecoveryStartResponse.fromJson(Map<String, dynamic> json) {
+    return SellerRecoveryStartResponse(
+      recoveryId: (json['recovery_id'] as num).toInt(),
+      expiresAt: DateTime.parse((json['expires_at'] ?? DateTime.now().toIso8601String()) as String),
+      deliveryHint: json['delivery_hint'] as String?,
+      debugCode: json['debug_code'] as String?,
     );
   }
 }

@@ -89,7 +89,7 @@ export default function AdminStoreDetailPage({ params }: PageProps) {
   const coverUrl = store.cover_image_url ? resolveMediaUrl(store.cover_image_url) : null;
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <div className="overflow-hidden rounded-[2rem] border border-border bg-surface shadow-sm">
         <div className="relative h-44 bg-neutral-950">
           {coverUrl && (
@@ -253,7 +253,7 @@ export default function AdminStoreDetailPage({ params }: PageProps) {
           </CardContent>
         </Card>
 
-        <div className="space-y-6">
+        <div className="page-stack">
         <Card>
           <CardHeader>
             <CardTitle>نشان‌های اعتماد</CardTitle>

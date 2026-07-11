@@ -167,7 +167,7 @@ export function ProductPageClient({ slug, productId }: ProductPageClientProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <div className="flex flex-wrap items-center gap-2 text-sm text-neutral-500">
         <Link href={paths.store(slug)} className="text-brand hover:underline">
           بازگشت به فروشگاه
@@ -266,7 +266,7 @@ export function ProductPageClient({ slug, productId }: ProductPageClientProps) {
           </CardContent>
         </Card>
 
-        <div className="space-y-6">
+        <div className="page-stack">
           <Card>
             <CardContent className="space-y-4 py-6">
               <div className="flex flex-wrap gap-2">

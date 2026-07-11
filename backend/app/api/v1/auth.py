@@ -16,15 +16,28 @@ from app.schemas.auth import (
     RefreshRequest,
     RegisterRequest,
     TokenResponse,
+    UserRecoveryRequest,
+    UserRecoveryStartResponse,
+    UserRecoveryVerifyRequest,
     UserResponse,
 )
 from app.schemas.user_mapper import user_to_response
-from app.services.auth_service import AuthError, authenticate_user, register_seller
+from app.services.auth_service import AuthError, authenticate_user, register_seller, user_needs_email_verification
+from app.services.user_recovery_service import (
+    build_recovery_hint,
+    request_password_recovery,
+    verify_password_recovery,
+)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 def _build_token_response(user: User) -> TokenResponse:
+    if user_needs_email_verification(user):
+        return TokenResponse(
+            needs_email_verification=True,
+            email=user.email,
+        )
     token = create_access_token(user_id=user.id, role=user.role.value)
     refresh_token = create_refresh_token(user_id=user.id, role=user.role.value)
     return TokenResponse(
@@ -100,3 +113,43 @@ def refresh(payload: RefreshRequest, db: Session = Depends(get_db)) -> TokenResp
 @router.get("/me", response_model=UserResponse)
 def me(current_user: User = Depends(get_current_user)) -> UserResponse:
     return user_to_response(current_user)
+
+
+@router.post("/password-recovery/request", response_model=UserRecoveryStartResponse)
+@limiter.limit("5/minute")
+def request_recovery(
+    request: Request,
+    payload: UserRecoveryRequest,
+    db: Session = Depends(get_db),
+) -> UserRecoveryStartResponse:
+    from app.core.config import settings
+
+    try:
+        recovery, code = request_password_recovery(db, email=str(payload.email))
+    except AuthError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+    return UserRecoveryStartResponse(
+        recovery_id=recovery.id,
+        expires_at=recovery.expires_at,
+        delivery_hint=build_recovery_hint(recovery.email),
+        debug_code=code if settings.ENVIRONMENT == "development" else None,
+    )
+
+
+@router.post("/password-recovery/verify", response_model=TokenResponse)
+@limiter.limit("5/minute")
+def verify_recovery(
+    request: Request,
+    payload: UserRecoveryVerifyRequest,
+    db: Session = Depends(get_db),
+) -> TokenResponse:
+    try:
+        user = verify_password_recovery(
+            db,
+            recovery_id=payload.recovery_id,
+            code=payload.code,
+            new_password=payload.new_password,
+        )
+    except AuthError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+    return _build_token_response(user)

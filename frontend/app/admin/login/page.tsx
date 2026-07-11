@@ -34,6 +34,7 @@ export default function AdminLoginPage() {
           title="ورود مدیر"
           subtitle="مدیریت و نظارت بر پلتفرم"
           onSubmit={handleLogin}
+          forgotPasswordHref={paths.admin.recover}
           footer={
             <Link href={paths.home} className="text-brand-deep hover:underline">
               بازگشت به صفحه اصلی

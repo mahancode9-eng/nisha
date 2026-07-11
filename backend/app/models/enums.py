@@ -33,6 +33,11 @@ class RecoveryChannel(str, Enum):
     SMS = "SMS"
 
 
+class VerificationAccountKind(str, Enum):
+    CUSTOMER = "CUSTOMER"
+    USER = "USER"
+
+
 class CustomerReceiptStatus(str, Enum):
     RECEIVED = "RECEIVED"
     NOT_RECEIVED = "NOT_RECEIVED"

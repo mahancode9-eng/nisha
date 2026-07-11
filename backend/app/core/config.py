@@ -46,13 +46,16 @@ class Settings(BaseSettings):
     SMS_PROVIDER: Literal["console", "kavenegar"] = "console"
     SMS_SENDER: str = ""
     KAVENEGAR_API_KEY: str = ""
-    EMAIL_PROVIDER: Literal["console", "smtp"] = "console"
+    EMAIL_PROVIDER: Literal["console", "smtp", "resend"] = "console"
     SMTP_HOST: str = ""
     SMTP_PORT: int = 587
     SMTP_USERNAME: str = ""
     SMTP_PASSWORD: str = ""
     SMTP_USE_TLS: bool = True
     EMAIL_FROM: str = ""
+    RESEND_API_KEY: str = ""
+    FRONTEND_BASE_URL: str = "http://localhost:3000"
+    EMAIL_VERIFICATION_EXPIRE_MINUTES: int = 1440
 
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod

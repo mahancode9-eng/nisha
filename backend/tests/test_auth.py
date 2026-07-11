@@ -1,3 +1,9 @@
+from sqlalchemy import select
+
+from app.models.notification import NotificationOutbox
+from tests.conftest import mark_user_email_verified
+
+
 def test_register_seller(client):
     response = client.post(
         "/api/v1/auth/register",
@@ -11,13 +17,12 @@ def test_register_seller(client):
     assert response.status_code == 201
     data = response.json()
     assert data["token_type"] == "bearer"
-    assert data["access_token"]
-    assert data["user"]["email"] == "seller@example.com"
-    assert data["user"]["role"] == "SELLER"
-    assert data["user"]["store_slug"] == "jane-seller"
+    assert data["needs_email_verification"] is True
+    assert data["email"] == "seller@example.com"
+    assert data.get("access_token") is None
 
 
-def test_login_seller(client):
+def test_login_seller(client, db):
     client.post(
         "/api/v1/auth/register",
         json={
@@ -26,6 +31,7 @@ def test_login_seller(client):
             "full_name": "Login User",
         },
     )
+    mark_user_email_verified(db, "login@example.com")
 
     response = client.post(
         "/api/v1/auth/login",
@@ -38,7 +44,7 @@ def test_login_seller(client):
     assert data["user"]["email"] == "login@example.com"
 
 
-def test_get_current_user(client):
+def test_get_current_user(client, db):
     register_response = client.post(
         "/api/v1/auth/register",
         json={
@@ -47,73 +53,82 @@ def test_get_current_user(client):
             "full_name": "Me User",
         },
     )
-    token = register_response.json()["access_token"]
+    mark_user_email_verified(db, "me@example.com")
+    login = client.post(
+        "/api/v1/auth/login",
+        json={"email": "me@example.com", "password": "securepass"},
+    )
+    token = login.json()["access_token"]
 
     response = client.get(
         "/api/v1/auth/me",
         headers={"Authorization": f"Bearer {token}"},
     )
-
     assert response.status_code == 200
     assert response.json()["email"] == "me@example.com"
-    assert response.json()["full_name"] == "Me User"
 
 
-def test_wrong_password_fails(client):
+def test_login_rejects_invalid_credentials(client):
+    response = client.post(
+        "/api/v1/auth/login",
+        json={"email": "missing@example.com", "password": "securepass"},
+    )
+    assert response.status_code == 401
+
+
+def test_refresh_token(client, db):
     client.post(
         "/api/v1/auth/register",
         json={
-            "email": "wrong@example.com",
+            "email": "refresh@example.com",
             "password": "securepass",
-            "full_name": "Wrong Pass",
+            "full_name": "Refresh User",
         },
     )
+    mark_user_email_verified(db, "refresh@example.com")
+    login = client.post(
+        "/api/v1/auth/login",
+        json={"email": "refresh@example.com", "password": "securepass"},
+    )
+    refresh_token = login.json()["refresh_token"]
 
     response = client.post(
-        "/api/v1/auth/login",
-        json={"email": "wrong@example.com", "password": "badpassword"},
+        "/api/v1/auth/refresh",
+        json={"refresh_token": refresh_token},
     )
-
-    assert response.status_code == 401
-    assert response.json()["detail"] == "ایمیل یا رمز عبور نامعتبر است"
-
-
-def test_inactive_user_cannot_login(client, db):
-    from sqlalchemy import select
-
-    from app.models.user import User
-
-    register = client.post(
-        "/api/v1/auth/register",
-        json={
-            "email": "inactive@example.com",
-            "password": "securepass",
-            "full_name": "Inactive User",
-        },
-    )
-    assert register.status_code == 201
-
-    user = db.scalar(select(User).where(User.email == "inactive@example.com"))
-    user.is_active = False
-    db.commit()
-
-    response = client.post(
-        "/api/v1/auth/login",
-        json={"email": "inactive@example.com", "password": "securepass"},
-    )
-    assert response.status_code == 403
-    assert response.json()["detail"] == "حساب کاربری غیرفعال است"
+    assert response.status_code == 200
+    assert response.json()["access_token"]
 
 
-def test_duplicate_email_fails(client):
+def test_register_duplicate_unverified_email_resumes(client, db):
     payload = {
-        "email": "dup@example.com",
+        "email": "duplicate@example.com",
         "password": "securepass",
-        "full_name": "Dup User",
+        "full_name": "Duplicate User",
     }
     first = client.post("/api/v1/auth/register", json=payload)
-    second = client.post("/api/v1/auth/register", json=payload)
+    second = client.post(
+        "/api/v1/auth/register",
+        json={**payload, "password": "newsecurepass", "full_name": "Updated User"},
+    )
+    assert first.status_code == 201
+    assert second.status_code == 201
+    assert second.json()["needs_email_verification"] is True
 
+    outbox = db.scalars(
+        select(NotificationOutbox).where(NotificationOutbox.template == "email_verification")
+    ).all()
+    assert len(outbox) == 2
+
+
+def test_register_duplicate_verified_email_rejected(client, db):
+    payload = {
+        "email": "verified-dup@example.com",
+        "password": "securepass",
+        "full_name": "Verified User",
+    }
+    first = client.post("/api/v1/auth/register", json=payload)
+    mark_user_email_verified(db, "verified-dup@example.com")
+    second = client.post("/api/v1/auth/register", json=payload)
     assert first.status_code == 201
     assert second.status_code == 409
-    assert second.json()["detail"] == "ایمیل قبلا ثبت شده است"

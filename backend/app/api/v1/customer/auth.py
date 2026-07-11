@@ -12,12 +12,21 @@ from app.schemas.customer_auth import (
     CustomerTokenResponse,
 )
 from app.services.auth_service import AuthError
-from app.services.customer_auth_service import authenticate_customer, register_customer
+from app.services.customer_auth_service import (
+    authenticate_customer,
+    customer_needs_email_verification,
+    register_customer,
+)
 
 router = APIRouter(tags=["customer-auth"])
 
 
 def _build_token_response(customer: CustomerAccount) -> CustomerTokenResponse:
+    if customer_needs_email_verification(customer):
+        return CustomerTokenResponse(
+            needs_email_verification=True,
+            email=customer.email,
+        )
     token = create_access_token(user_id=customer.id, role="CUSTOMER")
     return CustomerTokenResponse(
         access_token=token,

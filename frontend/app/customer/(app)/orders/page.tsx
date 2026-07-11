@@ -102,7 +102,7 @@ export default function CustomerOrdersPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <Card>
         <CardHeader>
           <CardTitle>بازیابی سفارش قدیمی</CardTitle>

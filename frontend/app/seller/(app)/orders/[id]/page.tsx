@@ -100,7 +100,7 @@ export default function SellerOrderDetailPage({ params }: PageProps) {
       : "این کار سفارش را لغو می‌کند و در صورت نیاز موجودی را بازمی‌گرداند.";
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <div>
         <Link href={paths.seller.orders} className="text-sm text-brand hover:underline">
           ← بازگشت به سفارش‌ها

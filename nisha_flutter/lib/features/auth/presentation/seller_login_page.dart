@@ -90,6 +90,10 @@ class _SellerLoginPageState extends ConsumerState<SellerLoginPage> {
                 child: Text(context.l10n.createAccountButton),
               ),
               TextButton(
+                onPressed: () => context.go(RoutePaths.sellerRecover),
+                child: Text(context.l10n.recoverAccount),
+              ),
+              TextButton(
                 onPressed: () => context.go(RoutePaths.home),
                 child: Text(context.l10n.backToHome),
               ),

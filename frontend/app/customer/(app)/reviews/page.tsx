@@ -125,7 +125,7 @@ export default function CustomerReviewsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="page-stack">
       <Card>
         <CardHeader>
           <CardTitle>یک سفارش خریداری‌شده را انتخاب کنید</CardTitle>

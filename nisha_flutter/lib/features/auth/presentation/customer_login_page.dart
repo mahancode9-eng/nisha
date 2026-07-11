@@ -123,6 +123,15 @@ class _CustomerLoginPageState extends ConsumerState<CustomerLoginPage> {
       context.go(widget.redirectPath ?? RoutePaths.customerDashboard);
     } on ApiException catch (error) {
       _showMessage(error.message);
+      if (error.statusCode == 403 && _loginController.text.contains('@')) {
+        await ref.read(sessionControllerProvider.notifier).resendVerificationEmail(
+              email: _loginController.text.trim(),
+              kind: 'customer',
+            );
+        if (mounted) {
+          _showMessage('Verification email sent again.');
+        }
+      }
     } catch (error) {
       _showMessage(error.toString());
     } finally {

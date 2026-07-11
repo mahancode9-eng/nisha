@@ -6,7 +6,7 @@ from app.models.store import Store
 
 
 @pytest.fixture
-def customer_headers(client: TestClient) -> dict[str, str]:
+def customer_headers(client: TestClient, db: Session) -> dict[str, str]:
     response = client.post(
         "/api/v1/customer/register",
         json={
@@ -16,7 +16,14 @@ def customer_headers(client: TestClient) -> dict[str, str]:
         },
     )
     assert response.status_code == 201
-    token = response.json()["access_token"]
+    from tests.conftest import mark_customer_email_verified
+
+    mark_customer_email_verified(db, "chat-buyer@example.com")
+    login = client.post(
+        "/api/v1/customer/login",
+        json={"login": "chat-buyer@example.com", "password": "securepass"},
+    )
+    token = login.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
 
 
@@ -106,6 +113,7 @@ def test_customer_cannot_access_seller_conversations(
 
 def test_other_seller_cannot_access_conversation(
     client: TestClient,
+    db: Session,
     customer_headers: dict,
     seller_headers: dict,
     store_id: int,
@@ -114,6 +122,7 @@ def test_other_seller_cannot_access_conversation(
 
     other_seller = register_seller(
         client,
+        db,
         email="seller-b@example.com",
         full_name="Seller B",
     )

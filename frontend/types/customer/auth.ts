@@ -20,7 +20,13 @@ export type CustomerLoginRequest = {
 };
 
 export type CustomerTokenResponse = {
-  access_token: string;
+  access_token?: string | null;
   token_type: string;
-  customer: Customer;
+  customer?: Customer | null;
+  needs_email_verification?: boolean;
+  email?: string | null;
 };
+
+export type CustomerRegisterResult =
+  | { status: "authenticated"; customer: Customer }
+  | { status: "verification_required"; email: string };

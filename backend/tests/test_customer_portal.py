@@ -2,7 +2,10 @@ from app.models.enums import ComplaintStatus, CustomerReceiptStatus, OrderStatus
 from app.models.order import Order
 
 
-def register_customer(client, **overrides):
+from tests.conftest import mark_customer_email_verified
+
+
+def register_customer(client, db, **overrides):
     payload = {
         "email": "portal-buyer@example.com",
         "phone": "+989121111111",
@@ -13,11 +16,20 @@ def register_customer(client, **overrides):
     payload.update(overrides)
     response = client.post("/api/v1/customer/register", json=payload)
     assert response.status_code == 201
-    return response.json()
+    data = response.json()
+    if data.get("needs_email_verification") and payload.get("email"):
+        mark_customer_email_verified(db, payload["email"])
+        login = client.post(
+            "/api/v1/customer/login",
+            json={"login": payload["email"], "password": payload["password"]},
+        )
+        assert login.status_code == 200
+        return login.json()
+    return data
 
 
-def test_customer_profile_and_addresses(client):
-    token = register_customer(client)
+def test_customer_profile_and_addresses(client, db):
+    token = register_customer(client, db)
     headers = {"Authorization": f"Bearer {token['access_token']}"}
 
     profile = client.get("/api/v1/customer/profile", headers=headers)
@@ -56,8 +68,8 @@ def test_customer_profile_and_addresses(client):
     assert addresses.json()[0]["is_default"] is True
 
 
-def test_customer_dashboard_summary(client):
-    token = register_customer(client)
+def test_customer_dashboard_summary(client, db):
+    token = register_customer(client, db)
     headers = {"Authorization": f"Bearer {token['access_token']}"}
 
     client.post(
@@ -83,8 +95,8 @@ def test_customer_dashboard_summary(client):
     assert data["addresses"][0]["is_default"] is True
 
 
-def test_customer_recovery_flow(client):
-    register_customer(client, email="recover@example.com", phone=None)
+def test_customer_recovery_flow(client, db):
+    register_customer(client, db, email="recover@example.com", phone=None)
 
     request = client.post(
         "/api/v1/customer/password-recovery/request",
@@ -124,7 +136,7 @@ def test_customer_recovery_flow(client):
 
 
 def test_customer_claim_order_and_history(client, placed_order, db):
-    token = register_customer(client, email="claim@example.com", phone="+989122222222")
+    token = register_customer(client, db, email="claim@example.com", phone="+989122222222")
     headers = {"Authorization": f"Bearer {token['access_token']}"}
 
     claim = client.post(
@@ -170,7 +182,7 @@ def test_customer_claim_order_and_history(client, placed_order, db):
 
 
 def test_customer_receipt_complaint_and_download(client, placed_order, db):
-    token = register_customer(client, email="complaint@example.com", phone="+989123333333")
+    token = register_customer(client, db, email="complaint@example.com", phone="+989123333333")
     headers = {"Authorization": f"Bearer {token['access_token']}"}
 
     client.post(
@@ -215,8 +227,8 @@ def test_customer_receipt_complaint_and_download(client, placed_order, db):
     assert placed_order["invoice_code"] in download.text
 
 
-def test_customer_checkout_can_attach_owner_and_save_address(client, public_store):
-    token = register_customer(client, email="checkout@example.com", phone="+989124444444")
+def test_customer_checkout_can_attach_owner_and_save_address(client, public_store, db):
+    token = register_customer(client, db, email="checkout@example.com", phone="+989124444444")
     headers = {"Authorization": f"Bearer {token['access_token']}"}
 
     response = client.post(

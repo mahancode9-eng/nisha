@@ -125,12 +125,18 @@ class _SellerRegisterPageState extends ConsumerState<SellerRegisterPage> {
     });
 
     try {
-      await ref.read(sessionControllerProvider.notifier).signUpSeller(
+      final pendingEmail = await ref.read(sessionControllerProvider.notifier).signUpSeller(
             email: _emailController.text.trim(),
             password: _passwordController.text,
             fullName: _fullNameController.text.trim(),
           );
       if (!mounted) {
+        return;
+      }
+      if (pendingEmail != null) {
+        context.go(
+          '${RoutePaths.verifyEmail}/pending?email=${Uri.encodeComponent(pendingEmail)}&kind=seller',
+        );
         return;
       }
       final session = ref.read(sessionControllerProvider);

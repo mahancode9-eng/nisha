@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import TYPE_CHECKING, Optional
 
-from sqlalchemy import Boolean, Enum, String
+from sqlalchemy import Boolean, DateTime, Enum, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -12,6 +13,7 @@ from app.models.mixins import TimestampMixin
 if TYPE_CHECKING:
     from app.models.order import OrderStatusHistory
     from app.models.store import Store
+    from app.models.user_password_recovery import UserPasswordRecovery
 
 
 class User(TimestampMixin, Base):
@@ -26,6 +28,10 @@ class User(TimestampMixin, Base):
         nullable=False,
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    email_verified_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
 
     store: Mapped[Optional["Store"]] = relationship(
         "Store",
@@ -35,4 +41,9 @@ class User(TimestampMixin, Base):
     status_changes: Mapped[list["OrderStatusHistory"]] = relationship(
         "OrderStatusHistory",
         back_populates="changed_by_user",
+    )
+    password_recoveries: Mapped[list["UserPasswordRecovery"]] = relationship(
+        "UserPasswordRecovery",
+        back_populates="user",
+        cascade="all, delete-orphan",
     )

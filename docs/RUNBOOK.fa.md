@@ -91,12 +91,13 @@ KAVENEGAR_API_KEY=
 SMS_SENDER=
 
 # --- ایمیل (بخش ۴.۴) ---
-EMAIL_PROVIDER=console       # یا smtp
+EMAIL_PROVIDER=console       # یا smtp یا resend
 SMTP_HOST=
 SMTP_PORT=587
 SMTP_USERNAME=
 SMTP_PASSWORD=
 EMAIL_FROM=
+RESEND_API_KEY=              # برای resend — re_xxxxxxxxx را با کلید واقعی جایگزین کنید
 
 # --- سئو (بخش ۴.۶) ---
 API_INTERNAL_URL=            # اختیاری، مثل http://backend:8000 برای ساخت سریع‌تر sitemap داخل داکر
@@ -150,6 +151,11 @@ docker compose -f docker-compose.prod.yml logs backend --tail 50
 
 1. یک سرویس SMTP (مثل ایمیل هاست یا Mailgun/Zoho) آماده کن.
 2. `EMAIL_PROVIDER=smtp` + مقادیر `SMTP_*` و `EMAIL_FROM` را تنظیم کن.
+
+یا برای Resend:
+
+1. در [Resend](https://resend.com) دامنه/فرستنده را تأیید کن.
+2. `EMAIL_PROVIDER=resend` + `RESEND_API_KEY` (کلید واقعی، نه `re_xxxxxxxxx`) + `EMAIL_FROM` را تنظیم کن.
 
 ### نوتیفیکیشن‌های خودکار سفارش (تسک ۱۲)
 

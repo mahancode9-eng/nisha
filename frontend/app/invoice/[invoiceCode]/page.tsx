@@ -151,7 +151,7 @@ export default function InvoicePage({ params }: PageProps) {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-6">
+        <div className="page-stack">
           <div className="flex justify-end gap-3 print:hidden">
             <Button variant="secondary" onClick={handlePrint}>
               دانلود PDF / چاپ

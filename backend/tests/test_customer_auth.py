@@ -1,4 +1,7 @@
-def test_customer_register_and_me(client):
+from tests.conftest import mark_customer_email_verified
+
+
+def test_customer_register_and_me(client, db):
     register = client.post(
         "/api/v1/customer/register",
         json={
@@ -9,8 +12,13 @@ def test_customer_register_and_me(client):
     )
     assert register.status_code == 201
     data = register.json()
-    assert data["token_type"] == "bearer"
-    assert data["customer"]["email"] == "buyer@example.com"
+    assert data["needs_email_verification"] is True
+    mark_customer_email_verified(db, "buyer@example.com")
+    login = client.post(
+        "/api/v1/customer/login",
+        json={"login": "buyer@example.com", "password": "securepass"},
+    )
+    data = login.json()
 
     headers = {"Authorization": f"Bearer {data['access_token']}"}
     me = client.get("/api/v1/customer/me", headers=headers)
@@ -18,7 +26,7 @@ def test_customer_register_and_me(client):
     assert me.json()["full_name"] == "Buyer One"
 
 
-def test_customer_login(client):
+def test_customer_login(client, db):
     client.post(
         "/api/v1/customer/register",
         json={
@@ -27,6 +35,7 @@ def test_customer_login(client):
             "full_name": "Login Buyer",
         },
     )
+    mark_customer_email_verified(db, "login-buyer@example.com")
     response = client.post(
         "/api/v1/customer/login",
         json={"login": "login-buyer@example.com", "password": "securepass"},
