@@ -10,6 +10,7 @@ from app.schemas.admin import (
     AdminStoreBadgeHistoryItem,
     AdminStoreBadgeResponse,
     AdminStoreDetailResponse,
+    AdminStoreGuestCheckoutUpdate,
     AdminStoreListItem,
 )
 from app.schemas.pagination import PaginatedResponse, build_paginated_response
@@ -83,6 +84,26 @@ def suspend_store(
     except ServiceError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
     return AdminStoreActionResponse(message="فروشگاه تعلیق شد", store=store)
+
+
+@router.patch("/{store_id}/guest-checkout", response_model=AdminStoreActionResponse)
+def set_store_guest_checkout(
+    store_id: int,
+    payload: AdminStoreGuestCheckoutUpdate,
+    admin: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+) -> AdminStoreActionResponse:
+    try:
+        store = admin_store_service.set_store_guest_checkout(
+            db,
+            store_id,
+            guest_checkout_enabled=payload.guest_checkout_enabled,
+            admin=admin,
+        )
+    except ServiceError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+    message = "خرید مهمان برای فروشگاه فعال شد" if payload.guest_checkout_enabled else "خرید مهمان برای فروشگاه غیرفعال شد"
+    return AdminStoreActionResponse(message=message, store=store)
 
 
 @router.get("/{store_id}", response_model=AdminStoreDetailResponse)

@@ -5,7 +5,7 @@ export function ListRow({ className, ...props }: HTMLAttributes<HTMLDivElement>)
   return (
     <div
       className={cn(
-        "rounded-xl border border-border bg-surface p-4 sm:p-5",
+        "rounded-xl border border-border bg-surface p-3 sm:p-5",
         className,
       )}
       {...props}

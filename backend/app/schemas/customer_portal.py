@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.models.enums import ComplaintStatus, CustomerReceiptStatus, RecoveryChannel, OrderStatus, ReviewStatus
 from app.schemas.guest_order import OrderStatusHistoryResponse, PaymentProofResponse
+from app.schemas.order_item import OrderItemFieldValueResponse
 from app.schemas.payment_method import PaymentMethodResponse
 from app.schemas.public import GuestOrderCreate, PublicPaymentMethod, PublicStoreProfile
 
@@ -110,10 +111,13 @@ class CustomerOrderItemResponse(BaseModel):
 
     id: int | None = None
     product_id: int | None
+    variant_id: int | None = None
+    variant_name_snapshot: str | None = None
     product_title_snapshot: str
     unit_price_snapshot: Decimal
     quantity: int
     total_price: Decimal
+    field_values: list[OrderItemFieldValueResponse] = Field(default_factory=list)
 
 
 class CustomerOrderClaimRequest(BaseModel):

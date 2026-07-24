@@ -1,11 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { CustomerAuthGuard } from "@/components/auth/CustomerAuthGuard";
 import { WorkspaceShell } from "@/components/layout/WorkspaceShell";
 import { useCustomerAuth } from "@/contexts/CustomerAuthContext";
 import { paths } from "@/lib/auth/paths";
-import { Button } from "@/components/ui/Button";
 
 export default function CustomerAppLayout({ children }: { children: React.ReactNode }) {
   const { customer, logout } = useCustomerAuth();
@@ -28,18 +26,10 @@ export default function CustomerAppLayout({ children }: { children: React.ReactN
         brandLabel="Nisha"
         roleLabel="مرکز مشتری"
         title="داشبورد مشتری"
-        subtitle="پروفایل، آدرس‌ها، سفارش‌ها، گفتگوها، نظرات، و دانلودها را از یک جا مدیریت کنید."
         userName={customer?.full_name}
         userMeta={customer?.email ?? customer?.phone ?? undefined}
         navItems={navItems}
         onLogout={logout}
-        topActions={
-          <Link href={paths.home}>
-            <Button variant="secondary" size="sm">
-              فروشگاه
-            </Button>
-          </Link>
-        }
       >
         {children}
       </WorkspaceShell>

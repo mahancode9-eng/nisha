@@ -1,6 +1,7 @@
 "use client";
 
-import type { ReactNode } from "react";
+import Link from "next/link";
+import { useEffect, type ComponentProps, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
 import { useBodyScrollLock } from "./useBodyScrollLock";
 
@@ -9,7 +10,6 @@ type ChromeMobileDrawerProps = {
   onClose: () => void;
   children: ReactNode;
   className?: string;
-  animate?: boolean;
 };
 
 export function ChromeMobileDrawer({
@@ -17,33 +17,61 @@ export function ChromeMobileDrawer({
   onClose,
   children,
   className,
-  animate = false,
 }: ChromeMobileDrawerProps) {
   useBodyScrollLock(open);
 
-  if (animate) {
-    return (
-      <div
-        className={cn(
-          "overflow-hidden border-t border-border/70 bg-background/90 transition-all duration-300 md:hidden",
-          open ? "max-h-[32rem] opacity-100" : "max-h-0 opacity-0",
-        )}
-      >
-        <div className={cn("mx-auto flex max-w-7xl flex-col gap-2 px-4 py-4 sm:px-6", className)}>
-          {children}
-        </div>
-      </div>
-    );
-  }
-
-  if (!open) return null;
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [open, onClose]);
 
   return (
-    <div className="border-t border-border bg-surface md:hidden">
-      <div className={cn("mx-auto flex max-w-7xl flex-col gap-2 px-4 py-4 sm:px-6", className)}>
-        {children}
-      </div>
+    <div className="md:hidden" aria-hidden={!open}>
+      <button
+        type="button"
+        tabIndex={open ? 0 : -1}
+        className={cn(
+          "fixed inset-0 z-40 bg-black/40 transition-opacity duration-200",
+          open ? "opacity-100" : "pointer-events-none opacity-0",
+        )}
+        aria-label="بستن منو"
+        onClick={onClose}
+      />
+      <aside
+        className={cn(
+          "fixed top-0 end-0 z-50 flex h-full w-[min(100%,20rem)] flex-col border-s border-border bg-surface shadow-xl transition-transform duration-200",
+          open ? "translate-x-0" : "pointer-events-none ltr:translate-x-full rtl:-translate-x-full",
+        )}
+        role="dialog"
+        aria-modal={open}
+        aria-hidden={!open}
+      >
+        <div className={cn("flex flex-1 flex-col gap-2 overflow-y-auto px-4 py-4", className)}>
+          {children}
+        </div>
+      </aside>
     </div>
+  );
+}
+
+type MobileNavLinkProps = ComponentProps<typeof Link> & {
+  onClose: () => void;
+};
+
+/** Nav link that closes the mobile drawer on click. */
+export function MobileNavLink({ onClose, onClick, ...props }: MobileNavLinkProps) {
+  return (
+    <Link
+      {...props}
+      onClick={(event) => {
+        onClose();
+        onClick?.(event);
+      }}
+    />
   );
 }
 
@@ -61,7 +89,7 @@ export function ChromeMenuToggle({
       type="button"
       onClick={onToggle}
       className={cn(
-        "inline-flex h-10 w-10 items-center justify-center rounded-lg text-foreground-muted hover:bg-surface-muted md:hidden",
+        "inline-flex h-10 w-10 max-md:h-9 max-md:w-9 items-center justify-center rounded-lg text-foreground-muted hover:bg-surface-muted md:hidden",
         className,
       )}
       aria-label="منو"

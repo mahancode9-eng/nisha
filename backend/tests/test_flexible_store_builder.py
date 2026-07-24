@@ -157,3 +157,13 @@ def test_gallery_order_and_field_snapshot_persistence(client, seller_headers, pu
     snapshot = json.loads(persisted.items[0].field_values[0].field_snapshot_json)
     assert snapshot["label"] == "Engraving"
     assert persisted.items[0].field_values[0].value_text == "For Mom"
+
+    seller_detail = client.get(
+        f"/api/v1/seller/orders/{order_id}",
+        headers=seller_headers,
+    )
+    assert seller_detail.status_code == 200
+    item = seller_detail.json()["items"][0]
+    assert len(item["field_values"]) == 1
+    assert item["field_values"][0]["field_label"] == "Engraving"
+    assert item["field_values"][0]["value_text"] == "For Mom"

@@ -25,6 +25,7 @@ from app.schemas.public import (
 )
 from app.services import discount_service, order_notification_service
 from app.services.exceptions import ServiceError
+from app.services.platform_setting_service import is_guest_checkout_enabled
 from app.services.product_service import build_form_field_snapshot
 from app.services.public_store_service import get_active_store_by_slug
 from app.utils.invoice import generate_invoice_code, generate_invoice_password
@@ -277,6 +278,12 @@ def create_guest_order(
 ) -> CheckoutResponse:
     store = get_active_store_by_slug(db, slug)
     payment_method = _get_payment_method(db, store.id, data.payment_method_id)
+
+    if customer_id is None and not is_guest_checkout_enabled(db, store):
+        raise ServiceError(
+            "خرید مهمان برای این فروشگاه غیرفعال است. لطفاً وارد حساب کاربری شوید.",
+            status_code=403,
+        )
 
     if not data.items:
         raise ServiceError("سبد خرید نمی‌تواند خالی باشد", status_code=422)

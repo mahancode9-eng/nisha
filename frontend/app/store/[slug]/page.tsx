@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { StorePageClient } from "./StorePageClient";
 import { VisitPing } from "./VisitPing";
+import { sanitizeScriptContent } from "@/lib/sanitize";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 const API_BASE =
@@ -72,7 +73,7 @@ export default async function StorePage({ params }: PageProps) {
       ...(store.description ? { description: store.description } : {}),
       ...(store.logo_url ? { image: store.logo_url } : {}),
     });
-    jsonLdProps = { __html: jsonLd };
+    jsonLdProps = { __html: sanitizeScriptContent(jsonLd) };
   }
   return (
     <>

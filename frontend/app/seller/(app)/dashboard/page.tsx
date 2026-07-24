@@ -31,7 +31,7 @@ export default function SellerDashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 md:space-y-6">
         <PageHeader description="نمای کلی عملکرد فروشگاه شما" />
         <StatCardSkeleton count={6} />
         <TableSkeleton rows={3} columns={4} />
@@ -41,7 +41,7 @@ export default function SellerDashboardPage() {
 
   if (error || !data) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 md:space-y-6">
         <PageHeader description="نمای کلی عملکرد فروشگاه شما" />
         <ErrorAlert message={error ?? "بارگذاری داشبورد ممکن نشد"} />
       </div>
@@ -53,7 +53,7 @@ export default function SellerDashboardPage() {
   const readinessPercent = Math.max(0, Math.min(100, data.store_readiness_score));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <PageHeader
         description="نمای کلی عملکرد فروشگاه شما"
         action={
@@ -122,7 +122,7 @@ export default function SellerDashboardPage() {
         </CardContent>
       </Card>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="grid grid-cols-2 gap-2 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <StatCard label="کل سفارش‌ها" value={data.total_orders} />
         <StatCard label="سفارش‌های در انتظار" value={data.pending_orders} />
         <StatCard label="درآمد تاییدشده" value={formatMoney(data.confirmed_revenue)} />

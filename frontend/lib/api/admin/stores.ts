@@ -38,6 +38,15 @@ export function suspendStore(storeId: number): Promise<AdminStoreActionResponse>
   return apiPatch<AdminStoreActionResponse>(`/api/v1/admin/stores/${storeId}/suspend`);
 }
 
+export function setStoreGuestCheckout(
+  storeId: number,
+  guestCheckoutEnabled: boolean,
+): Promise<AdminStoreActionResponse> {
+  return apiPatch<AdminStoreActionResponse>(`/api/v1/admin/stores/${storeId}/guest-checkout`, {
+    guest_checkout_enabled: guestCheckoutEnabled,
+  });
+}
+
 export function getStoreDetail(storeId: number): Promise<AdminStoreDetail> {
   return apiGet<AdminStoreDetail>(`/api/v1/admin/stores/${storeId}`);
 }

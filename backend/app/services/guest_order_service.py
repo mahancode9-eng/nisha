@@ -15,6 +15,7 @@ from app.schemas.guest_order import (
 )
 from app.schemas.public import PublicPaymentMethod, PublicStoreProfile
 from app.services import chat_service, order_access_service, review_service
+from app.services.order_item_serializers import track_order_item_response
 from app.services.exceptions import ServiceError
 from app.utils.upload import save_payment_proof_image
 
@@ -76,21 +77,14 @@ def track_order(db: Session, invoice_code: str, password: str) -> OrderTrackResp
         discount_amount=order.discount_amount,
         total_amount=order.total_amount,
         created_at=order.created_at,
-        items=[
-            OrderTrackItemResponse(
-                product_id=item.product_id,
-                product_title=item.product_title_snapshot,
-                variant_name=item.variant_name_snapshot,
-                quantity=item.quantity,
-                unit_price=item.unit_price_snapshot,
-                total_price=item.total_price,
-            )
-            for item in order.items
-        ],
+        items=[track_order_item_response(item) for item in order.items],
         payment_proofs=[PaymentProofResponse.model_validate(p) for p in order.payment_proofs],
         store=PublicStoreProfile.model_validate(order.store),
         payment_method=PublicPaymentMethod.model_validate(order.payment_method),
     )
+
+
+_ALLOWED_EDIT_FIELDS = {"buyer_name", "buyer_phone", "buyer_address", "buyer_note"}
 
 
 def edit_order(db: Session, invoice_code: str, data: GuestOrderEdit) -> GuestOrderEditResponse:
@@ -99,6 +93,8 @@ def edit_order(db: Session, invoice_code: str, data: GuestOrderEdit) -> GuestOrd
 
     update_data = data.model_dump(exclude_unset=True, exclude={"invoice_edit_password"})
     for field, value in update_data.items():
+        if field not in _ALLOWED_EDIT_FIELDS:
+            continue
         setattr(order, field, value.strip() if isinstance(value, str) else value)
 
     db.commit()

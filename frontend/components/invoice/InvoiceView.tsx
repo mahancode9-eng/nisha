@@ -1,13 +1,6 @@
 import { formatDateTime, formatMoney } from "@/lib/format";
+import { OrderItemsPanel } from "@/components/orders/OrderItemsPanel";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeaderCell,
-  TableRow,
-} from "@/components/ui/Table";
 import type { OrderTrackResponse } from "@/types/public/order";
 
 export function InvoiceView({ order }: { order: OrderTrackResponse }) {
@@ -42,43 +35,21 @@ export function InvoiceView({ order }: { order: OrderTrackResponse }) {
         <StatusBadge status={order.status} />
       </div>
 
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableHeaderCell>محصول</TableHeaderCell>
-            <TableHeaderCell>تعداد</TableHeaderCell>
-            <TableHeaderCell>قیمت واحد</TableHeaderCell>
-            <TableHeaderCell>جمع</TableHeaderCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {order.items.map((item, idx) => (
-            <TableRow key={idx}>
-              <TableCell>
-                {item.product_title}
-                {item.variant_name ? ` — ${item.variant_name}` : ""}
-              </TableCell>
-              <TableCell>{item.quantity}</TableCell>
-              <TableCell>{formatMoney(item.unit_price)}</TableCell>
-              <TableCell>{formatMoney(item.total_price)}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <OrderItemsPanel
+        items={order.items}
+        embedded={false}
+        subtotalAmount={order.subtotal_amount}
+      />
+
+      {hasDiscount && (
+        <div className="flex justify-end text-sm text-emerald-600">
+          تخفیف{order.discount_code ? ` (${order.discount_code})` : ""}: −
+          {formatMoney(order.discount_amount ?? "0")}
+        </div>
+      )}
 
       <div className="flex justify-end border-t border-border pt-4">
-        <div className="text-start">
-          <p className="text-sm text-foreground-muted">
-            جمع جزء: {formatMoney(order.subtotal_amount)}
-          </p>
-          {hasDiscount && (
-            <p className="text-sm text-emerald-600">
-              تخفیف{order.discount_code ? " (" + order.discount_code + ")" : ""}:{" "}
-              −{formatMoney(order.discount_amount ?? "0")}
-            </p>
-          )}
-          <p className="text-lg font-bold">مجموع: {formatMoney(order.total_amount)}</p>
-        </div>
+        <p className="text-lg font-bold">مجموع: {formatMoney(order.total_amount)}</p>
       </div>
 
       <section className="rounded-lg bg-surface-muted p-4 text-sm">

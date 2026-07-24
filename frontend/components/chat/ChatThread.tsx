@@ -19,6 +19,7 @@ type ChatThreadProps = {
   }) => Promise<void>;
   header: ReactNode;
   showComposer?: boolean;
+  useGuestUpload?: boolean;
 };
 
 export function ChatThread({
@@ -29,6 +30,7 @@ export function ChatThread({
   onSend,
   header,
   showComposer = true,
+  useGuestUpload = false,
 }: ChatThreadProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -54,7 +56,7 @@ export function ChatThread({
         ))}
         <div ref={bottomRef} />
       </div>
-      {showComposer && <ChatComposer onSend={onSend} disabled={!conversation} />}
+      {showComposer && <ChatComposer onSend={onSend} disabled={!conversation} useGuestUpload={useGuestUpload} />}
     </div>
   );
 }

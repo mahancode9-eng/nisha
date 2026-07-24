@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorAlert } from "@/components/ui/ErrorAlert";
+import { Input } from "@/components/ui/Input";
 import { PaginationControls } from "@/components/ui/PaginationControls";
 import { TableSkeleton } from "@/components/ui/TableSkeleton";
 import {
@@ -48,6 +49,7 @@ export default function AdminComplaintsPage() {
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<ComplaintStatus | "">("");
   const [actionId, setActionId] = useState<number | null>(null);
+  const [noteDrafts, setNoteDrafts] = useState<Record<number, string>>({});
 
   const fetchComplaints = useCallback(
     () =>
@@ -67,8 +69,17 @@ export default function AdminComplaintsPage() {
   async function setStatus(complaint: AdminComplaint, status: ComplaintStatus) {
     setActionId(complaint.id);
     try {
-      await complaintsApi.updateComplaint(complaint.id, { status });
+      const note = noteDrafts[complaint.id]?.trim();
+      await complaintsApi.updateComplaint(complaint.id, {
+        status,
+        note: note || undefined,
+      });
       toast.success("وضعیت شکایت به‌روزرسانی شد");
+      setNoteDrafts((current) => {
+        const next = { ...current };
+        delete next[complaint.id];
+        return next;
+      });
       await refetch();
     } catch {
       toast.error("به‌روزرسانی شکایت ناموفق بود");
@@ -102,7 +113,7 @@ export default function AdminComplaintsPage() {
         ))}
       </div>
 
-      {isLoading && <TableSkeleton rows={6} columns={7} />}
+      {isLoading && <TableSkeleton rows={6} columns={8} />}
 
       <ErrorAlert message={!isLoading && error ? error : ""} />
 
@@ -122,6 +133,7 @@ export default function AdminComplaintsPage() {
                 <TableHeaderCell>فروشگاه</TableHeaderCell>
                 <TableHeaderCell>خریدار</TableHeaderCell>
                 <TableHeaderCell>موضوع</TableHeaderCell>
+                <TableHeaderCell>یادداشت ادمین</TableHeaderCell>
                 <TableHeaderCell>وضعیت</TableHeaderCell>
                 <TableHeaderCell>ثبت شده</TableHeaderCell>
                 <TableHeaderCell>اقدامات</TableHeaderCell>
@@ -147,6 +159,21 @@ export default function AdminComplaintsPage() {
                         {complaint.message}
                       </div>
                     </div>
+                  </TableCell>
+                  <TableCell className="max-w-xs">
+                    {complaint.last_admin_note ? (
+                      <p className="text-xs text-foreground-muted">{complaint.last_admin_note}</p>
+                    ) : (
+                      <span className="text-xs text-foreground-muted">—</span>
+                    )}
+                    <Input
+                      label="یادداشت (اختیاری)"
+                      value={noteDrafts[complaint.id] ?? ""}
+                      onChange={(e) =>
+                        setNoteDrafts((current) => ({ ...current, [complaint.id]: e.target.value }))
+                      }
+                      className="mt-2"
+                    />
                   </TableCell>
                   <TableCell>
                     <Badge variant={STATUS_VARIANTS[complaint.status]}>

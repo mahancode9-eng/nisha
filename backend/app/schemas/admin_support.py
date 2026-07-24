@@ -17,6 +17,7 @@ class AdminComplaintListItem(BaseModel):
     reason: str
     message: str
     status: ComplaintStatus
+    last_admin_note: str | None = None
     created_at: datetime
     updated_at: datetime
 

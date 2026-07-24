@@ -41,6 +41,30 @@ def test_cannot_access_other_seller_order(
     assert response.status_code == 404
 
 
+def test_seller_download_invoice(client, public_store, placed_order):
+    response = client.get(
+        f"/api/v1/seller/orders/{placed_order['order_id']}/invoice",
+        headers=public_store["seller_headers"],
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/html")
+    assert placed_order["invoice_code"] in response.text
+    assert "attachment" in response.headers.get("content-disposition", "")
+
+
+def test_seller_cannot_download_other_store_invoice(
+    client,
+    public_store,
+    other_seller_headers,
+    placed_order,
+):
+    response = client.get(
+        f"/api/v1/seller/orders/{placed_order['order_id']}/invoice",
+        headers=other_seller_headers,
+    )
+    assert response.status_code == 404
+
+
 def test_confirm_payment(client, public_store, placed_order):
     response = client.post(
         f"/api/v1/seller/orders/{placed_order['order_id']}/confirm-payment",

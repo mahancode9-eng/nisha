@@ -11,14 +11,14 @@ export default function SellerAppLayout({ children }: { children: React.ReactNod
   const { user, logout } = useAuth();
 
   const navItems = [
-    { href: paths.seller.dashboard, label: "داشبورد", description: "سفارش‌ها، درآمد، و فعالیت‌ها" },
-    { href: paths.seller.analytics, label: "آمار فروش", description: "فروش، بازدید و نرخ تبدیل" },
-    { href: paths.seller.store, label: "فروشگاه", description: "پروفایل و تنظیمات عمومی" },
-    { href: paths.seller.products, label: "محصولات", description: "کاتالوگ و فرم‌های محصول" },
-    { href: paths.seller.orders, label: "سفارش‌ها", description: "ارسال و تغییر وضعیت" },
-    { href: paths.seller.discounts, label: "تخفیف‌ها", description: "کدهای تخفیف فروشگاه" },
-    { href: paths.seller.conversations, label: "گفتگوها", description: "پیام‌های مشتری و مهمان" },
-    { href: paths.seller.paymentMethods, label: "پرداخت‌ها", description: "تنظیمات دریافت و پرداخت" },
+    { href: paths.seller.dashboard, label: "داشبورد" },
+    { href: paths.seller.analytics, label: "آمار فروش" },
+    { href: paths.seller.store, label: "تنظیمات فروشگاه" },
+    { href: paths.seller.products, label: "محصولات" },
+    { href: paths.seller.orders, label: "سفارش‌ها" },
+    { href: paths.seller.discounts, label: "تخفیف‌ها" },
+    { href: paths.seller.conversations, label: "گفتگوها" },
+    { href: paths.seller.paymentMethods, label: "پرداخت‌ها" },
   ];
 
   return (
@@ -28,17 +28,22 @@ export default function SellerAppLayout({ children }: { children: React.ReactNod
         brandLabel="Nisha"
         roleLabel="مرکز فروشنده"
         title="مدیریت فروشگاه"
-        subtitle="محصولات، سفارش‌ها، گفتگوها، و تنظیمات فروشگاه را از یک فضا مدیریت کنید."
         userName={user?.full_name ?? null}
         userMeta={user?.email ?? user?.store_slug ?? null}
         navItems={navItems}
         onLogout={logout}
         topActions={
-          <Link href={paths.home}>
-            <Button variant="secondary" size="sm">
-              مشاهده فروشگاه
-            </Button>
-          </Link>
+          user?.store_slug ? (
+            <Link
+              href={paths.store(user.store_slug)}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button variant="secondary" size="sm">
+                مشاهده فروشگاه
+              </Button>
+            </Link>
+          ) : undefined
         }
       >
         {children}

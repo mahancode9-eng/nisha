@@ -16,6 +16,7 @@ type ChromeNavProps = {
   onNavigate?: () => void;
   className?: string;
   scrollable?: boolean;
+  compact?: boolean;
 };
 
 function isActive(pathname: string, href: string) {
@@ -28,6 +29,7 @@ export function ChromeNav({
   onNavigate,
   className,
   scrollable = false,
+  compact = false,
 }: ChromeNavProps) {
   const pathname = usePathname();
 
@@ -48,7 +50,8 @@ export function ChromeNav({
               href={item.href}
               onClick={onNavigate}
               className={cn(
-                "whitespace-nowrap rounded-full px-4 py-2 text-sm transition-colors",
+                "whitespace-nowrap rounded-full transition-colors",
+                compact ? "px-3 py-1.5 text-xs" : "px-4 py-2 text-sm",
                 active
                   ? "bg-brand text-brand-foreground"
                   : "bg-surface text-foreground-muted hover:bg-surface-muted",

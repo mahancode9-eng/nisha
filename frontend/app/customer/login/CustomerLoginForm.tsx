@@ -53,7 +53,7 @@ export default function CustomerLoginForm() {
         <ThemeSwitcher variant="button" />
       </div>
       <div className="w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-sm">
-        <h1 className="text-2xl font-bold text-foreground">ورود مشتری</h1>
+        <h1 className="text-2xl font-bold text-foreground max-md:text-xl">ورود مشتری</h1>
         <p className="mt-1 text-sm text-foreground-muted">برای ارسال پیام به فروشندگان و حفظ تاریخچه گفتگو وارد شوید</p>
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <Input

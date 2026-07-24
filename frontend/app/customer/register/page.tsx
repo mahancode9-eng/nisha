@@ -73,7 +73,7 @@ export default function CustomerRegisterPage() {
         <ThemeSwitcher variant="button" />
       </div>
       <div className="w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-sm">
-        <h1 className="text-2xl font-bold text-foreground">ایجاد حساب مشتری</h1>
+        <h1 className="text-2xl font-bold text-foreground max-md:text-xl">ایجاد حساب مشتری</h1>
         <p className="mt-1 text-sm text-foreground-muted">
           اختیاری است - پرداخت مهمان همچنان بدون حساب کار می‌کند
         </p>

@@ -25,11 +25,11 @@ from app.schemas.chat import ConversationDetailResponse
 from app.schemas.customer_portal import CustomerComplaintResponse, CustomerProfileResponse
 from app.schemas.guest_order import OrderStatusHistoryResponse, PaymentProofResponse
 from app.schemas.payment_method import PaymentMethodResponse
-from app.schemas.seller_order import SellerOrderItemResponse
 from app.services.admin_audit_service import list_entity_logs, record_admin_action
 from app.services.chat_service import get_admin_conversation_detail
 from app.services.exceptions import ServiceError
 from app.services.order_access_service import append_status_history
+from app.services.order_item_serializers import field_value_response, seller_order_item_response
 from app.services.stock_service import restore_order_stock
 from app.utils import order_transitions
 
@@ -212,16 +212,7 @@ def get_order_by_id(db: Session, order_id: int) -> tuple[Order, Store]:
 
 
 def _field_value_response(field_value: OrderItemFieldValue) -> AdminOrderFieldValueResponse:
-    return AdminOrderFieldValueResponse(
-        field_key=field_value.field_key,
-        field_label=field_value.field_label,
-        field_type=field_value.field_type,
-        sort_order=field_value.sort_order,
-        value_text=field_value.value_text,
-        value_json=_parse_json(field_value.value_json),
-        file_url=field_value.file_url,
-        field_snapshot=_parse_json(field_value.field_snapshot_json),
-    )
+    return field_value_response(field_value)
 
 
 def _item_submission_response(item: OrderItem) -> AdminOrderItemSubmissionResponse:
@@ -265,7 +256,7 @@ def build_admin_order_detail_response(db: Session, order: Order, store: Store) -
         store_slug=store.slug,
         created_at=order.created_at,
         updated_at=order.updated_at,
-        items=[SellerOrderItemResponse.model_validate(item) for item in order.items],
+        items=[seller_order_item_response(item) for item in order.items],
         submissions=[_item_submission_response(item) for item in order.items],
         complaints=[CustomerComplaintResponse.model_validate(complaint) for complaint in order.complaints],
         conversation_id=conversation.id if conversation is not None else None,

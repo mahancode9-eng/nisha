@@ -131,7 +131,7 @@ export function StorePageClient({ slug, initialData, initialError }: StorePageCl
           <div className="space-y-4">
             <Skeleton className="h-10 w-48" />
             <Skeleton className="h-6 w-full max-w-2xl" />
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-2 gap-2 sm:gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {Array.from({ length: 6 }).map((_, i) => (
                 <Skeleton key={i} className="h-72 w-full rounded-2xl" />
               ))}
@@ -183,7 +183,7 @@ export function StorePageClient({ slug, initialData, initialError }: StorePageCl
                 )}
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h1 className="text-2xl font-bold tracking-tight md:text-3xl">{store.name}</h1>
+                    <h1 className="text-2xl font-bold tracking-tight max-md:text-xl md:text-3xl">{store.name}</h1>
                     {verifiedStore && <VerifiedTick />}
                     {categoryLabel && <Badge className="bg-white/10 text-white">{categoryLabel}</Badge>}
                     <Badge className="bg-white/10 text-white">میانگین {ratingText}</Badge>
@@ -220,7 +220,7 @@ export function StorePageClient({ slug, initialData, initialError }: StorePageCl
         </div>
       </section>
 
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid grid-cols-2 gap-2 sm:gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {storeTrustBadges.map((badge) => (
           <Card key={badge} className="border-border">
             <CardContent className="flex items-center gap-3 py-4">

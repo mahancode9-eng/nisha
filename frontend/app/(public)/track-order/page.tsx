@@ -12,7 +12,7 @@ export default function TrackOrderPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">پیگیری سفارش</h1>
+        <h1 className="text-2xl font-bold text-foreground max-md:text-xl">پیگیری سفارش</h1>
         <p className="mt-1 text-foreground-muted">
           کد فاکتور و رمزی را که هنگام ثبت سفارش دریافت کرده‌اید وارد کنید.
         </p>

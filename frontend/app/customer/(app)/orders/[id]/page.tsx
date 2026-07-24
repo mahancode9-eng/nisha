@@ -8,10 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from "@/components/ui/Table";
+import { OrderItemsPanel } from "@/components/orders/OrderItemsPanel";
 import { Textarea } from "@/components/ui/Textarea";
 import { ApiError } from "@/lib/api/errors";
-import { formatDateTime, formatMoney } from "@/lib/format";
+import { formatDateTime } from "@/lib/format";
 import { resolveMediaUrl } from "@/lib/media";
 import { uploadPublicImage } from "@/lib/api/public/uploads";
 import * as conversationsApi from "@/lib/api/customer/conversations";
@@ -22,6 +22,7 @@ import {
   getOrder,
   setReceiptStatus,
 } from "@/lib/api/customer/orders";
+import { downloadOrderInvoice } from "@/lib/orders/downloadInvoice";
 import { useToast } from "@/contexts/ToastContext";
 import type { ConversationDetail } from "@/types/chat";
 import type { CustomerOrderDetail } from "@/types/customer/order";
@@ -137,13 +138,7 @@ export default function CustomerOrderDetailPage({ params }: PageProps) {
   async function handleDownload() {
     if (!order) return;
     try {
-      const blob = await downloadInvoice(order.id);
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `invoice-${order.invoice_code}.html`;
-      a.click();
-      window.URL.revokeObjectURL(url);
+      await downloadOrderInvoice(() => downloadInvoice(order.id), order.invoice_code);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "دانلود ناموفق بود");
     }
@@ -189,27 +184,11 @@ export default function CustomerOrderDetailPage({ params }: PageProps) {
               <CardTitle>اقلام</CardTitle>
             </CardHeader>
             <CardContent>
-              <Table embedded>
-                <TableHead>
-                  <TableRow>
-                    <TableHeaderCell>آیتم</TableHeaderCell>
-                    <TableHeaderCell>تعداد</TableHeaderCell>
-                    <TableHeaderCell>جمع</TableHeaderCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {order.items.map((item, idx) => (
-                    <TableRow key={idx}>
-                      <TableCell>{item.product_title_snapshot}</TableCell>
-                      <TableCell>{item.quantity}</TableCell>
-                      <TableCell>{formatMoney(item.total_price)}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-              <p className="mt-3 text-right font-semibold">
-                مجموع: {formatMoney(order.total_amount)}
-              </p>
+              <OrderItemsPanel
+                items={order.items}
+                totalAmount={order.total_amount}
+                showUnitPrice={false}
+              />
             </CardContent>
           </Card>
 

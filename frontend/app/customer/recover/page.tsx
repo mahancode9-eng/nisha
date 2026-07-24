@@ -68,7 +68,7 @@ export default function CustomerRecoverPage() {
       </div>
       <div className="w-full max-w-xl space-y-6">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-foreground">بازیابی رمز عبور</h1>
+          <h1 className="text-2xl font-bold text-foreground max-md:text-xl">بازیابی رمز عبور</h1>
           <p className="mt-1 text-sm text-foreground-muted">
             کد را با ایمیل یا پیامک دریافت کنید و سپس رمز جدید تعیین کنید.
           </p>

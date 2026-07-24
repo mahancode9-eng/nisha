@@ -56,16 +56,16 @@ export function ProductCard({ product, storeSlug }: ProductCardProps) {
           </div>
         )}
       </Link>
-      <CardContent className="flex flex-1 flex-col gap-3 py-4">
+      <CardContent className="flex flex-1 flex-col gap-3 py-4 max-md:gap-2 max-md:py-3">
         <div className="flex-1">
           <Link href={href}>
-            <h3 className="font-semibold text-foreground hover:text-brand">{product.title}</h3>
+            <h3 className="font-semibold text-foreground hover:text-brand max-md:text-sm">{product.title}</h3>
           </Link>
           {product.description && (
             <p className="mt-1 line-clamp-2 text-sm text-foreground-muted">{product.description}</p>
           )}
           {product.images.length > 1 && (
-            <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+            <div className="mt-3 flex gap-2 overflow-x-auto pb-1 max-md:mt-2 max-md:gap-1.5">
               {product.images.slice(0, 4).map((thumb, index) => (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -79,10 +79,10 @@ export function ProductCard({ product, storeSlug }: ProductCardProps) {
           )}
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-lg font-semibold text-foreground">
+          <span className="text-lg font-semibold text-foreground max-md:text-sm">
             {formatMoney(product.price)}
           </span>
-          <span className="text-sm text-foreground-muted">{product.stock_quantity} موجود</span>
+          <span className="text-sm text-foreground-muted max-md:text-xs">{product.stock_quantity} موجود</span>
         </div>
         {hasVariants ? (
           <Link href={href} className="w-full">
@@ -91,7 +91,7 @@ export function ProductCard({ product, storeSlug }: ProductCardProps) {
             </Button>
           </Link>
         ) : (
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <div className="flex flex-col gap-2 max-md:gap-1.5 sm:flex-row sm:items-center">
             <label className="sr-only" htmlFor={`qty-${product.id}`}>
               تعداد
             </label>

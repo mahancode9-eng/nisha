@@ -76,3 +76,16 @@ def list_entity_logs(db: Session, *, entity_type: str, entity_id: int) -> list[A
         ).all()
     )
     return [to_response(log) for log in logs]
+
+
+def get_latest_note(db: Session, *, entity_type: str, entity_id: int) -> str | None:
+    log = db.scalar(
+        select(AdminActionLog)
+        .where(
+            AdminActionLog.entity_type == entity_type,
+            AdminActionLog.entity_id == entity_id,
+        )
+        .order_by(AdminActionLog.created_at.desc())
+        .limit(1)
+    )
+    return log.note if log and log.note else None

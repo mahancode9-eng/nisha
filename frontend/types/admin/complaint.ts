@@ -11,6 +11,7 @@ export type AdminComplaint = {
   reason: string;
   message: string;
   status: ComplaintStatus;
+  last_admin_note?: string | null;
   created_at: string;
   updated_at: string;
 };

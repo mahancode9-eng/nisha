@@ -67,47 +67,46 @@ type StepMeta = {
 const STEP_ORDER: StepMeta[] = [
   {
     key: "welcome",
-    title: "خوش‌آمدید",
-    description: "در چند دقیقه فروشگاه را می‌سازیم و برای فروش آماده می‌کنیم.",
-    helper: "ابتدا با قابلیت‌های پلتفرم آشنا می‌شوید، سپس فروشگاه را قدم‌به‌قدم می‌سازید.",
-  },
-  {
-    key: "education",
-    title: "آشنایی با پلتفرم",
-    description: "قبل از ساخت فروشگاه، ابزارهای اصلی را بشناسید.",
-    helper: "این مرحله کمک می‌کند بدانید بعد از راه‌اندازی چه کارهایی می‌توانید انجام دهید.",
+    title: "خوش آمدید",
+    description: "چند دقیقه وقت بگذارید؛ فروشگاهتان را راه می‌اندازیم.",
+    helper: "",
   },
   {
     key: "store_identity",
-    title: "هویت فروشگاه",
-    description: "نام و ظاهر فروشگاه را تنظیم کنید.",
-    helper: "لوگو و تصویر جلد اعتماد مشتری را بیشتر می‌کنند.",
+    title: "نام و ظاهر فروشگاه",
+    description: "",
+    helper: "",
   },
   {
     key: "store_information",
-    title: "اطلاعات فروشگاه",
-    description: "توضیحات و دسته‌بندی فروشگاه را تکمیل کنید.",
-    helper: "اطلاعات کامل‌تر، اعتماد مشتری را سریع‌تر می‌سازد.",
+    title: "درباره فروشگاه",
+    description: "",
+    helper: "",
   },
   {
     key: "contact_channels",
-    title: "راه‌های ارتباطی",
-    description: "کانال‌های ارتباطی فروشگاه را اضافه کنید.",
-    helper: "اختیاری است؛ می‌توانید بعداً از داشبورد تکمیل کنید.",
+    title: "راه ارتباطی",
+    description: "اختیاری — بعداً هم می‌توانید اضافه کنید.",
+    helper: "",
   },
   {
     key: "first_product",
     title: "اولین محصول",
-    description: "اولین محصول فروشگاه را منتشر کنید.",
-    helper: "بدون محصول، مشتری نمی‌تواند خرید کند.",
+    description: "",
+    helper: "",
   },
   {
     key: "activation",
-    title: "فعال‌سازی",
-    description: "فروشگاه آماده است. مسیرهای بعدی را ببینید.",
-    helper: "از داشبورد می‌توانید سفارش‌ها، گفتگوها و تنظیمات را مدیریت کنید.",
+    title: "تمام شد",
+    description: "فروشگاه آماده است.",
+    helper: "",
   },
 ];
+
+function normalizeStepKey(step: SellerOnboardingStepKey): SellerOnboardingStepKey {
+  if (step === "education") return "store_identity";
+  return step;
+}
 
 function blankContactLink(): EditableContactLink {
   return {
@@ -164,7 +163,8 @@ function buildDrafts(data: SellerOnboardingResponse): DraftState {
 }
 
 function stepIndex(step: SellerOnboardingStepKey): number {
-  return STEP_ORDER.findIndex((item) => item.key === step);
+  const normalized = normalizeStepKey(step);
+  return STEP_ORDER.findIndex((item) => item.key === normalized);
 }
 
 function isValidMoney(value: string): boolean {
@@ -214,18 +214,9 @@ function StepBadge({ active, done, label }: { active?: boolean; done?: boolean; 
   );
 }
 
-function FeatureCard({ title, description }: { title: string; description: string }) {
-  return (
-    <div className="rounded-2xl border border-border bg-surface/80 p-4 shadow-sm">
-      <p className="text-sm font-semibold text-foreground">{title}</p>
-      <p className="mt-1 text-sm leading-6 text-foreground-muted">{description}</p>
-    </div>
-  );
-}
-
 function ProgressBar({ current, total }: { current: number; total: number }) {
   return (
-    <div className="grid gap-2 sm:grid-cols-7">
+    <div className="grid gap-2 sm:grid-cols-6">
       {Array.from({ length: total }).map((_, index) => {
         const active = index <= current;
         return (
@@ -248,7 +239,9 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
   const router = useRouter();
   const toast = useToast();
   const [serverState, setServerState] = useState(data.state);
-  const [activeStepKey, setActiveStepKey] = useState<SellerOnboardingStepKey>(data.state.current_step);
+  const [activeStepKey, setActiveStepKey] = useState<SellerOnboardingStepKey>(
+    normalizeStepKey(data.state.current_step),
+  );
   const [drafts, setDrafts] = useState<DraftState>(() => buildDrafts(data));
   const [draftVersion, setDraftVersion] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -276,13 +269,13 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
   useEffect(() => {
     setServerState(data.state);
     setDrafts(buildDrafts(data));
-    setActiveStepKey(data.state.current_step);
+    setActiveStepKey(normalizeStepKey(data.state.current_step));
   }, [data]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
       if (draftVersion === 0 || loading) return;
-      if (activeStep.key === "welcome" || activeStep.key === "education" || activeStep.key === "activation") return;
+      if (activeStep.key === "welcome" || activeStep.key === "activation") return;
       void (async () => {
         try {
           setSavingNote("در حال ذخیره...");
@@ -433,15 +426,16 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
 
   async function continueWelcome() {
     await saveOnboardingProgress({
-      current_step: "education",
-      completed_steps: [...completedSteps, "welcome"],
+      current_step: "store_identity",
+      completed_steps: [...completedSteps, "welcome", "education"],
       status: "IN_PROGRESS",
     });
   }
 
   async function skipWelcome() {
     await saveOnboardingProgress({
-      current_step: "education",
+      current_step: "store_identity",
+      completed_steps: [...completedSteps, "welcome", "education"],
       status: "SKIPPED",
     });
     router.replace(paths.seller.dashboard);
@@ -628,14 +622,6 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
     }
   }
 
-  async function continueEducation() {
-    await saveOnboardingProgress({
-      current_step: "store_identity",
-      completed_steps: [...completedSteps, "education"],
-      status: "IN_PROGRESS",
-    });
-  }
-
   async function finishActivation() {
     setLoading(true);
     setError(null);
@@ -697,21 +683,8 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
   function renderPreview() {
     switch (activeStep.key) {
       case "welcome":
-        return (
-          <Card className="overflow-hidden border-white/10 bg-white/5 text-white shadow-[0_20px_80px_rgba(0,0,0,0.25)]">
-            <div className="bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.18),_transparent_60%)] px-5 py-6">
-              <p className="text-xs tracking-[0.24em] text-white/70">راه‌اندازی فروشگاه</p>
-              <h3 className="mt-3 text-2xl font-semibold">در چند دقیقه فروشگاه‌تان را راه بیندازید</h3>
-              <p className="mt-3 text-sm leading-6 text-white/75">
-                این مسیر شما را قدم‌به‌قدم به اولین محصول و اولین فروش نزدیک می‌کند.
-              </p>
-              <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                <FeatureCard title="اعتماد" description="لوگو، توضیحات و دسته‌بندی کامل‌تر باعث اعتماد بیشتر می‌شود." />
-                <FeatureCard title="فعال‌سازی" description="اولین محصول و کانال ارتباطی، مسیر رسیدن به فروش را کوتاه می‌کند." />
-              </div>
-            </div>
-          </Card>
-        );
+      case "activation":
+        return null;
       case "store_identity":
         return (
           <Card className="overflow-hidden border-border bg-surface shadow-sm">
@@ -831,31 +804,6 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
             </CardContent>
           </Card>
         );
-      case "education":
-        return (
-          <div className="grid gap-3 sm:grid-cols-2">
-            <FeatureCard title="مدیریت سفارش" description="سفارش‌ها را از داشبورد پیگیری و وضعیت آن‌ها را به‌روز کنید." />
-            <FeatureCard title="گفتگو با مشتری" description="از بخش گفتگوها مستقیماً با خریداران در ارتباط باشید." />
-            <FeatureCard title="روش‌های پرداخت" description="حساب‌های دریافت وجه را در تنظیمات پرداخت اضافه کنید." />
-            <FeatureCard title="داشبورد فروش" description="درآمد، سفارش‌های اخیر و وضعیت فروشگاه را یک‌جا ببینید." />
-          </div>
-        );
-      case "activation":
-        return (
-          <Card className="border-border bg-surface shadow-sm">
-            <CardContent className="space-y-4 py-6">
-              <p className="text-xs tracking-[0.2em] text-foreground-muted">فروشگاه آماده است</p>
-              <div className="space-y-2">
-                {currentChecklist.map((item) => (
-                  <div key={item.label} className="flex items-center gap-3 rounded-2xl border border-border px-3 py-3">
-                    <span className={cn("h-3 w-3 rounded-full", item.done ? "bg-emerald-500" : "bg-border")} />
-                    <span className="text-sm text-foreground">{item.label}</span>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        );
       default:
         return null;
     }
@@ -866,27 +814,19 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
       case "welcome":
         return (
           <Card className="border-0 bg-white/5 shadow-none ring-1 ring-white/10 backdrop-blur">
-            <CardContent className="space-y-6 py-8 text-white">
-              <div className="space-y-3">
-                <p className="text-xs tracking-[0.26em] text-white/60">راه‌اندازی فروشنده</p>
-                <h1 className="max-w-xl text-4xl font-semibold leading-tight sm:text-5xl">
-                  در چند دقیقه فروشگاه خود را برای فروش آماده کنید
-                </h1>
-                <p className="max-w-2xl text-base leading-7 text-white/75">
-                  این مسیر قدم‌به‌قدم به شما کمک می‌کند فروشگاه را بسازید، اولین محصول را منتشر کنید و سریع‌تر به فروش برسید.
-                </p>
-              </div>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                <FeatureCard title="آشنایی با پلتفرم" description="ابتدا با ابزارهای اصلی آشنا می‌شوید." />
-                <FeatureCard title="ساخت فروشگاه" description="نام، ظاهر و اطلاعات فروشگاه را تنظیم کنید." />
-                <FeatureCard title="اولین محصول" description="محصول را منتشر کنید تا مشتری بتواند خرید کند." />
+            <CardContent className="space-y-5 py-8 text-white">
+              <div className="space-y-2">
+                <h1 className="text-2xl font-semibold sm:text-3xl">{activeStep.title}</h1>
+                {activeStep.description && (
+                  <p className="max-w-xl text-sm leading-6 text-white/75">{activeStep.description}</p>
+                )}
               </div>
               <div className="flex flex-wrap gap-3">
                 <Button type="button" onClick={() => void continueWelcome()}>
-                  شروع راه‌اندازی
+                  شروع
                 </Button>
                 <Button type="button" variant="secondary" onClick={() => void skipWelcome()}>
-                  بعداً از داشبورد
+                  بعداً
                 </Button>
               </div>
             </CardContent>
@@ -897,9 +837,7 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
           <Card className="border-border bg-surface shadow-sm">
             <CardContent className="space-y-6 py-6">
               <div>
-                <p className="text-xs tracking-[0.2em] text-foreground-muted">{activeStep.title}</p>
-                <h2 className="mt-2 text-2xl font-semibold text-foreground">هویت فروشگاه را مشخص کنید</h2>
-                <p className="mt-2 text-sm leading-6 text-foreground-muted">{activeStep.helper}</p>
+                <h2 className="text-xl font-semibold text-foreground">{activeStep.title}</h2>
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <Input
@@ -911,7 +849,6 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
                       storeIdentity: { ...current.storeIdentity, name: e.target.value },
                     }))
                   }
-                  hint="فروشگاه‌های با نام روشن، راحت‌تر در ذهن می‌مانند."
                 />
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-foreground">لوگو</label>
@@ -1357,56 +1294,23 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
             </CardContent>
           </Card>
         );
-      case "education":
-        return (
-          <Card className="border-border bg-surface shadow-sm">
-            <CardContent className="space-y-6 py-6">
-              <div>
-                <p className="text-xs tracking-[0.2em] text-foreground-muted">{activeStep.title}</p>
-                <h2 className="mt-2 text-2xl font-semibold text-foreground">ابزارهای اصلی پنل فروشنده</h2>
-                <p className="mt-2 text-sm leading-6 text-foreground-muted">{activeStep.helper}</p>
-              </div>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <FeatureCard title="مدیریت سفارش" description="سفارش‌ها را از داشبورد پیگیری و وضعیت آن‌ها را به‌روز کنید." />
-                <FeatureCard title="گفتگو با مشتری" description="از بخش گفتگوها مستقیماً با خریداران در ارتباط باشید." />
-                <FeatureCard title="روش‌های پرداخت" description="حساب‌های دریافت وجه را در تنظیمات پرداخت اضافه کنید." />
-                <FeatureCard title="داشبورد فروش" description="درآمد، سفارش‌های اخیر و وضعیت فروشگاه را یک‌جا ببینید." />
-              </div>
-              <div className="flex flex-wrap gap-3">
-                <Button type="button" variant="secondary" onClick={() => void moveStep(-1)}>
-                  بازگشت
-                </Button>
-                <Button type="button" onClick={() => void continueEducation()}>
-                  ادامه
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        );
       case "activation":
         return (
           <Card className="border-border bg-surface shadow-sm">
-            <CardContent className="space-y-6 py-6">
+            <CardContent className="space-y-5 py-6">
               <div>
-                <p className="text-xs tracking-[0.2em] text-foreground-muted">{activeStep.title}</p>
-                <h2 className="mt-2 text-2xl font-semibold text-foreground">فروشگاه شما آماده است</h2>
-                <p className="mt-2 text-sm leading-6 text-foreground-muted">{activeStep.helper}</p>
+                <h2 className="text-xl font-semibold text-foreground">{activeStep.title}</h2>
+                {activeStep.description && (
+                  <p className="mt-1 text-sm text-foreground-muted">{activeStep.description}</p>
+                )}
               </div>
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {currentChecklist.map((item) => (
-                  <div key={item.label} className="flex items-center gap-3 rounded-2xl border border-border px-4 py-3">
-                    <span className={cn("h-3 w-3 rounded-full", item.done ? "bg-emerald-500" : "bg-border")} />
+                  <div key={item.label} className="flex items-center gap-3 rounded-xl border border-border px-3 py-2.5">
+                    <span className={cn("h-2.5 w-2.5 rounded-full", item.done ? "bg-emerald-500" : "bg-border")} />
                     <span className="text-sm text-foreground">{item.label}</span>
                   </div>
                 ))}
-              </div>
-              <div className="rounded-3xl border border-border bg-surface-muted/40 p-4">
-                <p className="text-sm font-semibold text-foreground">قدم‌های بعدی پیشنهاد‌شده</p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <StepBadge active label="محصولات بیشتری اضافه کنید" />
-                  <StepBadge active label="پروفایل را کامل‌تر کنید" />
-                  <StepBadge active label="فروشگاه را به اشتراک بگذارید" />
-                </div>
               </div>
               <div className="flex flex-wrap gap-3">
                 <Button type="button" variant="secondary" onClick={() => void moveStep(-1)}>
@@ -1449,11 +1353,11 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
       <div className="relative mx-auto flex min-h-[calc(100vh-3rem)] max-w-7xl flex-col gap-6">
         <div className="rounded-[2rem] border border-white/10 bg-white/6 p-5 backdrop-blur-xl">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-            <div className="space-y-3 text-white">
-              <p className="text-xs tracking-[0.26em] text-white/60">راه‌اندازی فروشگاه</p>
-              <h1 className="text-2xl font-semibold sm:text-3xl">{activeStep.title}</h1>
-              <p className="max-w-2xl text-sm leading-6 text-white/75">{activeStep.description}</p>
-              <p className="text-sm text-white/60">{activeStep.helper}</p>
+            <div className="space-y-2 text-white">
+              <h1 className="text-xl font-semibold sm:text-2xl">{activeStep.title}</h1>
+              {activeStep.description ? (
+                <p className="max-w-xl text-sm text-white/75">{activeStep.description}</p>
+              ) : null}
             </div>
             <div className="min-w-[220px] space-y-3 rounded-3xl border border-white/10 bg-black/20 p-4">
               <div className="flex items-center justify-between text-sm text-white/70">

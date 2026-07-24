@@ -7,6 +7,7 @@ export type AdminStoreListItem = {
   slug: string;
   owner_email: string;
   is_active: boolean;
+  guest_checkout_enabled: boolean;
   product_count: number;
   order_count: number;
   created_at: string;

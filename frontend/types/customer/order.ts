@@ -39,10 +39,13 @@ export type CustomerOrderDetail = {
   items: {
     id: number | null;
     product_id: number | null;
+    variant_id?: number | null;
+    variant_name_snapshot?: string | null;
     product_title_snapshot: string;
     unit_price_snapshot: string;
     quantity: number;
     total_price: string;
+    field_values?: import("@/types/order-item").OrderItemFieldValue[];
   }[];
   payment_method: PublicPaymentMethod;
   payment_proofs: PublicPaymentProof[];

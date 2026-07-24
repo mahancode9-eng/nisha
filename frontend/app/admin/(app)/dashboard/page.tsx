@@ -26,7 +26,7 @@ export default function AdminDashboardPage() {
   const { data, error, isLoading } = useSellerFetch(() => dashboardApi.getDashboard(), []);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <PageHeader description="آمار سراسری پلتفرم و فعالیت‌های اخیر" />
 
       {isLoading && (
@@ -40,7 +40,7 @@ export default function AdminDashboardPage() {
 
       {!isLoading && data && (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+          <div className="grid grid-cols-2 gap-2 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
             <StatCard label="کل فروشگاه‌ها" value={data.total_stores} />
             <StatCard label="فروشگاه‌های فعال" value={data.active_stores} />
             <StatCard label="فروشگاه‌های غیرفعال" value={data.inactive_stores} />
@@ -49,7 +49,7 @@ export default function AdminDashboardPage() {
             <StatCard label="کل سفارش‌ها" value={data.total_orders} />
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-2 gap-2 sm:gap-4 sm:grid-cols-2">
             <StatCard label="درآمد تاییدشده" value={formatMoney(data.confirmed_revenue)} />
             <StatCard label="درآمد در انتظار" value={formatMoney(data.pending_revenue)} />
           </div>

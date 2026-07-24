@@ -131,7 +131,7 @@ export default function SellerDiscountsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">کدهای تخفیف</h1>
+        <h1 className="text-2xl font-bold text-foreground max-md:text-xl">کدهای تخفیف</h1>
         <p className="mt-1 text-foreground-muted">
           کد تخفیف درصدی یا مبلغی بسازید و برای مشتریان خود بفرستید. مشتری هنگام پرداخت کد را وارد می‌کند.
         </p>

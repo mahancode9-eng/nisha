@@ -18,7 +18,7 @@ from app.schemas.pagination import (
     build_paginated_response,
     paginate_query,
 )
-from app.services.admin_audit_service import record_admin_action
+from app.services.admin_audit_service import get_latest_note, record_admin_action
 
 router = APIRouter(prefix="/complaints", tags=["admin-complaints"])
 
@@ -27,6 +27,8 @@ def _to_list_item(
     complaint: OrderComplaint,
     order: Order,
     store: Store,
+    *,
+    last_admin_note: str | None = None,
 ) -> AdminComplaintListItem:
     return AdminComplaintListItem(
         id=complaint.id,
@@ -39,6 +41,7 @@ def _to_list_item(
         reason=complaint.reason,
         message=complaint.message,
         status=complaint.status,
+        last_admin_note=last_admin_note,
         created_at=complaint.created_at,
         updated_at=complaint.updated_at,
     )
@@ -69,7 +72,15 @@ def list_complaints(
     rows = db.execute(
         stmt.order_by(OrderComplaint.created_at.desc()).offset(offset).limit(limit)
     ).all()
-    items = [_to_list_item(complaint, order, store) for complaint, order, store in rows]
+    items = [
+        _to_list_item(
+            complaint,
+            order,
+            store,
+            last_admin_note=get_latest_note(db, entity_type="complaint", entity_id=complaint.id),
+        )
+        for complaint, order, store in rows
+    ]
     return build_paginated_response(items, total, page, page_size)
 
 
@@ -107,4 +118,9 @@ def update_complaint(
     )
     db.commit()
     db.refresh(complaint)
-    return _to_list_item(complaint, order, store)
+    return _to_list_item(
+        complaint,
+        order,
+        store,
+        last_admin_note=payload.note or get_latest_note(db, entity_type="complaint", entity_id=complaint.id),
+    )

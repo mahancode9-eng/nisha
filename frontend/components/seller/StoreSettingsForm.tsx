@@ -86,6 +86,7 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
       : [],
   );
   const [isActive, setIsActive] = useState(store.is_active);
+  const [guestCheckoutEnabled, setGuestCheckoutEnabled] = useState(store.guest_checkout_enabled);
   const [logoPreview, setLogoPreview] = useState<string | null>(store.logo_url ? resolveMediaUrl(store.logo_url) : null);
   const [coverPreview, setCoverPreview] = useState<string | null>(
     store.cover_image_url ? resolveMediaUrl(store.cover_image_url) : null,
@@ -125,6 +126,7 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
       }),
     );
     setIsActive(store.is_active);
+    setGuestCheckoutEnabled(store.guest_checkout_enabled);
     setLogoPreview(store.logo_url ? resolveMediaUrl(store.logo_url) : null);
     setCoverPreview(store.cover_image_url ? resolveMediaUrl(store.cover_image_url) : null);
   }, [store]);
@@ -230,6 +232,7 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
           is_active: link.is_active,
         })),
         is_active: isActive,
+        guest_checkout_enabled: guestCheckoutEnabled,
       });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "ذخیره تنظیمات فروشگاه ممکن نشد");
@@ -444,6 +447,18 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
 
           <FormSection title="نمایش" description="می‌توانید تا زمان آماده‌سازی، فروشگاه را منتشر یا مخفی کنید.">
             <div className="space-y-4">
+              <label className="flex items-center gap-2 text-sm text-foreground">
+                <input
+                  type="checkbox"
+                  checked={guestCheckoutEnabled}
+                  onChange={(e) => setGuestCheckoutEnabled(e.target.checked)}
+                  className="rounded border-border"
+                />
+                اجازه خرید مهمان (بدون ورود)
+              </label>
+              <p className="text-xs text-foreground-muted">
+                اگر غیرفعال باشد، مشتریان برای ثبت سفارش باید وارد حساب کاربری شوند.
+              </p>
               <label className="flex items-center gap-2 text-sm text-foreground">
                 <input
                   type="checkbox"

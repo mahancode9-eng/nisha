@@ -1,14 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
+import { LoadingState } from "@/components/ui/LoadingState";
 import { verifyEmail, type VerifyEmailKind } from "@/lib/api/verify-email";
 import { paths } from "@/lib/auth/paths";
 import { ApiError } from "@/lib/api/errors";
 
-export default function VerifyEmailPage() {
+function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token") ?? "";
   const kind = (searchParams.get("kind") ?? "customer") as VerifyEmailKind;
@@ -43,7 +44,7 @@ export default function VerifyEmailPage() {
         {status === "loading" && <p className="text-foreground-muted">در حال تأیید ایمیل...</p>}
         {status !== "loading" && (
           <>
-            <h1 className="text-2xl font-bold text-foreground">
+            <h1 className="text-2xl font-bold text-foreground max-md:text-xl">
               {status === "success" ? "تأیید شد" : "خطا"}
             </h1>
             <p className="mt-3 text-sm text-foreground-muted">{message}</p>
@@ -57,5 +58,13 @@ export default function VerifyEmailPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={<LoadingState message="در حال بارگذاری…" />}>
+      <VerifyEmailContent />
+    </Suspense>
   );
 }

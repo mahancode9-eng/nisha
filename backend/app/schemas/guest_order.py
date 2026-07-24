@@ -4,6 +4,7 @@ from decimal import Decimal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.models.enums import OrderStatus, PaymentMethodType
+from app.schemas.order_item import OrderItemFieldValueResponse
 from app.schemas.public import PublicPaymentMethod, PublicStoreProfile
 
 
@@ -50,6 +51,7 @@ class OrderTrackItemResponse(BaseModel):
     quantity: int
     unit_price: Decimal
     total_price: Decimal
+    field_values: list[OrderItemFieldValueResponse] = Field(default_factory=list)
 
 
 class OrderStatusHistoryResponse(BaseModel):

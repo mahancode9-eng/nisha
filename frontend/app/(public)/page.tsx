@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { HowItWorks } from "@/components/landing/HowItWorks";
-import { LandingMockup } from "@/components/landing/LandingMockup";
+import { LandingStorePreview } from "@/components/landing/LandingStorePreview";
 import { Reveal } from "@/components/landing/Reveal";
 import { RotatingWords } from "@/components/landing/RotatingWords";
 import { SellerPrimaryCta } from "@/components/landing/SellerPrimaryCta";
@@ -125,7 +125,7 @@ export default function HomePage() {
         </div>
 
         <Reveal direction="left" delay={200} className="lg:pt-4">
-          <LandingMockup />
+          <LandingStorePreview />
         </Reveal>
       </section>
 

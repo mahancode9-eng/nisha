@@ -9,8 +9,8 @@ type FormSectionProps = {
 
 export function FormSection({ title, description, action, children }: FormSectionProps) {
   return (
-    <section className="rounded-3xl border border-border bg-surface p-5 shadow-sm sm:p-6">
-      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+    <section className="rounded-3xl border border-border bg-surface p-4 shadow-sm max-md:p-4 sm:p-6">
+      <div className="mb-3 flex flex-col gap-3 max-md:mb-3 sm:mb-5 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-xs tracking-[0.2em] text-foreground-muted">{title}</p>
           {description && <p className="mt-1 text-sm text-foreground-muted">{description}</p>}

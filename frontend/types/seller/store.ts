@@ -17,6 +17,7 @@ export type Store = {
   website: string | null;
   support_contact: string | null;
   is_active: boolean;
+  guest_checkout_enabled: boolean;
   social_links: StoreSocialLink[];
   created_at: string;
   updated_at: string;
@@ -59,5 +60,6 @@ export type StoreUpdate = {
   website?: string | null;
   support_contact?: string | null;
   is_active?: boolean;
+  guest_checkout_enabled?: boolean;
   social_links?: StoreSocialLinkInput[];
 };

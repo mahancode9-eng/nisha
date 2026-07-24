@@ -1,4 +1,4 @@
-import { apiGet, apiPatch, apiPost } from "@/lib/api/client";
+import { apiDownload, apiGet, apiPatch, apiPost } from "@/lib/api/client";
 import type { PaginatedResponse } from "@/types/api/pagination";
 import type {
   ListOrdersParams,
@@ -45,4 +45,8 @@ export function patchOrderStatus(
   body: { status: OrderStatusPatch; note?: string | null },
 ): Promise<SellerOrderActionResponse> {
   return apiPatch<SellerOrderActionResponse>(`/api/v1/seller/orders/${id}/status`, body);
+}
+
+export function downloadInvoice(orderId: number): Promise<Blob> {
+  return apiDownload(`/api/v1/seller/orders/${orderId}/invoice`);
 }

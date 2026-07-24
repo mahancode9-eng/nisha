@@ -278,7 +278,7 @@ export function ProductPageClient({ slug, productId }: ProductPageClientProps) {
               </div>
               <div>
                 <p className="text-sm text-foreground-muted">{store.name}</p>
-                <h1 className="mt-1 text-2xl font-bold text-foreground sm:text-3xl">{product.title}</h1>
+                <h1 className="mt-1 text-2xl font-bold text-foreground max-md:text-xl sm:text-3xl">{product.title}</h1>
                 <p className="mt-2 text-xl font-semibold text-foreground sm:text-2xl">{formatMoney(effectivePrice)}</p>
               </div>
               {product.description && <p className="text-sm leading-6 text-foreground-muted">{product.description}</p>}

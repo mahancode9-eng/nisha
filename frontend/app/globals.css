@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+  .page-stack {
+    @apply flex flex-col gap-4 md:gap-6;
+  }
+}
+
 @layer utilities {
   @keyframes float-slow {
     0%,

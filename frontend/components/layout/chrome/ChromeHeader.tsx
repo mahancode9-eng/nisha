@@ -43,14 +43,16 @@ export function ChromeHeader({
     >
       <div
         className={cn(
-          "mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:py-4",
+          "mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 max-md:py-2 sm:px-6 lg:py-4",
           innerClassName,
         )}
       >
         <div className="min-w-0 flex-1">
           {brand ?? (showBrandMark ? <BrandMark showTagline={showBrandTagline} /> : null)}
           {title && (
-            <h1 className="truncate text-base font-semibold text-foreground lg:text-lg">{title}</h1>
+            <h1 className="truncate text-base font-semibold text-foreground max-md:text-sm lg:text-lg">
+              {title}
+            </h1>
           )}
           {subtitle && <p className="hidden text-sm text-foreground-muted sm:block">{subtitle}</p>}
         </div>

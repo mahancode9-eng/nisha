@@ -1,5 +1,6 @@
 import { getApiUrl } from "@/lib/env";
 import { getToken } from "@/lib/auth/token";
+import { getCustomerToken } from "@/lib/auth/customer-token";
 import { ApiError } from "@/lib/api/errors";
 
 export type ApiRequestOptions = RequestInit & {
@@ -20,7 +21,7 @@ export async function apiRequest<T>(
   }
 
   if (auth) {
-    const token = getToken();
+    const token = getToken() ?? getCustomerToken();
     if (token) {
       headers.set("Authorization", `Bearer ${token}`);
     }
@@ -88,4 +89,23 @@ export function apiPatch<T>(
 
 export function apiDelete<T>(path: string, options?: ApiRequestOptions): Promise<T> {
   return apiRequest<T>(path, { ...options, method: "DELETE" });
+}
+
+export async function apiDownload(path: string, options?: ApiRequestOptions): Promise<Blob> {
+  const headers = new Headers(options?.headers);
+  if (options?.auth !== false) {
+    const token = getToken();
+    if (token) {
+      headers.set("Authorization", `Bearer ${token}`);
+    }
+  }
+  const res = await fetch(`${getApiUrl()}${path}`, {
+    ...options,
+    method: "GET",
+    headers,
+  });
+  if (!res.ok) {
+    throw await ApiError.fromResponse(res);
+  }
+  return res.blob();
 }

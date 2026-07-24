@@ -71,6 +71,19 @@ export default function AdminStoreDetailPage({ params }: PageProps) {
     }
   }
 
+  async function toggleGuestCheckout(enabled: boolean) {
+    setActionBusy(true);
+    try {
+      await storesApi.setStoreGuestCheckout(storeId, enabled);
+      toast.success(enabled ? "خرید مهمان برای فروشگاه فعال شد" : "خرید مهمان برای فروشگاه غیرفعال شد");
+      await refetch();
+    } catch {
+      toast.error("به‌روزرسانی خرید مهمان ناموفق بود");
+    } finally {
+      setActionBusy(false);
+    }
+  }
+
   if (isLoading) return <LoadingState message="در حال بارگذاری فروشگاه..." />;
 
   if (error || !data) {
@@ -114,6 +127,13 @@ export default function AdminStoreDetailPage({ params }: PageProps) {
                 loading={actionBusy}
               >
                 {store.is_active ? "تعلیق فروشگاه" : "تایید فروشگاه"}
+              </Button>
+              <Button
+                variant={store.guest_checkout_enabled ? "secondary" : "primary"}
+                onClick={() => toggleGuestCheckout(!store.guest_checkout_enabled)}
+                loading={actionBusy}
+              >
+                {store.guest_checkout_enabled ? "غیرفعال کردن خرید مهمان" : "فعال کردن خرید مهمان"}
               </Button>
               <Link
                 href={paths.admin.storeBadges(store.id)}

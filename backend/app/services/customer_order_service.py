@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from html import escape
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
@@ -9,13 +8,12 @@ from sqlalchemy.orm import Session, selectinload
 from app.models.customer_account import CustomerAccount
 from app.models.customer_portal import CustomerOrderReceipt, CustomerReview, OrderClaim, OrderComplaint
 from app.models.enums import ComplaintStatus, CustomerReceiptStatus, OrderStatus
-from app.models.order import Order
+from app.models.order import Order, OrderItem
 from app.schemas.customer_portal import (
     CustomerAddressResponse,
     CustomerComplaintCreateRequest,
     CustomerComplaintResponse,
     CustomerDashboardSummary,
-    CustomerInvoiceDownloadResponse,
     CustomerOrderActionResponse,
     CustomerOrderClaimRequest,
     CustomerOrderDetailResponse,
@@ -26,6 +24,7 @@ from app.schemas.customer_portal import (
     CustomerReviewCreateRequest,
     CustomerReviewResponse,
 )
+from app.services.order_item_serializers import customer_order_item_response
 from app.schemas.guest_order import OrderStatusHistoryResponse, PaymentProofResponse
 from app.schemas.payment_method import PaymentMethodResponse
 from app.schemas.public import PublicStoreProfile
@@ -46,7 +45,7 @@ def get_owned_order(db: Session, customer_id: int, order_id: int) -> Order:
     order = db.scalar(
         select(Order)
         .options(
-            selectinload(Order.items),
+            selectinload(Order.items).selectinload(OrderItem.field_values),
             selectinload(Order.payment_method),
             selectinload(Order.payment_proofs),
             selectinload(Order.status_history),
@@ -72,15 +71,8 @@ def _complaint_count(order: Order) -> int:
     return len(order.complaints)
 
 
-def _build_order_item(item) -> CustomerOrderItemResponse:
-    return CustomerOrderItemResponse(
-        id=getattr(item, "id", None),
-        product_id=item.product_id,
-        product_title_snapshot=item.product_title_snapshot,
-        unit_price_snapshot=item.unit_price_snapshot,
-        quantity=item.quantity,
-        total_price=item.total_price,
-    )
+def _build_order_item(item: OrderItem) -> CustomerOrderItemResponse:
+    return customer_order_item_response(item)
 
 
 def _build_detail(order: Order) -> CustomerOrderDetailResponse:
@@ -279,47 +271,6 @@ def create_review(
         order=order,
         customer_id=customer_id,
         payload=payload,
-    )
-
-
-def build_invoice_download(order: Order) -> CustomerInvoiceDownloadResponse:
-    rows = "\n".join(
-        f"<tr><td>{escape(item.product_title_snapshot)}</td><td>{item.quantity}</td><td>{escape(str(item.unit_price_snapshot))}</td><td>{escape(str(item.total_price))}</td></tr>"
-        for item in order.items
-    )
-    html = f"""<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <title>Invoice {escape(order.invoice_code)}</title>
-  <style>
-    body {{ font-family: Arial, sans-serif; color: #111; padding: 32px; }}
-    h1 {{ margin: 0 0 8px; }}
-    table {{ width: 100%; border-collapse: collapse; margin-top: 16px; }}
-    th, td {{ border-bottom: 1px solid #ddd; padding: 8px; text-align: left; }}
-    .meta {{ color: #555; font-size: 14px; }}
-    .total {{ text-align: right; margin-top: 16px; font-weight: bold; }}
-  </style>
-</head>
-<body>
-  <h1>{escape(order.store.name)}</h1>
-  <p class="meta">Invoice: {escape(order.invoice_code)}</p>
-  <p class="meta">Status: {escape(order.status.value)}</p>
-  <p class="meta">Buyer: {escape(order.buyer_name)} | {escape(order.buyer_phone)}</p>
-  <p class="meta">{escape(order.buyer_address)}</p>
-  <table>
-    <thead>
-      <tr><th>Item</th><th>Qty</th><th>Unit</th><th>Total</th></tr>
-    </thead>
-    <tbody>{rows}</tbody>
-  </table>
-  <p class="total">Subtotal: {escape(str(order.subtotal_amount))} | Total: {escape(str(order.total_amount))}</p>
-</body>
-</html>"""
-    return CustomerInvoiceDownloadResponse(
-        filename=f"invoice-{order.invoice_code}.html",
-        content_type="text/html; charset=utf-8",
-        content=html,
     )
 
 

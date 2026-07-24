@@ -47,7 +47,7 @@ export function LoginForm({
         {subtitle && <p className="mt-1 text-sm text-foreground-muted">{subtitle}</p>}
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3 md:space-y-4">
           <ErrorAlert message={error ?? ""} />
           <Input
             label="ایمیل"

@@ -231,7 +231,7 @@ export function ProductBrowser({ slug, initialProducts }: ProductBrowserProps) {
       {error && <ErrorAlert message={error} />}
 
       {loading ? (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-2 gap-2 sm:gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 6 }).map((_, index) => (
             <Skeleton key={index} className="h-72 w-full rounded-2xl" />
           ))}
@@ -246,7 +246,7 @@ export function ProductBrowser({ slug, initialProducts }: ProductBrowserProps) {
           {!isDefaultView && (
             <p className="text-sm text-foreground-muted">{total} محصول پیدا شد</p>
           )}
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-2 gap-2 sm:gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {products.map((product) => (
               <ProductCard key={product.id} product={product} storeSlug={slug} />
             ))}

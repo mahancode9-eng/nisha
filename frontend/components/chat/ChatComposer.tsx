@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent, type KeyboardEvent } from "react";
-import { uploadPublicImage } from "@/lib/api/public/uploads";
+import { uploadPublicImage, uploadGuestImage } from "@/lib/api/public/uploads";
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Textarea";
 
@@ -12,9 +12,10 @@ type ChatComposerProps = {
     attachment_mime_type?: string | null;
   }) => Promise<void>;
   disabled?: boolean;
+  useGuestUpload?: boolean;
 };
 
-export function ChatComposer({ onSend, disabled }: ChatComposerProps) {
+export function ChatComposer({ onSend, disabled, useGuestUpload = false }: ChatComposerProps) {
   const [text, setText] = useState("");
   const [attachment, setAttachment] = useState<File | null>(null);
   const [attachmentPreview, setAttachmentPreview] = useState<string | null>(null);
@@ -45,7 +46,8 @@ export function ChatComposer({ onSend, disabled }: ChatComposerProps) {
 
       if (attachment) {
         setUploading(true);
-        const uploaded = await uploadPublicImage(attachment);
+        const uploadFn = useGuestUpload ? uploadGuestImage : uploadPublicImage;
+        const uploaded = await uploadFn(attachment);
         attachment_url = uploaded.url;
         attachment_mime_type = uploaded.mime_type ?? attachment.type ?? null;
       }

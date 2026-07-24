@@ -5,6 +5,10 @@ import { usePathname } from "next/navigation";
 import { useMemo, useState, type ReactNode } from "react";
 import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 import { ChromeNav, type ChromeNavItem } from "@/components/layout/chrome/ChromeNav";
+import {
+  ChromeMenuToggle,
+  ChromeMobileDrawer,
+} from "@/components/layout/chrome/ChromeMobileDrawer";
 import { UserChip } from "@/components/layout/chrome/UserChip";
 import { paths } from "@/lib/auth/paths";
 import { cn } from "@/lib/cn";
@@ -50,24 +54,31 @@ export function WorkspaceShell({
   );
 
   if (variant === "tabs") {
+    const closeMenu = () => setMenuOpen(false);
+
     return (
       <div className="min-h-screen bg-background">
         <header className="sticky top-0 z-40 border-b border-border bg-surface/90 backdrop-blur">
-          <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-              <div className="space-y-1">
-                <Link
-                  href={paths.home}
-                  className="text-xs font-medium tracking-[0.24em] text-foreground-muted hover:text-foreground"
-                >
-                  {brandLabel}
-                </Link>
-                <p className="text-xs tracking-[0.2em] text-brand-deep">{roleLabel}</p>
-                <h1 className="text-2xl font-semibold text-foreground">{activeNav?.label ?? title}</h1>
-                {subtitle && <p className="max-w-3xl text-sm text-foreground-muted">{subtitle}</p>}
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <UserChip userName={userName} userMeta={userMeta} className="hidden md:block" />
+          <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-2 md:hidden">
+            <ChromeMenuToggle open={menuOpen} onToggle={() => setMenuOpen((open) => !open)} />
+            <h1 className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">
+              {activeNav?.label ?? title}
+            </h1>
+            <ThemeSwitcher variant="button" />
+          </div>
+
+          <div className="mx-auto hidden max-w-7xl px-4 py-3 sm:px-6 md:block">
+            <div className="flex items-center justify-between gap-3">
+              <Link
+                href={paths.home}
+                className="min-w-0 truncate text-sm text-foreground-muted hover:text-foreground"
+              >
+                <span className="font-medium text-foreground">{brandLabel}</span>
+                <span className="mx-1.5 text-border">·</span>
+                <span>{roleLabel}</span>
+              </Link>
+              <div className="flex shrink-0 flex-wrap items-center gap-2">
+                <UserChip userName={userName} userMeta={userMeta} />
                 <ThemeSwitcher variant="button" />
                 {topActions}
                 <Button variant="ghost" size="sm" onClick={onLogout}>
@@ -75,16 +86,60 @@ export function WorkspaceShell({
                 </Button>
               </div>
             </div>
-            <UserChip userName={userName} userMeta={userMeta} className="mt-3 md:hidden" />
             <ChromeNav
               items={navItems}
               variant="pills"
               scrollable={navItems.length > 5}
-              className="mt-4"
+              compact
+              className="mt-2"
             />
           </div>
         </header>
-        <main className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">{children}</main>
+
+        <ChromeMobileDrawer open={menuOpen} onClose={closeMenu}>
+          <div className="space-y-1 border-b border-border pb-4">
+            <Link
+              href={paths.home}
+              onClick={closeMenu}
+              className="text-xs font-medium tracking-[0.24em] text-foreground-muted hover:text-foreground"
+            >
+              {brandLabel}
+            </Link>
+            <p className="text-xs tracking-[0.2em] text-brand-deep">{roleLabel}</p>
+          </div>
+          <UserChip
+            userName={userName}
+            userMeta={userMeta}
+            className="mt-3 max-md:px-2.5 max-md:py-1.5"
+          />
+          <ChromeNav
+            items={navItems}
+            variant="sidebar"
+            onNavigate={closeMenu}
+            className="mt-3"
+          />
+          {topActions && (
+            <div className="mt-4" onClick={closeMenu}>
+              {topActions}
+            </div>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="mt-4 w-full justify-start"
+            onClick={() => {
+              closeMenu();
+              onLogout();
+            }}
+          >
+            خروج
+          </Button>
+          {subtitle && (
+            <p className="mt-4 text-xs leading-relaxed text-foreground-muted">{subtitle}</p>
+          )}
+        </ChromeMobileDrawer>
+
+        <main className="mx-auto max-w-7xl p-3 sm:p-6 lg:p-8">{children}</main>
       </div>
     );
   }
@@ -137,7 +192,7 @@ export function WorkspaceShell({
         </div>
       </aside>
 
-      <main className="mx-auto w-full max-w-7xl flex-1 overflow-auto p-4 sm:p-6 lg:p-8">{children}</main>
+      <main className="mx-auto w-full max-w-7xl flex-1 overflow-auto p-3 sm:p-6 lg:p-8">{children}</main>
     </div>
   );
 }

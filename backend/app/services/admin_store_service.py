@@ -21,6 +21,7 @@ def _store_list_item_from_row(row) -> AdminStoreListItem:
         slug=row.slug,
         owner_email=row.email,
         is_active=row.is_active,
+        guest_checkout_enabled=row.guest_checkout_enabled,
         product_count=row.product_count,
         order_count=row.order_count,
         created_at=row.created_at,
@@ -44,6 +45,7 @@ def _stores_query(search: str | None = None):
             Store.name,
             Store.slug,
             Store.is_active,
+            Store.guest_checkout_enabled,
             Store.created_at,
             User.email,
             func.coalesce(product_counts.c.product_count, 0).label("product_count"),
@@ -178,6 +180,45 @@ def set_store_active(
         slug=store.slug,
         owner_email=owner_email,
         is_active=store.is_active,
+        guest_checkout_enabled=store.guest_checkout_enabled,
+        product_count=product_count,
+        order_count=order_count,
+        created_at=store.created_at,
+    )
+
+
+def set_store_guest_checkout(
+    db: Session,
+    store_id: int,
+    *,
+    guest_checkout_enabled: bool,
+    admin: User | None = None,
+    note: str | None = None,
+) -> AdminStoreListItem:
+    store = _load_store(db, store_id)
+    store.guest_checkout_enabled = guest_checkout_enabled
+    record_admin_action(
+        db,
+        admin=admin,
+        entity_type="store",
+        entity_id=store.id,
+        action="GUEST_CHECKOUT_ON" if guest_checkout_enabled else "GUEST_CHECKOUT_OFF",
+        entity_label=store.name,
+        note=note,
+        details={"guest_checkout_enabled": guest_checkout_enabled},
+    )
+    db.commit()
+    db.refresh(store)
+
+    product_count, order_count = _counts_for_store(db, store.id)
+    owner_email = store.owner.email if store.owner else ""
+    return AdminStoreListItem(
+        id=store.id,
+        name=store.name,
+        slug=store.slug,
+        owner_email=owner_email,
+        is_active=store.is_active,
+        guest_checkout_enabled=store.guest_checkout_enabled,
         product_count=product_count,
         order_count=order_count,
         created_at=store.created_at,

@@ -21,13 +21,13 @@ from app.services.customer_order_service import (
     create_complaint,
     create_review,
     get_customer_order_detail,
-    build_invoice_download,
     get_owned_order,
     list_complaints,
     list_customer_orders,
     list_reviews,
     set_receipt_status,
 )
+from app.services.invoice_service import build_invoice_download
 from app.services.exceptions import ServiceError
 
 router = APIRouter(tags=["customer-orders"])

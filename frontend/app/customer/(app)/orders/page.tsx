@@ -13,10 +13,26 @@ import { LoadingState } from "@/components/ui/LoadingState";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { formatDateTime, formatMoney } from "@/lib/format";
 import { paths } from "@/lib/auth/paths";
-import { claimOrder, listActiveOrders, listOrders } from "@/lib/api/customer/orders";
+import { claimOrder, downloadInvoice, listActiveOrders, listOrders } from "@/lib/api/customer/orders";
+import { downloadOrderInvoice } from "@/lib/orders/downloadInvoice";
 import type { CustomerOrderListItem } from "@/types/customer/order";
 
 function OrderRow({ order }: { order: CustomerOrderListItem }) {
+  const toast = useToast();
+  const [downloading, setDownloading] = useState(false);
+
+  async function handleDownload() {
+    setDownloading(true);
+    try {
+      await downloadOrderInvoice(() => downloadInvoice(order.id), order.invoice_code);
+      toast.success("فاکتور دانلود شد");
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : "دانلود فاکتور ناموفق بود");
+    } finally {
+      setDownloading(false);
+    }
+  }
+
   return (
     <ListRow className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div>
@@ -29,11 +45,14 @@ function OrderRow({ order }: { order: CustomerOrderListItem }) {
         <p className="mt-1 text-sm text-foreground-muted">{order.buyer_name}</p>
         <p className="text-xs text-foreground-muted">{formatDateTime(order.created_at)}</p>
       </div>
-      <div className="text-sm text-foreground">
+      <div className="flex flex-col items-start gap-2 text-sm text-foreground sm:items-end">
         <p>{formatMoney(order.total_amount)}</p>
         <p className="text-xs text-foreground-muted">
           رسید: {order.receipt_status ?? "ثبت‌نشده"} | اعتراض‌ها: {order.complaint_count}
         </p>
+        <Button variant="ghost" size="sm" loading={downloading} onClick={() => void handleDownload()}>
+          دانلود فاکتور
+        </Button>
       </div>
     </ListRow>
   );

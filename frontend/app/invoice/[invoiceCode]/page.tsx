@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/Badge";
 import { StarRating } from "@/components/ui/StarRating";
 import { useToast } from "@/contexts/ToastContext";
 import { ApiError } from "@/lib/api/errors";
-import { uploadPublicImage } from "@/lib/api/public/uploads";
+import { uploadGuestImage } from "@/lib/api/public/uploads";
 import * as ordersApi from "@/lib/api/public/orders";
 import { formatDateTime } from "@/lib/format";
 import { resolveMediaUrl } from "@/lib/media";
@@ -34,7 +34,7 @@ const PRINT_STYLES = [
 
 async function uploadSelectedImages(files: FileList | null): Promise<string[]> {
   if (!files || files.length === 0) return [];
-  const uploads = await Promise.all(Array.from(files).map((file) => uploadPublicImage(file)));
+  const uploads = await Promise.all(Array.from(files).map((file) => uploadGuestImage(file)));
   return uploads.map((item) => item.url);
 }
 
@@ -177,6 +177,7 @@ export default function InvoicePage({ params }: PageProps) {
                   isLoading={false}
                   error={null}
                   ownSenderType="CUSTOMER"
+                  useGuestUpload={true}
                   onSend={async (payload) => {
                     try {
                       const sent = await ordersApi.sendOrderChatMessage(invoiceCode, {

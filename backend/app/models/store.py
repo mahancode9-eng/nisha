@@ -119,6 +119,7 @@ class Store(TimestampMixin, Base):
     support_contact: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     onboarding_state_json: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    guest_checkout_enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     owner: Mapped["User"] = relationship("User", back_populates="store")
     products: Mapped[list["Product"]] = relationship(

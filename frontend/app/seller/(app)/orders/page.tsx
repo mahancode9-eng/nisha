@@ -7,7 +7,11 @@ import { paths } from "@/lib/auth/paths";
 import { formatDateTime, formatMoney } from "@/lib/format";
 import { useSellerFetch } from "@/hooks/useSellerFetch";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { ApiError } from "@/lib/api/errors";
+import { downloadOrderInvoice } from "@/lib/orders/downloadInvoice";
+import { useToast } from "@/contexts/ToastContext";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorAlert } from "@/components/ui/ErrorAlert";
 import { PaginationControls } from "@/components/ui/PaginationControls";
@@ -41,10 +45,12 @@ const ORDER_PROCESSING_STATUSES: OrderStatus[] = [
 type TabKey = "payment" | "processing";
 
 export default function SellerOrdersPage() {
+  const toast = useToast();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
   const [activeTab, setActiveTab] = useState<TabKey>("payment");
+  const [downloadingId, setDownloadingId] = useState<number | null>(null);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), 300);
@@ -78,6 +84,18 @@ export default function SellerOrdersPage() {
   );
 
   const visibleItems = activeTab === "payment" ? paymentOrders : processingOrders;
+
+  async function handleDownload(orderId: number, invoiceCode: string) {
+    setDownloadingId(orderId);
+    try {
+      await downloadOrderInvoice(() => ordersApi.downloadInvoice(orderId), invoiceCode);
+      toast.success("فاکتور دانلود شد");
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : "دانلود فاکتور ناموفق بود");
+    } finally {
+      setDownloadingId(null);
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -127,6 +145,7 @@ export default function SellerOrdersPage() {
                   <TableHeaderCell>مجموع</TableHeaderCell>
                   <TableHeaderCell>وضعیت</TableHeaderCell>
                   <TableHeaderCell>ایجاد شده</TableHeaderCell>
+                  <TableHeaderCell>عملیات</TableHeaderCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -146,6 +165,16 @@ export default function SellerOrdersPage() {
                       <StatusBadge status={order.status} />
                     </TableCell>
                     <TableCell>{formatDateTime(order.created_at)}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        loading={downloadingId === order.id}
+                        onClick={() => void handleDownload(order.id, order.invoice_code)}
+                      >
+                        فاکتور
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

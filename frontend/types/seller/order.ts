@@ -17,10 +17,13 @@ export type SellerOrderListItem = {
 export type SellerOrderItem = {
   id: number;
   product_id: number | null;
+  variant_id?: number | null;
+  variant_name_snapshot?: string | null;
   product_title_snapshot: string;
   unit_price_snapshot: string;
   quantity: number;
   total_price: string;
+  field_values?: import("@/types/order-item").OrderItemFieldValue[];
 };
 
 export type PaymentProof = {

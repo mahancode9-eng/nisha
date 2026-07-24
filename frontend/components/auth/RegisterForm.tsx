@@ -52,7 +52,7 @@ export function RegisterForm({ onSubmit, footer, loginHref }: RegisterFormProps)
         </p>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3 md:space-y-4">
           <ErrorAlert message={error ?? ""} />
           {showLoginHint && loginHref && (
             <p className="text-center text-sm text-foreground-muted">

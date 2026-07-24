@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import * as storesApi from "@/lib/api/public/stores";
 import * as customerOrdersApi from "@/lib/api/customer/orders";
 import * as customerProfileApi from "@/lib/api/customer/profile";
-import { uploadPublicFile } from "@/lib/api/public/uploads";
+import { uploadGuestFile } from "@/lib/api/public/uploads";
 import { useCart } from "@/contexts/CartContext";
 import { useCustomerAuth } from "@/contexts/CustomerAuthContext";
 import { ApiError } from "@/lib/api/errors";
@@ -123,6 +123,7 @@ export default function CheckoutPage({ params }: PageProps) {
   const [country, setCountry] = useState("");
   const [buyerNote, setBuyerNote] = useState("");
   const [paymentMethodId, setPaymentMethodId] = useState<number | null>(null);
+  const [guestCheckoutEnabled, setGuestCheckoutEnabled] = useState(true);
   const [customerAddresses, setCustomerAddresses] = useState<CustomerAddress[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string>("");
   const [saveAddress, setSaveAddress] = useState(false);
@@ -167,6 +168,7 @@ export default function CheckoutPage({ params }: PageProps) {
         reconcileWithProducts(store.products);
         setStoreProducts(store.products);
         setPaymentMethods(store.payment_methods);
+        setGuestCheckoutEnabled(store.store.guest_checkout_enabled);
         if (store.payment_methods.length > 0) {
           setPaymentMethodId(store.payment_methods[0].id);
         }
@@ -311,7 +313,7 @@ export default function CheckoutPage({ params }: PageProps) {
     if (!file) return;
     updateFieldState(productId, fieldKey, { uploading: true });
     try {
-      const uploaded = await uploadPublicFile(file);
+      const uploaded = await uploadGuestFile(file);
       updateFieldState(productId, fieldKey, {
         fileUrl: uploaded.url,
         uploading: false,
@@ -367,6 +369,10 @@ export default function CheckoutPage({ params }: PageProps) {
     }
     if (!paymentMethodId) {
       setError("لطفا یک روش پرداخت انتخاب کنید.");
+      return;
+    }
+    if (!customer && !guestCheckoutEnabled) {
+      setError("برای ثبت سفارش باید وارد حساب کاربری شوید.");
       return;
     }
     if (!validateFields()) {
@@ -451,15 +457,38 @@ export default function CheckoutPage({ params }: PageProps) {
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">پرداخت</h1>
+        <h1 className="text-2xl font-bold text-foreground max-md:text-xl">پرداخت</h1>
         <p className="mt-1 text-foreground-muted">
           {customer
             ? "از آدرس‌های ذخیره‌شده خود استفاده کنید یا سفارش را برای گیرنده دیگری ثبت کنید."
-            : "سفارش خود را تکمیل کنید. نیازی به حساب کاربری نیست."}
+            : guestCheckoutEnabled
+              ? "سفارش خود را تکمیل کنید. نیازی به حساب کاربری نیست."
+              : "این فروشگاه فقط سفارش با حساب کاربری می‌پذیرد."}
         </p>
       </div>
 
-      {!customer && (
+      {!customer && !guestCheckoutEnabled && (
+        <Card className="border-amber-500/30 bg-amber-500/5">
+          <CardContent className="flex flex-col gap-4 py-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-1">
+              <p className="font-semibold text-foreground">برای تکمیل خرید باید وارد شوید.</p>
+              <p className="text-sm text-foreground-muted">
+                فروشنده خرید مهمان را غیرفعال کرده است. لطفاً وارد حساب کاربری شوید یا ثبت‌نام کنید.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Link href={`${paths.customer.login}?redirect=${encodeURIComponent(`/store/${slug}/checkout`)}`}>
+                <Button variant="secondary">ورود</Button>
+              </Link>
+              <Link href={`${paths.customer.register}?redirect=${encodeURIComponent(`/store/${slug}/checkout`)}`}>
+                <Button variant="primary">ثبت‌نام</Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {!customer && guestCheckoutEnabled && (
         <Card className="border-brand/20 bg-brand/5">
           <CardContent className="flex flex-col gap-4 py-5 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-1">
@@ -557,6 +586,7 @@ export default function CheckoutPage({ params }: PageProps) {
         </CardContent>
       </Card>
 
+      {(customer || guestCheckoutEnabled) && (
       <form id="checkout-form" onSubmit={handleSubmit} className="page-stack">
         {error && <ErrorAlert message={error} />}
 
@@ -800,6 +830,7 @@ export default function CheckoutPage({ params }: PageProps) {
           </Button>
         </div>
       </form>
+      )}
     </div>
   );
 }

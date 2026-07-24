@@ -72,7 +72,7 @@ export default function CustomerProfilePage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-neutral-900">پروفایل</h1>
+        <h1 className="text-2xl font-bold text-neutral-900 max-md:text-xl">پروفایل</h1>
         <p className="mt-1 text-sm text-neutral-600">
           اطلاعات تماس خود را برای پرداخت، بازیابی و به‌روزرسانی سفارش‌ها به‌روز نگه دارید.
         </p>

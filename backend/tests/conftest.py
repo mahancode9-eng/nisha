@@ -31,6 +31,7 @@ import app.models.notification  # noqa: F401
 import app.models.user_password_recovery  # noqa: F401
 import app.models.order  # noqa: F401
 import app.models.payment_method  # noqa: F401
+import app.models.platform_setting  # noqa: F401
 import app.models.product  # noqa: F401
 import app.models.store  # noqa: F401
 import app.models.user  # noqa: F401

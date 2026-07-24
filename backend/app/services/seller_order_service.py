@@ -4,7 +4,7 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.models.enums import OrderStatus
-from app.models.order import Order
+from app.models.order import Order, OrderItem
 from app.models.store import Store
 from app.models.user import User
 from app.services import order_access_service, stock_service
@@ -16,7 +16,7 @@ def get_order_for_store(db: Session, store: Store, order_id: int) -> Order:
     order = db.scalar(
         select(Order)
         .options(
-            selectinload(Order.items),
+            selectinload(Order.items).selectinload(OrderItem.field_values),
             selectinload(Order.payment_proofs),
             selectinload(Order.payment_method),
             selectinload(Order.status_history),

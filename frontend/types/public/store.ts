@@ -19,6 +19,7 @@ export type PublicStoreProfile = {
   website: string | null;
   support_contact: string | null;
   trust_badges: string[];
+  guest_checkout_enabled: boolean;
 };
 
 export type PublicStoreSocialLink = {

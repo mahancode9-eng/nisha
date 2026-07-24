@@ -70,7 +70,7 @@ export default function SellerAnalyticsPage() {
   const orderPoints = daily.map((point) => ({ label: point.date, value: point.orders }));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <PageHeader
         description="فروش روزانه، بازدید ویترین، نرخ تبدیل و محصولات پرفروش"
         action={
@@ -95,7 +95,7 @@ export default function SellerAnalyticsPage() {
 
       {!isLoading && !error && data && (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-2 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardContent>
                 <div className="text-sm text-foreground-muted">سفارش‌ها</div>

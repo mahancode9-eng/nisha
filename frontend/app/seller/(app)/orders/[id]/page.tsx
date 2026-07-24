@@ -4,7 +4,7 @@ import { use, useState } from "react";
 import Link from "next/link";
 import * as ordersApi from "@/lib/api/seller/orders";
 import { paths } from "@/lib/auth/paths";
-import { formatDateTime, formatMoney } from "@/lib/format";
+import { formatDateTime } from "@/lib/format";
 import { resolveMediaUrl } from "@/lib/media";
 import {
   actionToPatchStatus,
@@ -13,22 +13,17 @@ import {
   type OrderAction,
 } from "@/lib/seller/orderActions";
 import { ApiError } from "@/lib/api/errors";
+import { downloadOrderInvoice } from "@/lib/orders/downloadInvoice";
 import { useToast } from "@/contexts/ToastContext";
 import { useSellerFetch } from "@/hooks/useSellerFetch";
 import { ConfirmModal } from "@/components/seller/ConfirmModal";
 import { OrderActions } from "@/components/seller/OrderActions";
 import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeaderCell,
-  TableRow,
-} from "@/components/ui/Table";
+import { OrderItemsPanel } from "@/components/orders/OrderItemsPanel";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -40,6 +35,7 @@ export default function SellerOrderDetailPage({ params }: PageProps) {
   const toast = useToast();
   const [actionLoading, setActionLoading] = useState(false);
   const [pendingAction, setPendingAction] = useState<OrderAction | null>(null);
+  const [downloadLoading, setDownloadLoading] = useState(false);
 
   const { data, error, isLoading, refetch } = useSellerFetch(
     () => ordersApi.getOrder(orderId),
@@ -78,6 +74,19 @@ export default function SellerOrderDetailPage({ params }: PageProps) {
     }
   }
 
+  async function handleDownload() {
+    if (!data) return;
+    setDownloadLoading(true);
+    try {
+      await downloadOrderInvoice(() => ordersApi.downloadInvoice(orderId), data.invoice_code);
+      toast.success("فاکتور دانلود شد");
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : "دانلود فاکتور ناموفق بود");
+    } finally {
+      setDownloadLoading(false);
+    }
+  }
+
   if (isLoading) return <LoadingState message="در حال بارگذاری سفارش..." />;
   if (error || !data) {
     return (
@@ -108,6 +117,9 @@ export default function SellerOrderDetailPage({ params }: PageProps) {
         <div className="mt-2 flex flex-wrap items-center gap-3">
           <h1 className="text-2xl font-bold text-neutral-900">{data.invoice_code}</h1>
           <StatusBadge status={data.status} />
+          <Button variant="secondary" size="sm" loading={downloadLoading} onClick={() => void handleDownload()}>
+            دانلود فاکتور
+          </Button>
         </div>
         <p className="mt-1 text-sm text-neutral-500">ثبت شده در {formatDateTime(data.created_at)}</p>
       </div>
@@ -186,34 +198,12 @@ export default function SellerOrderDetailPage({ params }: PageProps) {
           <CardTitle>اقلام</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table embedded>
-            <TableHead>
-              <TableRow>
-                <TableHeaderCell>محصول</TableHeaderCell>
-                <TableHeaderCell>تعداد</TableHeaderCell>
-                <TableHeaderCell>قیمت واحد</TableHeaderCell>
-                <TableHeaderCell>جمع</TableHeaderCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {data.items.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell>{item.product_title_snapshot}</TableCell>
-                  <TableCell>{item.quantity}</TableCell>
-                  <TableCell>{formatMoney(item.unit_price_snapshot)}</TableCell>
-                  <TableCell>{formatMoney(item.total_price)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          <div className="mt-4 flex justify-end gap-6 text-sm">
-            <span className="text-neutral-500">
-              جمع جزء: {formatMoney(data.subtotal_amount)}
-            </span>
-            <span className="font-semibold">
-              مجموع: {formatMoney(data.total_amount)}
-            </span>
-          </div>
+          <OrderItemsPanel
+            items={data.items}
+            subtotalAmount={data.subtotal_amount}
+            totalAmount={data.total_amount}
+            productEditHref={(productId) => paths.seller.productEdit(productId)}
+          />
         </CardContent>
       </Card>
 

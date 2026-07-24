@@ -46,6 +46,7 @@ class StoreResponse(BaseModel):
     support_contact: str | None
     trust_badges: list[str] = Field(default_factory=list, validation_alias="badge_labels")
     is_active: bool
+    guest_checkout_enabled: bool = True
     social_links: list[StoreSocialLinkResponse] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime
@@ -69,6 +70,7 @@ class StoreUpdate(BaseModel):
     support_contact: str | None = Field(default=None, max_length=255)
     social_links: list[StoreSocialLinkInput] | None = None
     is_active: bool | None = None
+    guest_checkout_enabled: bool | None = None
 
     @model_validator(mode="after")
     def require_at_least_one_field(self) -> "StoreUpdate":

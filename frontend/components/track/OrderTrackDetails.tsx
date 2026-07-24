@@ -3,7 +3,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import * as ordersApi from "@/lib/api/public/orders";
 import { ApiError } from "@/lib/api/errors";
-import { formatDateTime, formatMoney } from "@/lib/format";
+import { formatDateTime } from "@/lib/format";
 import { resolveMediaUrl } from "@/lib/media";
 import { PaymentInstructions } from "@/components/store/PaymentInstructions";
 import { PaymentProofUpload } from "@/components/store/PaymentProofUpload";
@@ -13,14 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Textarea } from "@/components/ui/Textarea";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeaderCell,
-  TableRow,
-} from "@/components/ui/Table";
+import { OrderItemsPanel } from "@/components/orders/OrderItemsPanel";
 import type { OrderTrackResponse } from "@/types/public/order";
 import type { OrderStatus } from "@/types/order";
 
@@ -113,30 +106,11 @@ export function OrderTrackDetails({ order, password, onUpdated }: OrderTrackDeta
           <CardTitle>آیتم‌ها</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table embedded>
-            <TableHead>
-              <TableRow>
-                <TableHeaderCell>محصول</TableHeaderCell>
-                <TableHeaderCell>تعداد</TableHeaderCell>
-                <TableHeaderCell>جمع</TableHeaderCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {order.items.map((item, idx) => (
-                <TableRow key={idx}>
-                  <TableCell>
-                    {item.product_title}
-                    {item.variant_name ? ` — ${item.variant_name}` : ""}
-                  </TableCell>
-                  <TableCell>{item.quantity}</TableCell>
-                  <TableCell>{formatMoney(item.total_price)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          <p className="mt-3 text-start font-semibold">
-            جمع کل: {formatMoney(order.total_amount)}
-          </p>
+          <OrderItemsPanel
+            items={order.items}
+            totalAmount={order.total_amount}
+            showUnitPrice={false}
+          />
         </CardContent>
       </Card>
 

@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.enums import CustomerReceiptStatus, OrderStatus, PaymentMethodType
 from app.schemas.guest_order import OrderStatusHistoryResponse, PaymentProofResponse
+from app.schemas.order_item import OrderItemFieldValueResponse
 from app.schemas.payment_method import PaymentMethodResponse
 
 
@@ -35,6 +36,7 @@ class SellerOrderItemResponse(BaseModel):
     unit_price_snapshot: Decimal
     quantity: int
     total_price: Decimal
+    field_values: list[OrderItemFieldValueResponse] = Field(default_factory=list)
 
 
 class SellerOrderDetailResponse(BaseModel):

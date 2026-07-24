@@ -13,6 +13,7 @@ export type OrderTrackItem = {
   quantity: number;
   unit_price: string;
   total_price: string;
+  field_values?: import("@/types/order-item").OrderItemFieldValue[];
 };
 
 export type PublicPaymentProof = {

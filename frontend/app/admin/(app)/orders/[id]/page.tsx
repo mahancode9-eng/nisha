@@ -17,14 +17,7 @@ import { Input } from "@/components/ui/Input";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Textarea } from "@/components/ui/Textarea";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeaderCell,
-  TableRow,
-} from "@/components/ui/Table";
+import { OrderItemsPanel } from "@/components/orders/OrderItemsPanel";
 import type { AdminOrderDetail, AdminOrderUpdateRequest } from "@/types/admin/order";
 import type { OrderStatus } from "@/types/order";
 
@@ -332,27 +325,10 @@ export default function AdminOrderDetailPage({ params }: PageProps) {
               <CardTitle>اقلام</CardTitle>
             </CardHeader>
             <CardContent>
-              <Table embedded>
-                <TableHead>
-                  <TableRow>
-                    <TableHeaderCell>محصول</TableHeaderCell>
-                    <TableHeaderCell>تعداد</TableHeaderCell>
-                    <TableHeaderCell>واحد</TableHeaderCell>
-                    <TableHeaderCell>جمع</TableHeaderCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {data.items.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell>{item.product_title_snapshot}</TableCell>
-                      <TableCell>{item.quantity}</TableCell>
-                      <TableCell>{formatMoney(item.unit_price_snapshot)}</TableCell>
-                      <TableCell>{formatMoney(item.total_price)}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-              <p className="mt-4 text-right font-semibold">جمع جزء: {formatMoney(data.subtotal_amount)}</p>
+              <OrderItemsPanel
+                items={data.items}
+                subtotalAmount={data.subtotal_amount}
+              />
             </CardContent>
           </Card>
 

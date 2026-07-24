@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ProductPageClient } from "./ProductPageClient";
+import { sanitizeScriptContent } from "@/lib/sanitize";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 const API_BASE =
@@ -98,7 +99,7 @@ export default async function ProductPage({ params }: PageProps) {
           }
         : {}),
     });
-    jsonLdProps = { __html: jsonLd };
+    jsonLdProps = { __html: sanitizeScriptContent(jsonLd) };
   }
   return (
     <>

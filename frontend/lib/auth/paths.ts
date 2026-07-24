@@ -35,6 +35,8 @@ export const paths = {
     chatDetail: (id: number | string) => `/admin/chats/${id}`,
     storeBadges: (id: number | string) => `/admin/stores/${id}/badges`,
     complaints: "/admin/complaints",
+    settings: "/admin/settings",
+    users: "/admin/users",
   },
   customer: {
     login: "/customer/login",

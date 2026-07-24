@@ -22,6 +22,7 @@ from app.schemas.public import (
 )
 from app.services import checkout_service, product_search_service, public_store_service
 from app.services.exceptions import ServiceError
+from app.services.platform_setting_service import is_guest_checkout_enabled
 
 router = APIRouter(prefix="/stores", tags=["public-stores"])
 
@@ -46,6 +47,15 @@ def _public_product(product) -> PublicProduct:
     )
 
 
+def _public_store_profile(store, badges, db: Session) -> PublicStoreProfile:
+    return PublicStoreProfile.model_validate(store).model_copy(
+        update={
+            "trust_badges": [badge.badge_type.value for badge in badges],
+            "guest_checkout_enabled": is_guest_checkout_enabled(db, store),
+        }
+    )
+
+
 @router.get("/{slug}", response_model=PublicStorePageResponse, response_model_exclude_none=True)
 def get_public_store(slug: str, db: Session = Depends(get_db)) -> PublicStorePageResponse:
     try:
@@ -55,9 +65,7 @@ def get_public_store(slug: str, db: Session = Depends(get_db)) -> PublicStorePag
     except ServiceError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
 
-    store_profile = PublicStoreProfile.model_validate(store).model_copy(
-        update={"trust_badges": [badge.badge_type.value for badge in badges]}
-    )
+    store_profile = _public_store_profile(store, badges, db)
 
     return PublicStorePageResponse(
         store=store_profile,
@@ -110,9 +118,7 @@ def get_public_product(slug: str, product_id: int, db: Session = Depends(get_db)
         )
         for review in reviews
     ]
-    store_profile = PublicStoreProfile.model_validate(store).model_copy(
-        update={"trust_badges": [badge.badge_type.value for badge in badges]}
-    )
+    store_profile = _public_store_profile(store, badges, db)
     return PublicProductDetailResponse(
         store=store_profile,
         product=product_payload,

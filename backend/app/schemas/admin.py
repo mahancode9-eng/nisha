@@ -6,7 +6,7 @@ from pydantic import BaseModel, ConfigDict
 from pydantic import Field
 from pydantic import model_validator
 
-from app.models.enums import OrderStatus, ReviewStatus, StoreBadgeType
+from app.models.enums import OrderStatus, ReviewStatus, StoreBadgeType, UserRole
 from app.models.enums import CustomerReceiptStatus
 from app.schemas.chat import ConversationDetailResponse, ConversationListItem, MessageResponse
 from app.schemas.customer_portal import CustomerComplaintResponse, CustomerProfileResponse
@@ -45,6 +45,7 @@ class AdminStoreListItem(BaseModel):
     slug: str
     owner_email: str
     is_active: bool
+    guest_checkout_enabled: bool = True
     product_count: int
     order_count: int
     created_at: datetime
@@ -106,22 +107,16 @@ class AdminAuditLogResponse(BaseModel):
     created_at: datetime
 
 
-class AdminOrderFieldValueResponse(BaseModel):
-    field_key: str
-    field_label: str
-    field_type: str
-    sort_order: int
-    value_text: str | None = None
-    value_json: Any | None = None
-    file_url: str | None = None
-    field_snapshot: dict[str, Any] | None = None
+from app.schemas.order_item import OrderItemFieldValueResponse
+
+AdminOrderFieldValueResponse = OrderItemFieldValueResponse
 
 
 class AdminOrderItemSubmissionResponse(BaseModel):
     item_id: int
     product_id: int | None
     product_title_snapshot: str
-    field_values: list[AdminOrderFieldValueResponse] = Field(default_factory=list)
+    field_values: list[OrderItemFieldValueResponse] = Field(default_factory=list)
 
 
 class AdminOrderUpdateRequest(BaseModel):
@@ -202,3 +197,59 @@ class AdminStoreDetailResponse(BaseModel):
     badges: list[AdminStoreBadgeResponse] = Field(default_factory=list)
     badge_history: list[AdminStoreBadgeHistoryItem] = Field(default_factory=list)
     audit_logs: list[AdminAuditLogResponse] = Field(default_factory=list)
+
+
+class AdminPlatformSettingsResponse(BaseModel):
+    guest_checkout_enabled: bool
+
+
+class AdminPlatformSettingsUpdate(BaseModel):
+    guest_checkout_enabled: bool
+
+
+class AdminStoreGuestCheckoutUpdate(BaseModel):
+    guest_checkout_enabled: bool
+
+
+class AdminUserListItem(BaseModel):
+    id: int
+    email: str
+    full_name: str
+    role: UserRole
+    is_active: bool
+    store_slug: str | None = None
+    created_at: datetime
+
+
+class AdminUserDetail(AdminUserListItem):
+    email_verified_at: datetime | None = None
+
+
+class AdminUserUpdate(BaseModel):
+    full_name: str | None = Field(default=None, min_length=1, max_length=255)
+    is_active: bool | None = None
+    role: UserRole | None = None
+
+
+class AdminSetPasswordRequest(BaseModel):
+    password: str = Field(min_length=8, max_length=128)
+
+
+class AdminCustomerListItem(BaseModel):
+    id: int
+    email: str | None
+    phone: str | None
+    full_name: str
+    order_count: int
+    email_verified_at: datetime | None
+    created_at: datetime
+
+
+class AdminCustomerDetail(AdminCustomerListItem):
+    postal_code: str | None = None
+
+
+class AdminCustomerUpdate(BaseModel):
+    full_name: str | None = Field(default=None, min_length=1, max_length=255)
+    email: str | None = Field(default=None, max_length=255)
+    phone: str | None = Field(default=None, max_length=50)

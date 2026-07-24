@@ -8,6 +8,7 @@ from app.core.store_categories import OTHER_CATEGORY, get_store_category
 from app.models.store import Store, StoreSocialLink
 from app.schemas.store import StoreSocialLinkInput, StoreUpdate
 from app.services.exceptions import ServiceError
+from app.services.platform_setting_service import is_platform_guest_checkout_enabled
 from app.utils.slug import is_slug_taken, slugify
 
 
@@ -79,6 +80,15 @@ def update_store(db: Session, store: Store, data: StoreUpdate) -> Store:
             raise ServiceError("Slug already taken", status_code=409)
 
     _apply_category_update(store, update_data)
+
+    if (
+        update_data.get("guest_checkout_enabled") is True
+        and not is_platform_guest_checkout_enabled(db)
+    ):
+        raise ServiceError(
+            "خرید مهمان در سطح پلتفرم غیرفعال است و امکان فعال‌سازی آن وجود ندارد.",
+            status_code=422,
+        )
 
     for field, value in update_data.items():
         setattr(store, field, value)

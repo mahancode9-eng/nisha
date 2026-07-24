@@ -1,6 +1,6 @@
 from datetime import date
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_seller_store, require_seller
@@ -20,6 +20,8 @@ from app.schemas.seller_order import (
 )
 from app.services import seller_order_service
 from app.services.exceptions import ServiceError
+from app.services.invoice_service import build_invoice_download
+from app.services.order_item_serializers import seller_order_item_response
 
 router = APIRouter(prefix="/orders", tags=["seller-orders"])
 
@@ -90,10 +92,31 @@ def get_order(
         stock_restored=order.stock_restored,
         created_at=order.created_at,
         updated_at=order.updated_at,
-        items=[SellerOrderItemResponse.model_validate(item) for item in order.items],
+        items=[seller_order_item_response(item) for item in order.items],
         payment_method=PaymentMethodResponse.model_validate(order.payment_method),
         payment_proofs=[PaymentProofResponse.model_validate(p) for p in order.payment_proofs],
         status_history=[OrderStatusHistoryResponse.model_validate(h) for h in order.status_history],
+    )
+
+
+@router.get("/{order_id}/invoice")
+def download_invoice(
+    order_id: int,
+    store: Store = Depends(get_seller_store),
+    db: Session = Depends(get_db),
+) -> Response:
+    try:
+        order = seller_order_service.get_order_for_store(db, store, order_id)
+    except ServiceError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+
+    download = build_invoice_download(order)
+    return Response(
+        content=download.content,
+        media_type=download.content_type,
+        headers={
+            "Content-Disposition": f'attachment; filename="{download.filename}"',
+        },
     )
 
 

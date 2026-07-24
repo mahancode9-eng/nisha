@@ -5,7 +5,7 @@ import { useState, type ReactNode } from "react";
 import { BrandMark } from "@/components/layout/chrome/BrandMark";
 import { ChromeFooter } from "@/components/layout/chrome/ChromeFooter";
 import { ChromeHeader } from "@/components/layout/chrome/ChromeHeader";
-import { ChromeMobileDrawer } from "@/components/layout/chrome/ChromeMobileDrawer";
+import { ChromeMobileDrawer, MobileNavLink } from "@/components/layout/chrome/ChromeMobileDrawer";
 import { ChromeNav, type ChromeNavItem } from "@/components/layout/chrome/ChromeNav";
 import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 import { paths } from "@/lib/auth/paths";
@@ -33,6 +33,7 @@ export function PublicShell({
   children,
 }: PublicShellProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const closeMenu = () => setMenuOpen(false);
 
   const defaultActions = showDefaultActions ? (
     <>
@@ -61,26 +62,26 @@ export function PublicShell({
       <ThemeSwitcher variant="button" />
       {showDefaultActions && (
         <>
-          <Link href={paths.trackOrder} onClick={() => setMenuOpen(false)}>
+          <MobileNavLink href={paths.trackOrder} onClose={closeMenu}>
             <Button variant="ghost" size="sm" className="w-full justify-start">پیگیری سفارش</Button>
-          </Link>
-          <Link href={paths.customer.dashboard} onClick={() => setMenuOpen(false)}>
+          </MobileNavLink>
+          <MobileNavLink href={paths.customer.dashboard} onClose={closeMenu}>
             <Button variant="ghost" size="sm" className="w-full justify-start">پنل مشتری</Button>
-          </Link>
-          <Link href={paths.seller.login} onClick={() => setMenuOpen(false)}>
+          </MobileNavLink>
+          <MobileNavLink href={paths.seller.login} onClose={closeMenu}>
             <Button variant="secondary" size="sm" className="w-full justify-start">ورود فروشنده</Button>
-          </Link>
+          </MobileNavLink>
         </>
       )}
       {navItems.map((item) => (
-        <Link
+        <MobileNavLink
           key={item.href}
           href={item.href}
-          onClick={() => setMenuOpen(false)}
+          onClose={closeMenu}
           className="rounded-lg px-3 py-2 text-sm text-foreground hover:bg-surface-muted"
         >
           {item.label}
-        </Link>
+        </MobileNavLink>
       ))}
     </>
   );
@@ -117,7 +118,7 @@ export function PublicShell({
         }
       />
 
-      <ChromeMobileDrawer open={menuOpen} onClose={() => setMenuOpen(false)} animate>
+      <ChromeMobileDrawer open={menuOpen} onClose={closeMenu}>
         {mobileMenu}
       </ChromeMobileDrawer>
 

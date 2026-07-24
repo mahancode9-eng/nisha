@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
@@ -105,3 +105,54 @@ def get_current_customer(
             headers={"WWW-Authenticate": "Bearer"},
         )
     return customer
+
+
+def require_any_user(request: Request, db: Session = Depends(get_db)):
+    """Require authentication from either a seller/admin OR a customer.
+
+    Tries the seller token first, then the customer token.
+    Returns a tuple of (user_or_customer, role) where role is "seller" or "customer".
+    """
+    auth_header = request.headers.get("Authorization", "")
+    if not auth_header.startswith("Bearer "):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="اعتبارنامه قابل تایید نیست",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    token = auth_header[7:]
+    try:
+        payload = decode_access_token(token)
+        user_id = int(payload.get("sub", ""))
+    except (ValueError, TypeError):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="اعتبارنامه قابل تایید نیست",
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from None
+
+    role = payload.get("role")
+
+    if role == CUSTOMER_ROLE:
+        customer = db.get(CustomerAccount, user_id)
+        if customer is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="اعتبارنامه قابل تایید نیست",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        return customer, "customer"
+    else:
+        user = db.scalar(
+            select(User)
+            .options(selectinload(User.store))
+            .where(User.id == user_id)
+        )
+        if user is None or not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="اعتبارنامه قابل تایید نیست",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        return user, "seller"
