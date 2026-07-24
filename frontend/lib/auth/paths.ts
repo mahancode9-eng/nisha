@@ -21,6 +21,7 @@ export const paths = {
     conversationDetail: (id: number | string) => `/seller/conversations/${id}`,
     discounts: "/seller/discounts",
     analytics: "/seller/analytics",
+    subscription: "/seller/subscription",
   },
   admin: {
     login: "/admin/login",
@@ -37,6 +38,8 @@ export const paths = {
     complaints: "/admin/complaints",
     settings: "/admin/settings",
     users: "/admin/users",
+    plans: "/admin/plans",
+    subscriptions: "/admin/subscriptions",
   },
   customer: {
     login: "/customer/login",

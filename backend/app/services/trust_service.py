@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.models.enums import StoreBadgeType
 from app.models.store import Store, StoreTrustBadge, StoreTrustBadgeHistory
 from app.models.user import User
+from app.services.entitlement_service import get_seller_entitlements
 from app.services.exceptions import ServiceError
 
 
@@ -49,6 +50,19 @@ def set_badge_state(
     admin: User,
     note: str | None = None,
 ) -> StoreTrustBadge:
+    if is_active:
+        entitlements = get_seller_entitlements(db, store.owner_id)
+        if badge_type == StoreBadgeType.TRUSTED and not entitlements.get("badge_trust"):
+            raise ServiceError(
+                "نشان اعتماد برای پلن فعلی این فروشنده فعال نیست.",
+                status_code=403,
+            )
+        if badge_type == StoreBadgeType.PREMIUM and not entitlements.get("badge_premium"):
+            raise ServiceError(
+                "نشان پرمیوم برای پلن فعلی این فروشنده فعال نیست.",
+                status_code=403,
+            )
+
     badge = _get_badge(db, store.id, badge_type)
     now = datetime.now(UTC)
     if badge is None:

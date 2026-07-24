@@ -19,10 +19,14 @@ import {
   TableHeaderCell,
   TableRow,
 } from "@/components/ui/Table";
+import { UpgradeGate } from "@/components/seller/UpgradeGate";
+import { useSellerEntitlements } from "@/hooks/useSellerEntitlements";
 import type { DiscountCode, DiscountType } from "@/types/seller/discount";
 
 export default function SellerDiscountsPage() {
   const toast = useToast();
+  const { entitlements, isLoading: entitlementsLoading } = useSellerEntitlements();
+  const canManageDiscounts = entitlements.discounts;
 
   const [discounts, setDiscounts] = useState<DiscountCode[]>([]);
   const [loading, setLoading] = useState(true);
@@ -139,6 +143,11 @@ export default function SellerDiscountsPage() {
 
       {error && <ErrorAlert message={error} />}
 
+      {!entitlementsLoading && !canManageDiscounts && (
+        <UpgradeGate description="ساخت و مدیریت کد تخفیف در پلن پایه و بالاتر فعال است. پلن فعلی شما این قابلیت را ندارد." />
+      )}
+
+      {canManageDiscounts && (
       <Card>
         <CardHeader>
           <CardTitle>کد تخفیف جدید</CardTitle>
@@ -217,6 +226,7 @@ export default function SellerDiscountsPage() {
           </form>
         </CardContent>
       </Card>
+      )}
 
       <Card>
         <CardHeader>

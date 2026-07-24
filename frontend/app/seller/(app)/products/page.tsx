@@ -3,14 +3,16 @@
 import Link from "next/link";
 import { useCallback, useState } from "react";
 import * as productsApi from "@/lib/api/seller/products";
+import * as exportsApi from "@/lib/api/seller/exports";
 import { paths } from "@/lib/auth/paths";
 import { formatMoney } from "@/lib/format";
 import { useToast } from "@/contexts/ToastContext";
+import { useSellerEntitlements } from "@/hooks/useSellerEntitlements";
 import { useSellerFetch } from "@/hooks/useSellerFetch";
 import { ConfirmModal } from "@/components/seller/ConfirmModal";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Badge } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
+import { Button, buttonClassName } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorAlert } from "@/components/ui/ErrorAlert";
 import { PaginationControls } from "@/components/ui/PaginationControls";
@@ -23,12 +25,16 @@ import {
   TableHeaderCell,
   TableRow,
 } from "@/components/ui/Table";
+import { ApiError } from "@/lib/api/errors";
 
 export default function SellerProductsPage() {
   const toast = useToast();
+  const { entitlements } = useSellerEntitlements();
+  const canExport = entitlements.excel_export;
   const [page, setPage] = useState(1);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   const fetchProducts = useCallback(
     () => productsApi.listProducts({ page, page_size: 20 }),
@@ -52,6 +58,18 @@ export default function SellerProductsPage() {
     }
   }
 
+  async function handleExport() {
+    setExporting(true);
+    try {
+      await exportsApi.downloadCsv(() => exportsApi.exportProductsCsv(), "products.csv");
+      toast.success("خروجی محصولات دانلود شد");
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : "خروجی‌گیری ناموفق بود");
+    } finally {
+      setExporting(false);
+    }
+  }
+
   const items = data?.items ?? [];
 
   return (
@@ -59,9 +77,16 @@ export default function SellerProductsPage() {
       <PageHeader
         description="کاتالوگ خود را مدیریت کنید"
         action={
-          <Link href={paths.seller.productNew}>
-            <Button>افزودن محصول</Button>
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            {canExport && (
+              <Button type="button" variant="secondary" loading={exporting} onClick={() => void handleExport()}>
+                خروجی Excel
+              </Button>
+            )}
+            <Link href={paths.seller.productNew} className={buttonClassName()}>
+              افزودن محصول
+            </Link>
+          </div>
         }
       />
 
@@ -74,8 +99,8 @@ export default function SellerProductsPage() {
           title="هنوز محصولی ندارید"
           description="اولین محصول خود را اضافه کنید تا فروش را شروع کنید."
           action={
-            <Link href={paths.seller.productNew}>
-              <Button>افزودن محصول</Button>
+            <Link href={paths.seller.productNew} className={buttonClassName()}>
+              افزودن محصول
             </Link>
           }
         />
@@ -106,10 +131,11 @@ export default function SellerProductsPage() {
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">
-                      <Link href={paths.seller.productEdit(product.id)}>
-                        <Button variant="ghost" size="sm">
-                          ویرایش
-                        </Button>
+                      <Link
+                        href={paths.seller.productEdit(product.id)}
+                        className={buttonClassName({ variant: "ghost", size: "sm" })}
+                      >
+                        ویرایش
                       </Link>
                       <Button
                         variant="ghost"

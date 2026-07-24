@@ -5,6 +5,7 @@ Run from the backend directory:
     python -m scripts.seed
 """
 
+from datetime import datetime, timezone
 from decimal import Decimal
 
 from sqlalchemy import select
@@ -17,6 +18,10 @@ from app.models.product import Product
 from app.models.store import Store
 from app.models.user import User
 
+# Register related mappers used by User/Store relationships.
+import app.models.order  # noqa: F401
+import app.models.subscription  # noqa: F401
+
 ADMIN_EMAIL = "admin@example.com"
 ADMIN_PASSWORD = "admin123456"
 SELLER_EMAIL = "seller@example.com"
@@ -26,6 +31,7 @@ STORE_SLUG = "demo-store"
 
 def get_or_create_admin(db) -> User:
     user = db.scalar(select(User).where(User.email == ADMIN_EMAIL))
+    now = datetime.now(timezone.utc)
     if user is None:
         user = User(
             email=ADMIN_EMAIL,
@@ -33,6 +39,7 @@ def get_or_create_admin(db) -> User:
             full_name="Platform Admin",
             role=UserRole.ADMIN,
             is_active=True,
+            email_verified_at=now,
         )
         db.add(user)
         db.flush()
@@ -41,6 +48,8 @@ def get_or_create_admin(db) -> User:
         user.password_hash = hash_password(ADMIN_PASSWORD)
         user.role = UserRole.ADMIN
         user.is_active = True
+        if user.email_verified_at is None:
+            user.email_verified_at = now
         print(f"Admin already exists, password refreshed: {ADMIN_EMAIL}")
     return user
 
@@ -54,10 +63,16 @@ def get_or_create_seller_and_store(db) -> tuple[User, Store]:
             full_name="Demo Seller",
             role=UserRole.SELLER,
             is_active=True,
+            email_verified_at=datetime.now(timezone.utc),
         )
         db.add(user)
         db.flush()
         print(f"Created seller: {SELLER_EMAIL}")
+    elif user.email_verified_at is None:
+        user.email_verified_at = datetime.now(timezone.utc)
+        user.password_hash = hash_password(SELLER_PASSWORD)
+        user.is_active = True
+        print(f"Seller already exists, verified + password refreshed: {SELLER_EMAIL}")
 
     store = db.scalar(select(Store).where(Store.slug == STORE_SLUG))
     if store is None:

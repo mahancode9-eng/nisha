@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ChangeEvent } from "react";
+import Link from "next/link";
 import { ApiError } from "@/lib/api/errors";
+import { paths } from "@/lib/auth/paths";
 import { uploadPublicImage, uploadPublicVideo } from "@/lib/api/public/uploads";
+import { useSellerEntitlements } from "@/hooks/useSellerEntitlements";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -33,7 +36,7 @@ type EditableVariant = {
   isActive: boolean;
 };
 
-const MAX_IMAGES = 8;
+const FALLBACK_MAX_IMAGES = 8;
 const MAX_VIDEO_BYTES = 52_428_800; // 50MB — must match MAX_VIDEO_UPLOAD_SIZE_BYTES in the backend
 
 const FIELD_TYPES: ProductFieldType[] = [
@@ -159,6 +162,10 @@ export function ProductForm({
   onSubmit,
   submitLabel = "ذخیره محصول",
 }: ProductFormProps) {
+  const { entitlements } = useSellerEntitlements();
+  const maxImages = entitlements.max_product_images || FALLBACK_MAX_IMAGES;
+  const canVideo = entitlements.product_video;
+  const canCustomFields = entitlements.custom_fields;
   const [title, setTitle] = useState(initial?.title ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
   const [price, setPrice] = useState(initial?.price ?? "");
@@ -350,30 +357,32 @@ export function ProductForm({
       }))
       .filter((image) => image.image_url);
 
-    if (payloadImages.length > MAX_IMAGES) {
-      setError("حداکثر ۸ تصویر برای هر محصول مجاز است.");
+    if (payloadImages.length > maxImages) {
+      setError(`حداکثر ${maxImages} تصویر برای پلن فعلی مجاز است.`);
       return;
     }
 
-    let payloadFields: ProductFormFieldInput[];
-    try {
-      payloadFields = fields.map((field, index) => {
-        const payload = toFormFieldInput({ ...field, sort_order: index });
-        payload.sort_order = index;
-        if (
-          (payload.field_type === "DROPDOWN" || payload.field_type === "RADIO") &&
-          (!payload.options || payload.options.length === 0)
-        ) {
-          throw new Error(`گزینه‌ها برای ${payload.label} الزامی هستند`);
-        }
-        if (!payload.field_key || !payload.label) {
-          throw new Error("هر فیلد سفارشی به یک کلید و یک برچسب نیاز دارد.");
-        }
-        return payload;
-      });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "پیکربندی فیلد سفارشی نامعتبر است");
-      return;
+    let payloadFields: ProductFormFieldInput[] = [];
+    if (canCustomFields) {
+      try {
+        payloadFields = fields.map((field, index) => {
+          const payload = toFormFieldInput({ ...field, sort_order: index });
+          payload.sort_order = index;
+          if (
+            (payload.field_type === "DROPDOWN" || payload.field_type === "RADIO") &&
+            (!payload.options || payload.options.length === 0)
+          ) {
+            throw new Error(`گزینه‌ها برای ${payload.label} الزامی هستند`);
+          }
+          if (!payload.field_key || !payload.label) {
+            throw new Error("هر فیلد سفارشی به یک کلید و یک برچسب نیاز دارد.");
+          }
+          return payload;
+        });
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "پیکربندی فیلد سفارشی نامعتبر است");
+        return;
+      }
     }
 
     let payloadVariants: ProductVariantInput[];
@@ -417,10 +426,10 @@ export function ProductForm({
         price: priceNum,
         stock_quantity: stockNum,
         is_active: isActive,
-        video_url: videoUrl.trim() || null,
-        video_mime_type: videoUrl.trim() ? videoMimeType.trim() || null : null,
+        video_url: canVideo ? videoUrl.trim() || null : null,
+        video_mime_type: canVideo && videoUrl.trim() ? videoMimeType.trim() || null : null,
         images: payloadImages.length > 0 ? payloadImages : null,
-        form_fields: payloadFields.length > 0 ? payloadFields : null,
+        form_fields: canCustomFields && payloadFields.length > 0 ? payloadFields : null,
         variants: payloadVariants.length > 0 ? payloadVariants : null,
       });
     } catch (err) {
@@ -570,16 +579,16 @@ export function ProductForm({
               <div>
                 <p className="text-xs tracking-[0.2em] text-foreground-muted">گالری</p>
                 <p className="text-sm text-foreground-muted">
-                  تا ۸ تصویر بارگذاری کنید و با کشیدن کارت‌ها (یا دکمه‌های بالا/پایین) ترتیب گالری را مشخص کنید؛ تصویر اول، تصویر اصلی است.
+                  تا {maxImages} تصویر بارگذاری کنید و با کشیدن کارت‌ها (یا دکمه‌های بالا/پایین) ترتیب گالری را مشخص کنید؛ تصویر اول، تصویر اصلی است.
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                <span className="whitespace-nowrap text-xs text-foreground-muted">{images.length} / {MAX_IMAGES}</span>
+                <span className="whitespace-nowrap text-xs text-foreground-muted">{images.length} / {maxImages}</span>
                 <Button
                   type="button"
                   variant="secondary"
-                  disabled={images.length >= MAX_IMAGES}
-                  onClick={() => setImages((prev) => (prev.length >= MAX_IMAGES ? prev : [...prev, emptyImage()]))}
+                  disabled={images.length >= maxImages}
+                  onClick={() => setImages((prev) => (prev.length >= maxImages ? prev : [...prev, emptyImage()]))}
                 >
                   افزودن تصویر
                 </Button>
@@ -733,9 +742,12 @@ export function ProductForm({
               <div>
                 <p className="text-xs tracking-[0.2em] text-foreground-muted">ویدیوی محصول</p>
                 <p className="text-sm text-foreground-muted">
-                  یک ویدیوی MP4 یا WebM با حجم حداکثر ۵۰ مگابایت بارگذاری کنید (اختیاری). ویدیو در انتهای گالری صفحه محصول نمایش داده می‌شود.
+                  {canVideo
+                    ? "یک ویدیوی MP4 یا WebM با حجم حداکثر ۵۰ مگابایت بارگذاری کنید (اختیاری). ویدیو در انتهای گالری صفحه محصول نمایش داده می‌شود."
+                    : "ویدیوی محصول در پلن حرفه‌ای و بالاتر فعال است."}
                 </p>
               </div>
+              {canVideo && (
               <div className="flex gap-2">
                 <Button
                   type="button"
@@ -760,7 +772,18 @@ export function ProductForm({
                   </Button>
                 )}
               </div>
+              )}
             </div>
+            {!canVideo ? (
+              <p className="text-sm text-foreground-muted">
+                برای افزودن ویدیو،{" "}
+                <Link href={paths.seller.subscription} className="text-brand underline-offset-2 hover:underline">
+                  پلن را ارتقا دهید
+                </Link>
+                .
+              </p>
+            ) : (
+              <>
             <input
               ref={videoInputRef}
               type="file"
@@ -785,6 +808,8 @@ export function ProductForm({
             ) : (
               <p className="text-sm text-foreground-muted">هنوز ویدیویی برای این محصول انتخاب نشده است.</p>
             )}
+              </>
+            )}
           </section>
 
           <section className="space-y-4">
@@ -792,13 +817,25 @@ export function ProductForm({
               <div>
                 <p className="text-xs tracking-[0.2em] text-foreground-muted">فیلدهای سفارشی</p>
                 <p className="text-sm text-foreground-muted">
-                  فرم پرداخت این محصول را بسازید. گزینه‌ها را در هر خط به‌شکل `برچسب|مقدار` بنویسید.
+                  {canCustomFields
+                    ? "فرم پرداخت این محصول را بسازید. گزینه‌ها را در هر خط به‌شکل `برچسب|مقدار` بنویسید."
+                    : "فیلدهای سفارشی در پلن حرفه‌ای و بالاتر فعال است."}
                 </p>
               </div>
+              {canCustomFields && (
               <Button type="button" variant="secondary" onClick={() => setFields((prev) => [...prev, emptyField()])}>
                 افزودن فیلد
               </Button>
+              )}
             </div>
+            {!canCustomFields && (
+              <p className="text-sm text-foreground-muted">
+                <Link href={paths.seller.subscription} className="text-brand underline-offset-2 hover:underline">
+                  مشاهده پلن‌ها و ارتقا
+                </Link>
+              </p>
+            )}
+            {canCustomFields && (
             <div className="space-y-4">
               {fields.length === 0 ? (
                 <p className="text-sm text-foreground-muted">این محصول به فیلد سفارشی در پرداخت نیاز ندارد.</p>
@@ -898,6 +935,7 @@ export function ProductForm({
                 ))
               )}
             </div>
+            )}
           </section>
 
           <Button type="submit" loading={loading}>

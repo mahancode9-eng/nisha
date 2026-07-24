@@ -87,3 +87,23 @@ class StoreOnboardingStep(str, Enum):
     FIRST_PRODUCT = "first_product"
     EDUCATION = "education"
     ACTIVATION = "activation"
+
+
+class BillingPeriod(str, Enum):
+    MONTHLY = "MONTHLY"
+    QUARTERLY = "QUARTERLY"
+    YEARLY = "YEARLY"
+
+
+class SellerSubscriptionStatus(str, Enum):
+    ACTIVE = "ACTIVE"
+    PAST_DUE = "PAST_DUE"
+    CANCELLED = "CANCELLED"
+
+
+class SubscriptionInvoiceStatus(str, Enum):
+    PENDING_PAYMENT = "PENDING_PAYMENT"
+    PROOF_UPLOADED = "PROOF_UPLOADED"
+    PAID = "PAID"
+    REJECTED = "REJECTED"
+    CANCELLED = "CANCELLED"

@@ -18,6 +18,10 @@ export type Store = {
   support_contact: string | null;
   is_active: boolean;
   guest_checkout_enabled: boolean;
+  theme_preset: string | null;
+  primary_color: string | null;
+  about_text: string | null;
+  shipping_policy_text: string | null;
   social_links: StoreSocialLink[];
   created_at: string;
   updated_at: string;
@@ -61,5 +65,9 @@ export type StoreUpdate = {
   support_contact?: string | null;
   is_active?: boolean;
   guest_checkout_enabled?: boolean;
+  theme_preset?: string | null;
+  primary_color?: string | null;
+  about_text?: string | null;
+  shipping_policy_text?: string | null;
   social_links?: StoreSocialLinkInput[];
 };

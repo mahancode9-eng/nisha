@@ -5,11 +5,12 @@ import * as dashboardApi from "@/lib/api/seller/dashboard";
 import * as storeApi from "@/lib/api/seller/store";
 import { paths } from "@/lib/auth/paths";
 import { formatMoney } from "@/lib/format";
+import { useSellerEntitlements } from "@/hooks/useSellerEntitlements";
 import { useSellerFetch } from "@/hooks/useSellerFetch";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { StatCard } from "@/components/seller/StatCard";
 import { Badge } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
+import { buttonClassName } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorAlert } from "@/components/ui/ErrorAlert";
 import { StatCardSkeleton } from "@/components/ui/StatCardSkeleton";
@@ -28,6 +29,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 export default function SellerDashboardPage() {
   const { data, error, isLoading } = useSellerFetch(() => dashboardApi.getDashboard(), []);
   const { data: store } = useSellerFetch(() => storeApi.getStore(), []);
+  const { plan } = useSellerEntitlements();
 
   if (isLoading) {
     return (
@@ -57,11 +59,23 @@ export default function SellerDashboardPage() {
       <PageHeader
         description="نمای کلی عملکرد فروشگاه شما"
         action={
-          store?.slug ? (
-            <Link href={paths.store(store.slug)} target="_blank" rel="noopener noreferrer">
-              <Button variant="secondary">مشاهده فروشگاه</Button>
-            </Link>
-          ) : undefined
+          <div className="flex flex-wrap items-center gap-2">
+            {plan && (
+              <Link href={paths.seller.subscription}>
+                <Badge variant="neutral">پلن فعلی: {plan.name_fa}</Badge>
+              </Link>
+            )}
+            {store?.slug ? (
+              <Link
+                href={paths.store(store.slug)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={buttonClassName({ variant: "secondary" })}
+              >
+                مشاهده فروشگاه
+              </Link>
+            ) : null}
+          </div>
         }
       />
 
@@ -113,8 +127,11 @@ export default function SellerDashboardPage() {
                 />
               </div>
               {hasRemainingSetup && (
-                <Link href={paths.seller.onboarding} className="block">
-                  <Button className="w-full">ادامه راه‌اندازی</Button>
+                <Link
+                  href={paths.seller.onboarding}
+                  className={buttonClassName({ className: "w-full" })}
+                >
+                  ادامه راه‌اندازی
                 </Link>
               )}
             </div>

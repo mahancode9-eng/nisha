@@ -56,6 +56,8 @@ class Settings(BaseSettings):
     RESEND_API_KEY: str = ""
     FRONTEND_BASE_URL: str = "http://localhost:3000"
     EMAIL_VERIFICATION_EXPIRE_MINUTES: int = 1440
+    SUBSCRIPTION_PAYMENT_PROVIDER: Literal["card_to_card"] = "card_to_card"
+    SUBSCRIPTION_PROOF_SUBDIR: str = "subscription-proofs"
 
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod

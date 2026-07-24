@@ -18,9 +18,13 @@ from app.schemas.product import (
     ProductUpdate,
     ProductVariantInput,
 )
+from app.services import entitlement_service
 from app.services.exceptions import ServiceError
 
-MAX_IMAGES_MESSAGE = "حداکثر ۸ تصویر برای هر محصول مجاز است"
+MAX_IMAGES_MESSAGE = "تعداد تصاویر از سقف پلن شما بیشتر است"
+PRODUCT_LIMIT_MESSAGE = "سقف تعداد محصولات پلن شما تکمیل شده است"
+VIDEO_LOCKED_MESSAGE = "آپلود ویدیو در پلن فعلی شما فعال نیست"
+FIELDS_LOCKED_MESSAGE = "فیلدهای سفارشی در پلن فعلی شما فعال نیست"
 
 
 def _serialize_json(value) -> str | None:
@@ -65,12 +69,14 @@ def _attach_images(
     db: Session,
     product: Product,
     images: list[ProductImageInput] | list[str] | list[dict],
+    *,
+    max_images: int = MAX_PRODUCT_IMAGES,
 ) -> None:
     if not images:
         return
 
     coerced_images = [_coerce_image_input(image) for image in images]
-    if len(coerced_images) > MAX_PRODUCT_IMAGES:
+    if len(coerced_images) > max_images:
         raise ServiceError(MAX_IMAGES_MESSAGE, status_code=422)
 
     if isinstance(coerced_images[0], str):  # legacy compatibility
@@ -104,11 +110,17 @@ def _attach_images(
         )
 
 
-def _replace_images(db: Session, product: Product, images: list[ProductImageInput] | list[str] | list[dict]) -> None:
+def _replace_images(
+    db: Session,
+    product: Product,
+    images: list[ProductImageInput] | list[str] | list[dict],
+    *,
+    max_images: int = MAX_PRODUCT_IMAGES,
+) -> None:
     for image in list(product.images):
         db.delete(image)
     db.flush()
-    _attach_images(db, product, images)
+    _attach_images(db, product, images, max_images=max_images)
 
 
 def _attach_form_fields(db: Session, product: Product, fields: list[ProductFormFieldInput] | list[dict]) -> None:
@@ -225,6 +237,21 @@ def get_product(db: Session, store: Store, product_id: int) -> Product:
 
 
 def create_product(db: Session, store: Store, data: ProductCreate) -> Product:
+    entitlements = entitlement_service.get_seller_entitlements(db, store.owner_id)
+    max_products = entitlement_service.get_max_products(entitlements)
+    if max_products is not None:
+        current_count = db.scalar(
+            select(func.count()).select_from(Product).where(Product.store_id == store.id)
+        ) or 0
+        if current_count >= max_products:
+            raise ServiceError(PRODUCT_LIMIT_MESSAGE, status_code=403)
+
+    if data.video_url and not entitlements.get("product_video"):
+        raise ServiceError(VIDEO_LOCKED_MESSAGE, status_code=403)
+    if data.form_fields and not entitlements.get("custom_fields"):
+        raise ServiceError(FIELDS_LOCKED_MESSAGE, status_code=403)
+
+    max_images = entitlement_service.get_max_product_images(entitlements)
     product = Product(
         store_id=store.id,
         title=data.title,
@@ -239,9 +266,9 @@ def create_product(db: Session, store: Store, data: ProductCreate) -> Product:
     db.flush()
 
     if data.images is not None:
-        _attach_images(db, product, data.images)
+        _attach_images(db, product, data.images, max_images=max_images)
     elif data.image_urls:
-        _attach_images(db, product, data.image_urls)
+        _attach_images(db, product, data.image_urls, max_images=max_images)
 
     if data.form_fields:
         _attach_form_fields(db, product, data.form_fields)
@@ -261,7 +288,12 @@ def update_product(
     data: ProductUpdate,
 ) -> Product:
     product = get_product(db, store, product_id)
+    entitlements = entitlement_service.get_seller_entitlements(db, store.owner_id)
+    max_images = entitlement_service.get_max_product_images(entitlements)
     update_data = data.model_dump(exclude_unset=True)
+
+    if update_data.get("video_url") and not entitlements.get("product_video"):
+        raise ServiceError(VIDEO_LOCKED_MESSAGE, status_code=403)
 
     image_urls = update_data.pop("image_urls", None)
     images = update_data.pop("images", None)
@@ -271,11 +303,13 @@ def update_product(
         setattr(product, field, value)
 
     if images is not None:
-        _replace_images(db, product, images)
+        _replace_images(db, product, images, max_images=max_images)
     elif image_urls is not None:
-        _replace_images(db, product, image_urls)
+        _replace_images(db, product, image_urls, max_images=max_images)
 
     if form_fields is not None:
+        if form_fields and not entitlements.get("custom_fields"):
+            raise ServiceError(FIELDS_LOCKED_MESSAGE, status_code=403)
         _replace_form_fields(db, product, form_fields)
 
     if variants is not None:
@@ -339,7 +373,9 @@ def _get_form_field(db: Session, store: Store, product_id: int, field_id: int) -
 
 def create_product_image(db: Session, store: Store, product_id: int, data: ProductImageInput) -> ProductImage:
     product = get_product(db, store, product_id)
-    if len(product.images) >= MAX_PRODUCT_IMAGES:
+    entitlements = entitlement_service.get_seller_entitlements(db, store.owner_id)
+    max_images = entitlement_service.get_max_product_images(entitlements)
+    if len(product.images) >= max_images:
         raise ServiceError(MAX_IMAGES_MESSAGE, status_code=422)
     image = ProductImage(
         product_id=product.id,
@@ -400,6 +436,12 @@ def create_product_form_field(
     data: ProductFormFieldInput,
 ) -> ProductFormField:
     product = get_product(db, store, product_id)
+    entitlement_service.require_entitlement(
+        db,
+        store.owner_id,
+        "custom_fields",
+        message=FIELDS_LOCKED_MESSAGE,
+    )
     field = ProductFormField(
         product_id=product.id,
         field_key=data.field_key,

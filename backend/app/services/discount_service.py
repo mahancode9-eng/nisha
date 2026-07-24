@@ -13,6 +13,7 @@ from app.models.discount import (
     DiscountCode,
 )
 from app.schemas.discount import DiscountCodeCreate, DiscountCodeUpdate
+from app.services import entitlement_service
 from app.services.exceptions import ServiceError
 
 INVALID_CODE_MESSAGE = "کد تخفیف معتبر نیست"
@@ -61,6 +62,16 @@ def _validate_type_fields(discount_type: str, percent_off, amount_off) -> None:
 
 
 def create_discount(db: Session, store_id: int, payload: DiscountCodeCreate) -> DiscountCode:
+    from app.models.store import Store
+
+    store = db.get(Store, store_id)
+    if store is not None:
+        entitlement_service.require_entitlement(
+            db,
+            store.owner_id,
+            "discounts",
+            message="ساخت کد تخفیف در پلن فعلی شما فعال نیست. لطفاً پلن خود را ارتقا دهید.",
+        )
     _validate_type_fields(payload.discount_type, payload.percent_off, payload.amount_off)
     discount = DiscountCode(
         store_id=store_id,

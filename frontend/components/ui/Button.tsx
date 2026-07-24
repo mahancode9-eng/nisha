@@ -1,8 +1,8 @@
 import { cn } from "@/lib/cn";
 import type { ButtonHTMLAttributes } from "react";
 
-type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
-type ButtonSize = "sm" | "md";
+export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
+export type ButtonSize = "sm" | "md";
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: ButtonVariant;
@@ -24,6 +24,22 @@ const sizeClasses: Record<ButtonSize, string> = {
   md: "px-4 py-2 text-sm",
 };
 
+const baseButtonClasses =
+  "inline-flex items-center justify-center gap-2 rounded-full font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-60";
+
+/** Shared classes for `<Link>` / `<a>` that should look like a Button (never nest Button inside Link). */
+export function buttonClassName({
+  variant = "primary",
+  size = "md",
+  className,
+}: {
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  className?: string;
+} = {}) {
+  return cn(baseButtonClasses, variantClasses[variant], sizeClasses[size], className);
+}
+
 export function Button({
   className,
   variant = "primary",
@@ -35,12 +51,7 @@ export function Button({
 }: ButtonProps) {
   return (
     <button
-      className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-full font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-60",
-        variantClasses[variant],
-        sizeClasses[size],
-        className,
-      )}
+      className={buttonClassName({ variant, size, className })}
       disabled={disabled || loading}
       {...props}
     >

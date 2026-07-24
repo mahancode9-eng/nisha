@@ -11,6 +11,7 @@ type SellerPrimaryCtaProps = {
   className?: string;
   guestLabel?: string;
   sellerLabel?: string;
+  sellerHref?: string;
 };
 
 export function SellerPrimaryCta({
@@ -19,13 +20,14 @@ export function SellerPrimaryCta({
   className,
   guestLabel = "شروع فروش",
   sellerLabel = "رفتن به داشبورد",
+  sellerHref = paths.seller.dashboard,
 }: SellerPrimaryCtaProps) {
   const { user, isLoading } = useAuth();
   const isSeller = !isLoading && user?.role === "SELLER";
 
   return (
     <Link
-      href={isSeller ? paths.seller.dashboard : paths.seller.register}
+      href={isSeller ? sellerHref : paths.seller.register}
       className={landingButtonClasses({ variant, size, className })}
     >
       {isSeller ? sellerLabel : guestLabel}

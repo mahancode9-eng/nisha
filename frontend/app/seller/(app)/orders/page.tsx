@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import * as ordersApi from "@/lib/api/seller/orders";
+import * as exportsApi from "@/lib/api/seller/exports";
 import { paths } from "@/lib/auth/paths";
 import { formatDateTime, formatMoney } from "@/lib/format";
+import { useSellerEntitlements } from "@/hooks/useSellerEntitlements";
 import { useSellerFetch } from "@/hooks/useSellerFetch";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/Button";
@@ -46,11 +48,14 @@ type TabKey = "payment" | "processing";
 
 export default function SellerOrdersPage() {
   const toast = useToast();
+  const { entitlements } = useSellerEntitlements();
+  const canExport = entitlements.excel_export;
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
   const [activeTab, setActiveTab] = useState<TabKey>("payment");
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), 300);
@@ -97,9 +102,30 @@ export default function SellerOrdersPage() {
     }
   }
 
+  async function handleExport() {
+    setExporting(true);
+    try {
+      await exportsApi.downloadCsv(() => exportsApi.exportOrdersCsv(), "orders.csv");
+      toast.success("خروجی سفارش‌ها دانلود شد");
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : "خروجی‌گیری ناموفق بود");
+    } finally {
+      setExporting(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
-      <PageHeader description="بین بررسی پرداخت و پردازش سفارش تقسیم شده است" />
+      <PageHeader
+        description="بین بررسی پرداخت و پردازش سفارش تقسیم شده است"
+        action={
+          canExport ? (
+            <Button type="button" variant="secondary" loading={exporting} onClick={() => void handleExport()}>
+              خروجی Excel
+            </Button>
+          ) : undefined
+        }
+      />
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
         <div className="flex-1">

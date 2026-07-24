@@ -13,6 +13,8 @@ export default function AdminAppLayout({ children }: { children: React.ReactNode
     { href: paths.admin.orders, label: "سفارش‌ها" },
     { href: paths.admin.stores, label: "فروشگاه‌ها" },
     { href: paths.admin.users, label: "کاربران" },
+    { href: paths.admin.plans, label: "پلن‌ها" },
+    { href: paths.admin.subscriptions, label: "اشتراک‌ها" },
     { href: paths.admin.complaints, label: "شکایت‌ها" },
     { href: paths.admin.reviews, label: "نظرات" },
     { href: paths.admin.chats, label: "گفتگوها" },

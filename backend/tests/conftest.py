@@ -34,6 +34,7 @@ import app.models.payment_method  # noqa: F401
 import app.models.platform_setting  # noqa: F401
 import app.models.product  # noqa: F401
 import app.models.store  # noqa: F401
+import app.models.subscription  # noqa: F401
 import app.models.user  # noqa: F401
 
 get_settings.cache_clear()
@@ -135,7 +136,22 @@ def other_seller_headers(client: TestClient, db: Session) -> dict[str, str]:
 
 
 @pytest.fixture
-def public_store(client: TestClient, seller_headers: dict[str, str]) -> dict:
+def public_store(client: TestClient, seller_headers: dict[str, str], db: Session) -> dict:
+    from app.models.enums import BillingPeriod
+    from app.services import subscription_billing_service
+    from app.services.auth_service import normalize_email
+    from app.models.user import User
+
+    seller = db.scalar(select(User).where(User.email == normalize_email("seller-a@example.com")))
+    assert seller is not None
+    subscription_billing_service.admin_assign_plan(
+        db,
+        seller.id,
+        plan_code="basic",
+        period=BillingPeriod.MONTHLY,
+        months=1,
+    )
+
     product = client.post(
         "/api/v1/seller/products",
         headers=seller_headers,

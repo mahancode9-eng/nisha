@@ -19,6 +19,7 @@ export default function SellerAppLayout({ children }: { children: React.ReactNod
     { href: paths.seller.discounts, label: "تخفیف‌ها" },
     { href: paths.seller.conversations, label: "گفتگوها" },
     { href: paths.seller.paymentMethods, label: "پرداخت‌ها" },
+    { href: paths.seller.subscription, label: "اشتراک" },
   ];
 
   return (

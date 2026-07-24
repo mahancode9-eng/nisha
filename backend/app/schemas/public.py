@@ -29,6 +29,10 @@ class PublicStoreProfile(BaseModel):
     support_contact: str | None
     trust_badges: list[str] = Field(default_factory=list, validation_alias="badge_labels")
     guest_checkout_enabled: bool = True
+    theme_preset: str | None = None
+    primary_color: str | None = None
+    about_text: str | None = None
+    shipping_policy_text: str | None = None
 
 
 class PublicStoreSocialLink(BaseModel):

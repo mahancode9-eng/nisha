@@ -201,10 +201,22 @@ class AdminStoreDetailResponse(BaseModel):
 
 class AdminPlatformSettingsResponse(BaseModel):
     guest_checkout_enabled: bool
+    subscription_card_number: str = ""
+    subscription_card_owner: str = ""
+    subscription_card_bank: str = ""
 
 
 class AdminPlatformSettingsUpdate(BaseModel):
-    guest_checkout_enabled: bool
+    guest_checkout_enabled: bool | None = None
+    subscription_card_number: str | None = None
+    subscription_card_owner: str | None = None
+    subscription_card_bank: str | None = None
+
+    @model_validator(mode="after")
+    def require_at_least_one_field(self) -> "AdminPlatformSettingsUpdate":
+        if not self.model_fields_set:
+            raise ValueError("At least one field must be provided")
+        return self
 
 
 class AdminStoreGuestCheckoutUpdate(BaseModel):

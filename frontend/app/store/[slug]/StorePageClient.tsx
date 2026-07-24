@@ -158,7 +158,15 @@ export function StorePageClient({ slug, initialData, initialError }: StorePageCl
   const categoryLabel = store.category_name ?? findSellerStoreCategory(store.category_slug)?.label ?? null;
 
   return (
-    <div className="space-y-6">
+    <div
+      className="space-y-6"
+      style={
+        store.primary_color
+          ? ({ ["--store-primary" as string]: store.primary_color } as React.CSSProperties)
+          : undefined
+      }
+      data-theme={store.theme_preset || "default"}
+    >
       <section className="overflow-hidden rounded-[2rem] border border-border bg-surface shadow-sm">
         <div className="relative overflow-hidden bg-neutral-950 text-white">
           {coverUrl && (
@@ -373,7 +381,14 @@ export function StorePageClient({ slug, initialData, initialError }: StorePageCl
                 <div>
                   <p className="text-xs tracking-[0.2em] text-foreground-muted">جزئیات فروشگاه</p>
                   <div className="mt-3 space-y-2 text-sm leading-6 text-foreground">
+                    {store.about_text && <p className="whitespace-pre-wrap">{store.about_text}</p>}
                     {store.description && <p>{store.description}</p>}
+                    {store.shipping_policy_text && (
+                      <div className="rounded-2xl border border-border bg-background/50 p-3">
+                        <p className="mb-1 text-xs tracking-[0.2em] text-foreground-muted">سیاست ارسال</p>
+                        <p className="whitespace-pre-wrap">{store.shipping_policy_text}</p>
+                      </div>
+                    )}
                     {store.location && <p>موقعیت: {store.location}</p>}
                     {store.phone && <p>تلفن: {store.phone}</p>}
                     {store.support_contact && <p>پشتیبانی: {store.support_contact}</p>}

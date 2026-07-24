@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { HowItWorks } from "@/components/landing/HowItWorks";
+import { LandingPricing } from "@/components/landing/LandingPricing";
 import { LandingStorePreview } from "@/components/landing/LandingStorePreview";
 import { Reveal } from "@/components/landing/Reveal";
 import { RotatingWords } from "@/components/landing/RotatingWords";
@@ -26,11 +27,11 @@ export const metadata: Metadata = {
   },
 };
 
-const heroWords = ["ویترین اختصاصی", "چک‌اوت بدون ثبت‌نام", "تخفیف و تنوع محصول", "آمار فروش زنده"];
+const heroWords = ["ویترین اختصاصی", "چک‌اوت ساده", "تخفیف و تنوع محصول", "آمار فروش زنده"];
 
 const stats = [
   { value: "۵ دقیقه", label: "تا ساخت فروشگاه و انتشار اولین محصول" },
-  { value: "۰ تومان", label: "هزینه شروع — بدون کارمزد پنهان" },
+  { value: "۰ تومان", label: "شروع رایگان — بدون کارمزد روی فروش" },
   { value: "۲۴/۷", label: "ویترین همیشه باز، روی موبایل و دسکتاپ" },
 ];
 
@@ -43,7 +44,7 @@ const capabilities = [
   {
     emoji: "🛒",
     title: "چک‌اوت بدون ثبت‌نام",
-    description: "مشتری بدون ساخت حساب خرید می‌کند و رسید کارت‌به‌کارت را همان‌جا آپلود می‌کند.",
+    description: "در پلن پایه و بالاتر، مشتری بدون ساخت حساب خرید می‌کند و رسید کارت‌به‌کارت را همان‌جا آپلود می‌کند.",
   },
   {
     emoji: "💬",
@@ -53,7 +54,7 @@ const capabilities = [
   {
     emoji: "📊",
     title: "آمار فروش زنده",
-    description: "بازدید، فروش روزانه و محصول‌های پرفروش را یک‌جا ببین و تصمیم‌های دقیق‌تر بگیر.",
+    description: "بازدید و فروش روزانه را از روز اول ببین؛ بازه‌های بلندتر و گزارش پیشرفته در پلن‌های بالاتر فعال است.",
   },
 ];
 
@@ -61,7 +62,7 @@ const buyerPoints = [
   {
     emoji: "🧾",
     title: "خرید بدون ثبت‌نام",
-    description: "مشتری فقط اسم و شماره می‌دهد، سفارش ثبت می‌شود و رسید پرداخت را همان‌جا آپلود می‌کند.",
+    description: "در فروشگاه‌های پلن پایه و بالاتر، مشتری فقط اسم و شماره می‌دهد، سفارش ثبت می‌شود و رسید پرداخت را همان‌جا آپلود می‌کند.",
   },
   {
     emoji: "🔎",
@@ -185,6 +186,8 @@ export default function HomePage() {
 
         <HowItWorks />
       </section>
+
+      <LandingPricing />
 
       <section className="space-y-10">
         <Reveal>

@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
+import Link from "next/link";
 import { ApiError } from "@/lib/api/errors";
 import { uploadPublicImage } from "@/lib/api/public/uploads";
 import { resolveMediaUrl } from "@/lib/media";
+import { paths } from "@/lib/auth/paths";
 import { SELLER_STORE_CATEGORY_OPTIONS } from "@/lib/seller/storeCategories";
+import { useSellerEntitlements } from "@/hooks/useSellerEntitlements";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { FormSection } from "@/components/ui/FormSection";
@@ -57,6 +60,10 @@ function makeSocialLinkLabel(platform: SocialPlatformKey, customLabel: string): 
 }
 
 export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
+  const { entitlements } = useSellerEntitlements();
+  const canGuestCheckout = entitlements.guest_checkout;
+  const canTheme = entitlements.store_theme;
+  const canPages = entitlements.store_pages;
   const [name, setName] = useState(store.name);
   const [slug, setSlug] = useState(store.slug);
   const [description, setDescription] = useState(store.description ?? "");
@@ -87,6 +94,10 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
   );
   const [isActive, setIsActive] = useState(store.is_active);
   const [guestCheckoutEnabled, setGuestCheckoutEnabled] = useState(store.guest_checkout_enabled);
+  const [themePreset, setThemePreset] = useState(store.theme_preset ?? "default");
+  const [primaryColor, setPrimaryColor] = useState(store.primary_color ?? "");
+  const [aboutText, setAboutText] = useState(store.about_text ?? "");
+  const [shippingPolicyText, setShippingPolicyText] = useState(store.shipping_policy_text ?? "");
   const [logoPreview, setLogoPreview] = useState<string | null>(store.logo_url ? resolveMediaUrl(store.logo_url) : null);
   const [coverPreview, setCoverPreview] = useState<string | null>(
     store.cover_image_url ? resolveMediaUrl(store.cover_image_url) : null,
@@ -127,6 +138,10 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
     );
     setIsActive(store.is_active);
     setGuestCheckoutEnabled(store.guest_checkout_enabled);
+    setThemePreset(store.theme_preset ?? "default");
+    setPrimaryColor(store.primary_color ?? "");
+    setAboutText(store.about_text ?? "");
+    setShippingPolicyText(store.shipping_policy_text ?? "");
     setLogoPreview(store.logo_url ? resolveMediaUrl(store.logo_url) : null);
     setCoverPreview(store.cover_image_url ? resolveMediaUrl(store.cover_image_url) : null);
   }, [store]);
@@ -233,6 +248,10 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
         })),
         is_active: isActive,
         guest_checkout_enabled: guestCheckoutEnabled,
+        theme_preset: themePreset || null,
+        primary_color: primaryColor.trim() || null,
+        about_text: aboutText.trim() || null,
+        shipping_policy_text: shippingPolicyText.trim() || null,
       });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "ذخیره تنظیمات فروشگاه ممکن نشد");
@@ -445,20 +464,80 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
             </div>
           </FormSection>
 
+          <FormSection
+            title="ظاهر و صفحات (پلن حرفه‌ای+)"
+            description="رنگ برند، تم، درباره ما و سیاست ارسال. در پلن‌های پایین‌تر ممکن است ذخیره نشود."
+          >
+            {!(canTheme || canPages) && (
+              <p className="text-sm text-foreground-muted">
+                تنظیم تم و صفحات در پلن حرفه‌ای و بالاتر فعال است.{" "}
+                <Link href={paths.seller.subscription} className="text-brand underline-offset-2 hover:underline">
+                  ارتقا پلن
+                </Link>
+              </p>
+            )}
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="space-y-1 text-sm">
+                <span>تم</span>
+                <select
+                  className="w-full rounded-xl border border-border bg-background px-3 py-2 disabled:opacity-60"
+                  value={themePreset}
+                  disabled={!canTheme}
+                  onChange={(e) => setThemePreset(e.target.value)}
+                >
+                  <option value="default">پیش‌فرض</option>
+                  <option value="warm">گرم</option>
+                  <option value="cool">سرد</option>
+                  <option value="contrast">کنتراست</option>
+                </select>
+              </label>
+              <Input
+                label="رنگ اصلی (مثلاً #0F766E)"
+                value={primaryColor}
+                disabled={!canTheme}
+                onChange={(e) => setPrimaryColor(e.target.value)}
+              />
+            </div>
+            <Textarea
+              label="درباره فروشگاه"
+              value={aboutText}
+              disabled={!canPages}
+              onChange={(e) => setAboutText(e.target.value)}
+              rows={4}
+            />
+            <Textarea
+              label="سیاست ارسال"
+              value={shippingPolicyText}
+              disabled={!canPages}
+              onChange={(e) => setShippingPolicyText(e.target.value)}
+              rows={4}
+            />
+          </FormSection>
+
           <FormSection title="نمایش" description="می‌توانید تا زمان آماده‌سازی، فروشگاه را منتشر یا مخفی کنید.">
             <div className="space-y-4">
               <label className="flex items-center gap-2 text-sm text-foreground">
                 <input
                   type="checkbox"
                   checked={guestCheckoutEnabled}
+                  disabled={!canGuestCheckout}
                   onChange={(e) => setGuestCheckoutEnabled(e.target.checked)}
                   className="rounded border-border"
                 />
                 اجازه خرید مهمان (بدون ورود)
               </label>
-              <p className="text-xs text-foreground-muted">
-                اگر غیرفعال باشد، مشتریان برای ثبت سفارش باید وارد حساب کاربری شوند.
-              </p>
+              {!canGuestCheckout ? (
+                <p className="text-xs text-foreground-muted">
+                  خرید مهمان از پلن پایه به بالا فعال است.{" "}
+                  <Link href={paths.seller.subscription} className="text-brand underline-offset-2 hover:underline">
+                    ارتقا پلن
+                  </Link>
+                </p>
+              ) : (
+                <p className="text-xs text-foreground-muted">
+                  اگر غیرفعال باشد، مشتریان برای ثبت سفارش باید وارد حساب کاربری شوند.
+                </p>
+              )}
               <label className="flex items-center gap-2 text-sm text-foreground">
                 <input
                   type="checkbox"

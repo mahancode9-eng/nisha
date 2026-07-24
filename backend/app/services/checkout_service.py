@@ -24,6 +24,7 @@ from app.schemas.public import (
     OrderItemInput,
 )
 from app.services import discount_service, order_notification_service
+from app.services.entitlement_service import get_seller_entitlements
 from app.services.exceptions import ServiceError
 from app.services.platform_setting_service import is_guest_checkout_enabled
 from app.services.product_service import build_form_field_snapshot
@@ -284,6 +285,14 @@ def create_guest_order(
             "خرید مهمان برای این فروشگاه غیرفعال است. لطفاً وارد حساب کاربری شوید.",
             status_code=403,
         )
+
+    if customer_id is None:
+        entitlements = get_seller_entitlements(db, store.owner_id)
+        if not entitlements.get("guest_checkout"):
+            raise ServiceError(
+                "خرید مهمان برای این فروشگاه در دسترس نیست.",
+                status_code=403,
+            )
 
     if not data.items:
         raise ServiceError("سبد خرید نمی‌تواند خالی باشد", status_code=422)

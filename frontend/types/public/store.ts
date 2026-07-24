@@ -20,6 +20,10 @@ export type PublicStoreProfile = {
   support_contact: string | null;
   trust_badges: string[];
   guest_checkout_enabled: boolean;
+  theme_preset?: string | null;
+  primary_color?: string | null;
+  about_text?: string | null;
+  shipping_policy_text?: string | null;
 };
 
 export type PublicStoreSocialLink = {

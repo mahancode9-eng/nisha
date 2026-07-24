@@ -1,7 +1,10 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import * as analyticsApi from "@/lib/api/seller/analytics";
+import { paths } from "@/lib/auth/paths";
+import { useSellerEntitlements } from "@/hooks/useSellerEntitlements";
 import { useSellerFetch } from "@/hooks/useSellerFetch";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/Button";
@@ -54,7 +57,16 @@ function BarChart({ points, unit }: { points: ChartPoint[]; unit: string }) {
 }
 
 export default function SellerAnalyticsPage() {
-  const [days, setDays] = useState(30);
+  const { entitlements } = useSellerEntitlements();
+  const maxDays = entitlements.analytics_max_days;
+  const [days, setDays] = useState(7);
+
+  useEffect(() => {
+    if (days > maxDays) {
+      const allowed = RANGE_OPTIONS.filter((option) => option.days <= maxDays);
+      setDays(allowed[allowed.length - 1]?.days ?? 7);
+    }
+  }, [days, maxDays]);
 
   const fetchAnalytics = useCallback(() => analyticsApi.getAnalytics(days), [days]);
   const { data, error, isLoading } = useSellerFetch(fetchAnalytics, [days]);
@@ -68,26 +80,43 @@ export default function SellerAnalyticsPage() {
     value: Number(point.revenue),
   }));
   const orderPoints = daily.map((point) => ({ label: point.date, value: point.orders }));
+  const lockedRanges = RANGE_OPTIONS.filter((option) => option.days > maxDays);
 
   return (
     <div className="space-y-4 md:space-y-6">
       <PageHeader
         description="فروش روزانه، بازدید ویترین، نرخ تبدیل و محصولات پرفروش"
         action={
-          <div className="flex gap-2">
-            {RANGE_OPTIONS.map((option) => (
-              <Button
-                key={option.days}
-                size="sm"
-                variant={days === option.days ? undefined : "secondary"}
-                onClick={() => setDays(option.days)}
-              >
-                {option.label}
-              </Button>
-            ))}
+          <div className="flex flex-wrap items-center gap-2">
+            {RANGE_OPTIONS.map((option) => {
+              const locked = option.days > maxDays;
+              return (
+                <Button
+                  key={option.days}
+                  size="sm"
+                  variant={days === option.days ? undefined : "secondary"}
+                  disabled={locked}
+                  title={locked ? "برای بازه طولانی‌تر پلن را ارتقا دهید" : undefined}
+                  onClick={() => {
+                    if (!locked) setDays(option.days);
+                  }}
+                >
+                  {option.label}
+                </Button>
+              );
+            })}
           </div>
         }
       />
+
+      {lockedRanges.length > 0 && (
+        <p className="text-sm text-foreground-muted">
+          بازه‌های طولانی‌تر از {maxDays} روز در پلن فعلی قفل است.{" "}
+          <Link href={paths.seller.subscription} className="text-brand underline-offset-2 hover:underline">
+            ارتقا پلن
+          </Link>
+        </p>
+      )}
 
       {isLoading && <TableSkeleton rows={4} columns={4} />}
 

@@ -69,7 +69,7 @@ def test_customer_order_succeeds_when_guest_checkout_disabled(client, public_sto
     )
     assert register.status_code == 201
 
-    from tests.conftest import mark_customer_email_verified
+    from conftest import mark_customer_email_verified
 
     mark_customer_email_verified(db, "guest-toggle@example.com")
 
