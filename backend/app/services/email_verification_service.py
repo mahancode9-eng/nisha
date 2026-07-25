@@ -81,14 +81,27 @@ def issue_verification(
     email: str,
     full_name: str,
 ) -> str:
+    # Invalidate all previous unconsumed tokens for this account (single active link).
+    now = _utcnow()
+    prior_tokens = db.scalars(
+        select(EmailVerificationToken).where(
+            EmailVerificationToken.account_kind == account_kind,
+            EmailVerificationToken.account_id == account_id,
+            EmailVerificationToken.consumed_at.is_(None),
+        )
+    ).all()
+    for prior in prior_tokens:
+        prior.consumed_at = now
+        db.add(prior)
+
     raw_token = secrets.token_urlsafe(32)
     token = EmailVerificationToken(
         account_kind=account_kind,
         account_id=account_id,
         email=_normalize_email(email),
         token_hash=_hash_token(raw_token),
-        expires_at=_utcnow() + timedelta(minutes=settings.EMAIL_VERIFICATION_EXPIRE_MINUTES),
-        created_at=_utcnow(),
+        expires_at=now + timedelta(minutes=settings.EMAIL_VERIFICATION_EXPIRE_MINUTES),
+        created_at=now,
     )
     db.add(token)
     db.flush()

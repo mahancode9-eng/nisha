@@ -23,7 +23,7 @@ export function useSellerFetch<T>(fetchFn: () => Promise<T>, deps: unknown[] = [
       return result;
     } catch (err) {
       if (!cancelledRef.current) {
-        const message = err instanceof ApiError ? err.message : "Something went wrong";
+        const message = err instanceof ApiError ? err.message : "مشکلی پیش آمد؛ دوباره امتحان کن";
         setError(message);
         setData(null);
       }

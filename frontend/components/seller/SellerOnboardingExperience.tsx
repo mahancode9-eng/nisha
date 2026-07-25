@@ -67,39 +67,39 @@ type StepMeta = {
 const STEP_ORDER: StepMeta[] = [
   {
     key: "welcome",
-    title: "خوش آمدید",
-    description: "چند دقیقه وقت بگذارید؛ فروشگاهتان را راه می‌اندازیم.",
-    helper: "",
+    title: "خوش آمدی",
+    description: "چند دقیقه وقت بگذار؛ با هم فروشگاهت را راه می‌اندازیم.",
+    helper: "هر وقت خواستی می‌توانی بعداً ادامه بدهی.",
   },
   {
     key: "store_identity",
     title: "نام و ظاهر فروشگاه",
-    description: "",
-    helper: "",
+    description: "اسمی که مشتری می‌بیند، با لوگو و کاور قشنگ.",
+    helper: "بعداً هم می‌توانی عوضشان کنی.",
   },
   {
     key: "store_information",
     title: "درباره فروشگاه",
-    description: "",
-    helper: "",
+    description: "یک توضیح کوتاه و دسته‌بندی تا مشتری بداند چه می‌فروشی.",
+    helper: "هرچه روشن‌تر بنویسی، اعتماد بیشتر می‌شود.",
   },
   {
     key: "contact_channels",
     title: "راه ارتباطی",
-    description: "اختیاری — بعداً هم می‌توانید اضافه کنید.",
-    helper: "",
+    description: "اختیاری — اینستاگرام، تلگرام یا هر لینکی که مشتری لازم دارد.",
+    helper: "اگر الان نداری، رد کن و بعداً اضافه کن.",
   },
   {
     key: "first_product",
     title: "اولین محصول",
-    description: "",
-    helper: "",
+    description: "یک محصول با عکس و قیمت کافی است تا فروشگاه زنده شود.",
+    helper: "بعداً می‌توانی محصول‌های بیشتری اضافه کنی.",
   },
   {
     key: "activation",
-    title: "تمام شد",
-    description: "فروشگاه آماده است.",
-    helper: "",
+    title: "آماده‌ای!",
+    description: "چک‌لیست را ببین و برو سراغ داشبورد.",
+    helper: "اگر چیزی کم است، از داشبورد برمی‌گردی و کاملش می‌کنی.",
   },
 ];
 
@@ -245,7 +245,7 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
   const [drafts, setDrafts] = useState<DraftState>(() => buildDrafts(data));
   const [draftVersion, setDraftVersion] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [savingNote, setSavingNote] = useState<string | null>("ذخیره خودکار فعال است");
+  const [savingNote, setSavingNote] = useState<string | null>("نگران نباش، تغییراتت خودکار ذخیره می‌شود");
   const [error, setError] = useState<string | null>(null);
   const [logoPreview, setLogoPreview] = useBlobPreview();
   const [coverPreview, setCoverPreview] = useBlobPreview();
@@ -325,7 +325,7 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
           setServerState(response.state);
           setSavingNote("ذخیره شد");
         } catch {
-          setSavingNote("ذخیره خودکار ناموفق بود");
+          setSavingNote("ذخیره خودکار نشد؛ یک‌بار دیگر امتحان کن");
         }
       })();
     }, 700);
@@ -425,20 +425,39 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
   }
 
   async function continueWelcome() {
-    await saveOnboardingProgress({
-      current_step: "store_identity",
-      completed_steps: [...completedSteps, "welcome", "education"],
-      status: "IN_PROGRESS",
-    });
+    setLoading(true);
+    setError(null);
+    try {
+      await saveOnboardingProgress({
+        current_step: "store_identity",
+        completed_steps: [...completedSteps, "welcome"],
+        status: "IN_PROGRESS",
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "شروع راه‌اندازی ممکن نشد";
+      setError(msg);
+      toast.error(msg);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function skipWelcome() {
-    await saveOnboardingProgress({
-      current_step: "store_identity",
-      completed_steps: [...completedSteps, "welcome", "education"],
-      status: "SKIPPED",
-    });
-    router.replace(paths.seller.dashboard);
+    setLoading(true);
+    setError(null);
+    try {
+      await saveOnboardingProgress({
+        current_step: "store_identity",
+        completed_steps: [...completedSteps, "welcome"],
+        status: "SKIPPED",
+      });
+      router.replace(paths.seller.dashboard);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "ذخیره ممکن نشد";
+      setError(msg);
+      toast.error(msg);
+      setLoading(false);
+    }
   }
 
   async function continueStoreIdentity() {
@@ -558,14 +577,69 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
     }
   }
 
+  async function skipContactChannels() {
+    setLoading(true);
+    setError(null);
+    try {
+      await saveOnboardingProgress({
+        current_step: "first_product",
+        completed_steps: [...completedSteps, "contact_channels"],
+        status: "IN_PROGRESS",
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "ذخیره ممکن نشد";
+      setError(msg);
+      toast.error(msg);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function continueFirstProduct() {
     setLoading(true);
     setError(null);
     try {
       if (serverState.first_product_id) {
+        if (!drafts.firstProduct.title.trim()) {
+          throw new Error("نام محصول را وارد کن.");
+        }
+        if (!isValidMoney(drafts.firstProduct.price)) {
+          throw new Error("قیمت معتبر وارد کن.");
+        }
+        if (!drafts.firstProduct.imageUrl.trim()) {
+          throw new Error("تصویر محصول لازم است.");
+        }
+
+        await productsApi.updateProduct(serverState.first_product_id, {
+          title: drafts.firstProduct.title.trim(),
+          description: drafts.firstProduct.description.trim() || null,
+          price: drafts.firstProduct.price.trim(),
+          stock_quantity: drafts.firstProduct.stockQuantity || 1,
+          is_active: true,
+          images: [
+            {
+              image_url: drafts.firstProduct.imageUrl.trim(),
+              thumbnail_url: drafts.firstProduct.thumbnailUrl.trim() || null,
+              alt_text: drafts.firstProduct.title.trim(),
+              sort_order: 0,
+            },
+          ],
+        });
+
         await saveOnboardingProgress({
           current_step: "activation",
           completed_steps: [...completedSteps, "first_product"],
+          first_product_id: serverState.first_product_id,
+          first_product: {
+            product_id: serverState.first_product_id,
+            title: drafts.firstProduct.title.trim(),
+            price: drafts.firstProduct.price.trim(),
+            description: drafts.firstProduct.description.trim() || null,
+            image_url: drafts.firstProduct.imageUrl.trim() || null,
+            thumbnail_url: drafts.firstProduct.thumbnailUrl.trim() || null,
+            stock_quantity: drafts.firstProduct.stockQuantity || 1,
+            is_active: true,
+          },
           status: "IN_PROGRESS",
         });
         return;
@@ -640,18 +714,17 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
               "store_information",
               "contact_channels",
               "first_product",
-              "education",
               "activation",
             ]
           : completedSteps,
         status: canComplete ? "COMPLETED" : "IN_PROGRESS",
       });
       if (!canComplete) {
-        toast.success("پیشرفت شما ذخیره شد");
+        toast.success("پیشرفتت ذخیره شد؛ هر وقت خواستی از داشبورد ادامه بده");
         router.replace(paths.seller.dashboard);
         return;
       }
-      toast.success("فروشگاه شما آماده است");
+      toast.success("عالی! فروشگاهت آماده‌ست");
       router.replace(paths.seller.dashboard);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "پایان راه‌اندازی ناموفق بود";
@@ -709,7 +782,7 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
                   />
                 ) : (
                   <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-surface-muted text-2xl font-semibold text-foreground-muted">
-                    {drafts.storeIdentity.name.charAt(0) || "S"}
+                    {drafts.storeIdentity.name.trim().charAt(0) || "ن"}
                   </div>
                 )}
               </div>
@@ -822,10 +895,10 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
                 )}
               </div>
               <div className="flex flex-wrap gap-3">
-                <Button type="button" onClick={() => void continueWelcome()}>
+                <Button type="button" onClick={() => void continueWelcome()} loading={loading}>
                   شروع
                 </Button>
-                <Button type="button" variant="secondary" onClick={() => void skipWelcome()}>
+                <Button type="button" variant="secondary" onClick={() => void skipWelcome()} loading={loading}>
                   بعداً
                 </Button>
               </div>
@@ -1190,7 +1263,7 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
                 <Button type="button" onClick={() => void continueContactChannels()} loading={loading}>
                   ذخیره و ادامه
                 </Button>
-                <Button type="button" variant="ghost" onClick={() => void moveStep(1)}>
+                <Button type="button" variant="ghost" onClick={() => void skipContactChannels()} loading={loading}>
                   رد کردن این مرحله
                 </Button>
               </div>
@@ -1333,10 +1406,10 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
       <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
         <Card className="max-w-xl border-border bg-surface shadow-sm">
           <CardContent className="space-y-4 py-8">
-            <p className="text-xs tracking-[0.2em] text-foreground-muted">آماده‌اید</p>
-            <h1 className="text-3xl font-semibold text-foreground">فروشگاه شما قبلاً فعال شده است</h1>
+            <p className="text-xs tracking-[0.2em] text-foreground-muted">همه‌چیز روبه‌راه است</p>
+            <h1 className="text-3xl font-semibold text-foreground">فروشگاهت از قبل راه افتاده</h1>
             <p className="text-sm leading-6 text-foreground-muted">
-              برای مدیریت فروشگاه، به داشبورد بروید. اگر می‌خواهید مرحله‌های تکمیلی را ادامه دهید، از داشبورد وارد شوید.
+              برو داشبورد و سفارش‌ها، محصولات و گفتگوها را از آنجا مدیریت کن.
             </p>
             <Button type="button" onClick={() => router.replace(paths.seller.dashboard)}>
               رفتن به داشبورد

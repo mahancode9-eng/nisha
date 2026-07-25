@@ -21,6 +21,15 @@ def _require_export(db: Session, store: Store) -> None:
     )
 
 
+def _sanitize_csv_cell(value: object) -> object:
+    """Neutralize CSV formula injection (=, +, -, @, tab, CR)."""
+    if not isinstance(value, str):
+        return value
+    if value and value[0] in {"=", "+", "-", "@", "\t", "\r"}:
+        return "'" + value
+    return value
+
+
 def export_products_csv(db: Session, store: Store) -> str:
     _require_export(db, store)
     products = db.scalars(
@@ -35,7 +44,7 @@ def export_products_csv(db: Session, store: Store) -> str:
         writer.writerow(
             [
                 product.id,
-                product.title,
+                _sanitize_csv_cell(product.title),
                 str(product.price),
                 product.stock_quantity,
                 product.is_active,
@@ -71,10 +80,10 @@ def export_orders_csv(db: Session, store: Store) -> str:
         writer.writerow(
             [
                 order.id,
-                order.invoice_code,
+                _sanitize_csv_cell(order.invoice_code),
                 order.status.value if hasattr(order.status, "value") else order.status,
-                order.buyer_name,
-                order.buyer_phone,
+                _sanitize_csv_cell(order.buyer_name),
+                _sanitize_csv_cell(order.buyer_phone),
                 str(order.total_amount),
                 len(order.items or []),
                 order.created_at.isoformat() if order.created_at else "",

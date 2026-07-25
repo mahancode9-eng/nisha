@@ -242,6 +242,7 @@ async def upload_invoice_proof(
         file,
         subdir=settings.SUBSCRIPTION_PROOF_SUBDIR,
         image_only=True,
+        private=True,
     )
     proof = SubscriptionPaymentProof(
         invoice_id=invoice.id,

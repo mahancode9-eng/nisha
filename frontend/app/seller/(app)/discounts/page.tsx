@@ -144,7 +144,7 @@ export default function SellerDiscountsPage() {
       {error && <ErrorAlert message={error} />}
 
       {!entitlementsLoading && !canManageDiscounts && (
-        <UpgradeGate description="ساخت و مدیریت کد تخفیف در پلن پایه و بالاتر فعال است. پلن فعلی شما این قابلیت را ندارد." />
+        <UpgradeGate description="کد تخفیف از پلن پایه به بعد فعال است. با یک ارتقای ساده می‌توانی تخفیف بسازی و فروش را بیشتر کنی." />
       )}
 
       {canManageDiscounts && (

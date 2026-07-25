@@ -45,12 +45,12 @@ def get_or_create_admin(db) -> User:
         db.flush()
         print(f"Created admin: {ADMIN_EMAIL}")
     else:
-        user.password_hash = hash_password(ADMIN_PASSWORD)
+        # Never reset an existing admin password — seed must not enable takeover.
         user.role = UserRole.ADMIN
         user.is_active = True
         if user.email_verified_at is None:
             user.email_verified_at = now
-        print(f"Admin already exists, password refreshed: {ADMIN_EMAIL}")
+        print(f"Admin already exists (password unchanged): {ADMIN_EMAIL}")
     return user
 
 
@@ -70,9 +70,8 @@ def get_or_create_seller_and_store(db) -> tuple[User, Store]:
         print(f"Created seller: {SELLER_EMAIL}")
     elif user.email_verified_at is None:
         user.email_verified_at = datetime.now(timezone.utc)
-        user.password_hash = hash_password(SELLER_PASSWORD)
         user.is_active = True
-        print(f"Seller already exists, verified + password refreshed: {SELLER_EMAIL}")
+        print(f"Seller already exists, verified (password unchanged): {SELLER_EMAIL}")
 
     store = db.scalar(select(Store).where(Store.slug == STORE_SLUG))
     if store is None:
@@ -160,6 +159,13 @@ def seed_payment_methods(db, store: Store) -> None:
 
 
 def main() -> None:
+    from app.core.config import settings
+
+    if settings.ENVIRONMENT == "production" and not settings.ALLOW_DEMO_SEED:
+        raise SystemExit(
+            "Refusing to seed in production. Set ALLOW_DEMO_SEED=true to override."
+        )
+
     db = SessionLocal()
     try:
         get_or_create_admin(db)

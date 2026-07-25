@@ -1,9 +1,10 @@
 from decimal import Decimal
 from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.orm import Session
 
+from app.core.limiter import limiter
 from app.db.session import get_db
 from app.schemas.product import ProductFormFieldResponse, ProductImageResponse
 from app.schemas.public import (
@@ -182,7 +183,9 @@ def list_public_products(
     response_model_exclude_none=True,
     status_code=status.HTTP_201_CREATED,
 )
+@limiter.limit("5/minute")
 def create_guest_order(
+    request: Request,
     slug: str,
     payload: GuestOrderCreate,
     db: Session = Depends(get_db),

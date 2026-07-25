@@ -210,9 +210,13 @@ class GuestOrderCreate(BaseModel):
     payment_method_id: int
     discount_code: str | None = Field(default=None, max_length=50)
     items: list[OrderItemInput] = Field(min_length=1)
+    # Honeypot for bots — must remain empty.
+    company_website: str | None = Field(default=None, max_length=200)
 
     @model_validator(mode="after")
     def merge_duplicate_products(self) -> "GuestOrderCreate":
+        if self.company_website and self.company_website.strip():
+            raise ValueError("Invalid request")
         seen: dict[tuple[int, int | None], int] = {}
         merged: list[OrderItemInput] = []
         for item in self.items:

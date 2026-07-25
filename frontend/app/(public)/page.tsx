@@ -9,70 +9,71 @@ import { SellerPrimaryCta } from "@/components/landing/SellerPrimaryCta";
 import { landingButtonClasses } from "@/components/landing/buttonStyles";
 import { paths } from "@/lib/auth/paths";
 
+const metaDescription =
+  "فروشگاه آنلاینت را رایگان بساز، با کارت‌به‌کارت فروش کن و روی هر سفارش کارمزد نده — ساده و کم‌هزینه برای فروشنده‌های ایرانی.";
+
 export const metadata: Metadata = {
-  title: "فروشگاه‌ساز نیشا",
-  description:
-    "در چند دقیقه فروشگاه خود را بسازید، محصول منتشر کنید، سفارش بگیرید و رشد فروشگاه را با آمار زنده دنبال کنید.",
+  title: "نیشا | فروشگاه‌ساز کارت‌به‌کارت",
+  description: metaDescription,
   openGraph: {
-    title: "نیشا | فروشگاه‌ساز برای فروشندگان",
-    description:
-      "در چند دقیقه فروشگاه خود را بسازید، محصول منتشر کنید، سفارش بگیرید و رشد فروشگاه را با آمار زنده دنبال کنید.",
+    title: "نیشا | فروشگاه بساز، کارت‌به‌کارت بفروش",
+    description: metaDescription,
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "نیشا | فروشگاه‌ساز برای فروشندگان",
-    description:
-      "در چند دقیقه فروشگاه خود را بسازید، محصول منتشر کنید، سفارش بگیرید و رشد فروشگاه را با آمار زنده دنبال کنید.",
+    title: "نیشا | فروشگاه‌ساز کارت‌به‌کارت",
+    description: metaDescription,
   },
 };
 
-const heroWords = ["ویترین اختصاصی", "چک‌اوت ساده", "تخفیف و تنوع محصول", "آمار فروش زنده"];
+const heroWords = ["کارت‌به‌کارت", "بدون کارمزد فروش", "شروع رایگان", "ویترین قشنگ"];
 
 const stats = [
-  { value: "۵ دقیقه", label: "تا ساخت فروشگاه و انتشار اولین محصول" },
-  { value: "۰ تومان", label: "شروع رایگان — بدون کارمزد روی فروش" },
-  { value: "۲۴/۷", label: "ویترین همیشه باز، روی موبایل و دسکتاپ" },
+  { value: "۵ دقیقه", label: "تا ساخت فروشگاه و گذاشتن اولین محصول" },
+  { value: "۰ تومان", label: "شروع رایگان — روی فروش کارمزد نمی‌گیریم" },
+  { value: "کارت‌به‌کارت", label: "پرداخت آشنا برای مشتری؛ بدون درگاه گران" },
 ];
 
 const capabilities = [
   {
     emoji: "🏬",
-    title: "ویترین اختصاصی",
-    description: "نام، لوگو و تصویر اصلی را تنظیم کن تا صفحه فروشگاهت حرفه‌ای و قابل‌اعتماد دیده شود.",
+    title: "ویترین خودت",
+    description: "اسم، لوگو و کاور را بگذار تا فروشگاهت جدی و قابل‌اعتماد دیده شود.",
   },
   {
-    emoji: "🛒",
-    title: "چک‌اوت بدون ثبت‌نام",
-    description: "در پلن پایه و بالاتر، مشتری بدون ساخت حساب خرید می‌کند و رسید کارت‌به‌کارت را همان‌جا آپلود می‌کند.",
+    emoji: "💳",
+    title: "فروش با کارت‌به‌کارت",
+    description:
+      "مشتری خرید می‌کند، به کارت تو واریز می‌کند و رسید را همان‌جا می‌فرستد. تو فقط تایید می‌کنی — بدون کارمزد روی هر سفارش.",
   },
   {
     emoji: "💬",
     title: "چت با مشتری",
-    description: "گفتگوی لحظه‌ای داخل فروشگاه — سوال مشتری همان‌جا جواب می‌گیرد و فروش راحت‌تر بسته می‌شود.",
+    description: "سوال سایز و رنگ؟ همان‌جا داخل فروشگاه جواب بده تا فروش راحت‌تر بسته شود.",
   },
   {
     emoji: "📊",
-    title: "آمار فروش زنده",
-    description: "بازدید و فروش روزانه را از روز اول ببین؛ بازه‌های بلندتر و گزارش پیشرفته در پلن‌های بالاتر فعال است.",
+    title: "آمار فروش",
+    description: "بازدید و فروش روزانه را از روز اول ببین تا بدانی چه چیزی بهتر می‌فروشد.",
   },
 ];
 
 const buyerPoints = [
   {
+    emoji: "💳",
+    title: "پرداخت کارت‌به‌کارت",
+    description: "همان روشی که همه بلدند: واریز به کارت و آپلود رسید — بدون سردرگمی درگاه.",
+  },
+  {
     emoji: "🧾",
-    title: "خرید بدون ثبت‌نام",
-    description: "در فروشگاه‌های پلن پایه و بالاتر، مشتری فقط اسم و شماره می‌دهد، سفارش ثبت می‌شود و رسید پرداخت را همان‌جا آپلود می‌کند.",
+    title: "خرید سریع",
+    description: "اسم و شماره کافی است؛ نیازی به ساخت حساب طولانی نیست.",
   },
   {
     emoji: "🔎",
-    title: "پیگیری شفاف سفارش",
-    description: "با کد پیگیری و رمز فاکتور، هر لحظه وضعیت سفارش را می‌بیند — بدون تماس و پیگیری دستی.",
-  },
-  {
-    emoji: "💬",
-    title: "چت مستقیم با فروشنده",
-    description: "سوال درباره سایز و رنگ؟ گفتگو همان‌جا داخل فروشگاه انجام می‌شود.",
+    title: "پیگیری سفارش",
+    description: "با کد و رمز فاکتور، وضعیت سفارش را هر وقت بخواهد می‌بیند.",
   },
 ];
 
@@ -84,7 +85,7 @@ export default function HomePage() {
           <Reveal>
             <div className="inline-flex items-center gap-2 rounded-full border border-border bg-surface/80 px-4 py-2 text-sm font-medium text-foreground-muted shadow-sm">
               <span className="h-2 w-2 animate-pulse rounded-full bg-brand" />
-              فروشگاه‌ساز نیشا — برای فروشنده‌های ایرانی
+              برای فروشنده‌های ایرانی که می‌خواهند ساده بفروشند
             </div>
           </Reveal>
 
@@ -103,7 +104,8 @@ export default function HomePage() {
 
           <Reveal delay={200}>
             <p className="max-w-2xl text-base leading-8 text-foreground-muted sm:text-lg">
-              نیشا مسیر فروش آنلاین را کوتاه می‌کند: ویترین اختصاصی می‌سازی، محصول می‌چینی، سفارش و پرداخت را مدیریت می‌کنی و رشد فروشگاهت را با آمار زنده دنبال می‌کنی.
+              ویترینت را بالا بیاور، محصول بگذار و با کارت‌به‌کارت سفارش بگیر. روی فروش کارمزد
+              نمی‌گیریم — فقط وقتی لازم شد، برای ابزارهای بیشتر اشتراک بگیر.
             </p>
           </Reveal>
 
@@ -118,9 +120,9 @@ export default function HomePage() {
 
           <Reveal delay={400}>
             <div className="flex flex-wrap gap-3 text-sm text-foreground-muted">
-              <span className="rounded-full border border-border bg-surface/70 px-3 py-2">بدون کدنویسی</span>
-              <span className="rounded-full border border-border bg-surface/70 px-3 py-2">مناسب موبایل</span>
-              <span className="rounded-full border border-border bg-surface/70 px-3 py-2">تم روشن و تاریک</span>
+              <span className="rounded-full border border-border bg-surface/70 px-3 py-2">کارت‌به‌کارت</span>
+              <span className="rounded-full border border-border bg-surface/70 px-3 py-2">بدون کارمزد فروش</span>
+              <span className="rounded-full border border-border bg-surface/70 px-3 py-2">شروع رایگان</span>
             </div>
           </Reveal>
         </div>
@@ -146,12 +148,12 @@ export default function HomePage() {
       <section className="space-y-10">
         <Reveal>
           <div className="max-w-2xl space-y-3">
-            <p className="text-sm font-medium tracking-[0.26em] text-brand">چیزی که از روز اول داری</p>
+            <p className="text-sm font-medium tracking-[0.26em] text-brand">چرا نیشا؟</p>
             <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl lg:text-5xl">
-              همه‌چیز برای فروش، یک‌جا
+              فروش ساده، هزینه کم
             </h2>
             <p className="max-w-xl text-sm leading-7 text-foreground-muted sm:text-base">
-              هر بخش طوری طراحی شده که هم به مشتری اعتماد بدهد، هم کار تو را ساده‌تر کند.
+              همان چیزهایی که برای فروش روزمره لازم داری — بدون پیچیدگی اضافه.
             </p>
           </div>
         </Reveal>
@@ -169,6 +171,9 @@ export default function HomePage() {
             </Reveal>
           ))}
         </div>
+        <p className="text-center text-xs text-foreground-muted sm:text-sm">
+          خرید مهمان و بعضی ابزارهای پیشرفته از پلن پایه به بعد فعال می‌شوند.
+        </p>
       </section>
 
       <section className="space-y-10">
@@ -179,7 +184,7 @@ export default function HomePage() {
               از صفر تا اولین فروش، در ۴ قدم
             </h2>
             <p className="max-w-xl text-sm leading-7 text-foreground-muted sm:text-base">
-              اسکرول کن — هر قدم را با جزئیاتش ببین.
+              کوتاه و واضح — هر قدم را پایین ببین.
             </p>
           </div>
         </Reveal>
@@ -192,12 +197,12 @@ export default function HomePage() {
       <section className="space-y-10">
         <Reveal>
           <div className="max-w-2xl space-y-3">
-            <p className="text-sm font-medium tracking-[0.26em] text-brand">تجربه خرید</p>
+            <p className="text-sm font-medium tracking-[0.26em] text-brand">برای مشتری‌هایت</p>
             <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl lg:text-5xl">
-              برای مشتری‌هایت هم راحت است 🛒
+              خرید آشنا و بی‌دردسر
             </h2>
             <p className="max-w-xl text-sm leading-7 text-foreground-muted sm:text-base">
-              خرید بدون ثبت‌نام، پرداخت آشنا و پیگیری شفاف — همان چیزی که مشتری ایرانی دوست دارد.
+              کارت‌به‌کارت، سفارش سریع و پیگیری شفاف — همان چیزی که مشتری ایرانی راحت است.
             </p>
           </div>
         </Reveal>
@@ -220,12 +225,13 @@ export default function HomePage() {
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(124,58,237,0.09),transparent_36%)]" />
           <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_auto] lg:items-center">
             <div className="space-y-4">
-              <p className="text-sm font-medium tracking-[0.26em] text-brand">آماده شروع</p>
+              <p className="text-sm font-medium tracking-[0.26em] text-brand">بیا شروع کنیم</p>
               <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-4xl">
-                اولین فروشت از همین‌جا شروع می‌شود
+                امروز ویترینت را بساز، فردا بفروش
               </h2>
               <p className="max-w-2xl text-sm leading-7 text-foreground-muted sm:text-base">
-                ساخت فروشگاه رایگان است؛ همین امروز ویترینت را بساز و لینکش را برای مشتری‌هایت بفرست.
+                رایگان شروع کن، لینک فروشگاهت را برای مشتری بفرست و با کارت‌به‌کارت فروش بگیر — بدون
+                کارمزد روی هر سفارش.
               </p>
             </div>
 

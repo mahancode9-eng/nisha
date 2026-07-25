@@ -30,30 +30,24 @@ def register_seller(db: Session, *, email: str, password: str, full_name: str) -
     existing = get_user_by_email(db, normalized_email)
 
     if existing is not None:
-        if existing.email_verified_at is not None:
-            raise AuthError("ایمیل قبلا ثبت شده است", status_code=409)
-        existing.password_hash = hash_password(password)
-        existing.full_name = full_name.strip()
-        try:
-            from app.services.email_verification_service import issue_verification
+        # Never overwrite password/profile on re-register — prevents account takeover.
+        # Optionally re-send verification to the original email only.
+        if existing.email_verified_at is None:
+            try:
+                from app.services.email_verification_service import issue_verification
 
-            db.flush()
-            issue_verification(
-                db,
-                account_kind=VerificationAccountKind.USER,
-                account_id=existing.id,
-                email=normalized_email,
-                full_name=existing.full_name,
-            )
-            db.commit()
-        except IntegrityError as exc:
-            db.rollback()
-            raise AuthError("ایمیل قبلا ثبت شده است", status_code=409) from exc
-        return db.scalar(
-            select(User)
-            .options(selectinload(User.store))
-            .where(User.id == existing.id)
-        )
+                issue_verification(
+                    db,
+                    account_kind=VerificationAccountKind.USER,
+                    account_id=existing.id,
+                    email=normalized_email,
+                    full_name=existing.full_name,
+                )
+                db.commit()
+            except IntegrityError as exc:
+                db.rollback()
+                raise AuthError("ایمیل قبلا ثبت شده است", status_code=409) from exc
+        raise AuthError("ایمیل قبلا ثبت شده است", status_code=409)
 
     user = User(
         email=normalized_email,

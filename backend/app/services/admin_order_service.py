@@ -305,6 +305,7 @@ def update_order(
         old_status = order.status
         if payload.status == OrderStatus.CANCELLED and not order.stock_restored:
             restore_order_stock(db, order)
+            order.reservation_expires_at = None
         order.status = payload.status
         append_status_history(
             db,

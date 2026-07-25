@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from collections.abc import Sequence
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 
 from sqlalchemy import select, update
@@ -11,6 +12,7 @@ from sqlalchemy.orm import Session, selectinload
 
 import re
 
+from app.core.config import settings
 from app.core.security import hash_password
 from app.models.enums import OrderStatus, ProductFieldType
 from app.models.order import Order, OrderItem
@@ -331,6 +333,9 @@ def create_guest_order(
         plain_password = generate_invoice_password()
         invoice_code = generate_invoice_code(db)
 
+        reservation_expires_at = datetime.now(timezone.utc) + timedelta(
+            minutes=settings.ORDER_RESERVATION_MINUTES
+        )
         order = Order(
             store_id=store.id,
             customer_id=customer_id,
@@ -347,6 +352,7 @@ def create_guest_order(
             discount_amount=discount_amount,
             total_amount=subtotal - discount_amount,
             stock_restored=False,
+            reservation_expires_at=reservation_expires_at,
         )
         db.add(order)
         db.flush()

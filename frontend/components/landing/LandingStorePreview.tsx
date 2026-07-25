@@ -11,38 +11,12 @@ import { resolveMediaUrl } from "@/lib/media";
 import { LandingMockup } from "@/components/landing/LandingMockup";
 import { landingButtonClasses } from "@/components/landing/buttonStyles";
 import { Button } from "@/components/ui/Button";
-import { LoadingState } from "@/components/ui/LoadingState";
 import type { SellerDashboardResponse } from "@/types/seller/dashboard";
 import type { Store } from "@/types/seller/store";
 
 type LandingStorePreviewProps = {
   className?: string;
 };
-
-function GuestEngagementPanel({ className }: { className?: string }) {
-  return (
-    <div className={cn("space-y-4", className)}>
-      <LandingMockup />
-      <div className="rounded-[1.5rem] border border-border/70 bg-surface/90 p-4 text-center shadow-sm">
-        <p className="text-sm font-semibold text-foreground">فروشگاه خود را در چند دقیقه بسازید</p>
-        <p className="mt-1 text-sm text-foreground-muted">
-          ثبت‌نام رایگان، ویترین اختصاصی، دریافت سفارش و فاکتور — بدون نیاز به کدنویسی.
-        </p>
-        <div className="mt-4 flex flex-wrap justify-center gap-2">
-          <Link href={paths.seller.register} className={landingButtonClasses({ size: "md" })}>
-            ساخت فروشگاه رایگان
-          </Link>
-          <Link
-            href={paths.seller.login}
-            className={landingButtonClasses({ variant: "secondary", size: "md" })}
-          >
-            ورود فروشنده
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function SellerLivePreview({
   store,
@@ -76,10 +50,12 @@ function SellerLivePreview({
           { label: "اولین محصول", done: dashboard.store_readiness_score >= 80 },
         ];
 
+  const initial = store.name.trim().charAt(0) || "ن";
+
   return (
     <div className={cn("relative mx-auto w-full max-w-[34rem]", className)}>
-      <div className="relative overflow-hidden rounded-[2rem] border border-border/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.92),rgba(245,243,255,0.82))] p-4 shadow-[0_24px_80px_rgba(31,41,55,0.12)] dark:bg-[linear-gradient(180deg,rgba(10,14,26,0.96),rgba(4,7,15,0.98))]">
-        <div className="rounded-[1.6rem] border border-border/70 bg-surface/95 p-4 shadow-sm backdrop-blur">
+      <div className="relative overflow-hidden rounded-[2rem] border border-border/80 bg-surface/95 p-4 shadow-[0_24px_80px_rgba(31,41,55,0.12)]">
+        <div className="rounded-[1.6rem] border border-border/70 bg-background/80 p-4">
           <div className="flex items-center justify-between gap-3 border-b border-border/60 pb-4">
             <div className="flex min-w-0 items-center gap-3">
               {logoUrl ? (
@@ -87,11 +63,11 @@ function SellerLivePreview({
                 <img src={logoUrl} alt="" className="h-10 w-10 rounded-2xl object-cover" />
               ) : (
                 <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-brand/10 text-sm font-bold text-brand">
-                  {store.name.charAt(0)}
+                  {initial}
                 </div>
               )}
               <div className="min-w-0">
-                <p className="text-xs font-medium tracking-[0.22em] text-foreground-muted">فروشگاه شما</p>
+                <p className="text-xs text-foreground-muted">فروشگاه تو</p>
                 <p className="truncate text-sm font-semibold text-foreground">{store.name}</p>
               </div>
             </div>
@@ -122,7 +98,7 @@ function SellerLivePreview({
                 >
                   <span>{item.label}</span>
                   <span className={item.done ? "text-emerald-600" : "text-foreground-muted"}>
-                    {item.done ? "تکمیل" : "باقی‌مانده"}
+                    {item.done ? "انجام شد" : "باقی مانده"}
                   </span>
                 </div>
               ))}
@@ -142,7 +118,7 @@ function SellerLivePreview({
               {store.slug && (
                 <Link href={paths.store(store.slug)} target="_blank" rel="noopener noreferrer">
                   <Button variant="ghost" size="sm">
-                    مشاهده فروشگاه
+                    دیدن فروشگاه
                   </Button>
                 </Link>
               )}
@@ -193,28 +169,28 @@ export function LandingStorePreview({ className }: LandingStorePreviewProps) {
     };
   }, [isSeller]);
 
-  if (isLoading || (isSeller && loadingLive)) {
-    return (
-      <div className={cn("mx-auto w-full max-w-[34rem]", className)}>
-        <LoadingState message="در حال بارگذاری پیش‌نمایش..." />
-      </div>
-    );
+  // Guests (and auth still loading): show storefront mock immediately — no spinner flash.
+  if (isLoading || !isSeller) {
+    return <LandingMockup className={className} />;
   }
 
-  if (isSeller && store && dashboard) {
+  if (loadingLive) {
+    return <LandingMockup className={className} />;
+  }
+
+  if (store && dashboard) {
     return <SellerLivePreview store={store} dashboard={dashboard} className={className} />;
   }
 
-  if (isSeller) {
-    return (
-      <div className={cn("space-y-4", className)}>
-        <GuestEngagementPanel />
-        <Link href={paths.seller.onboarding} className={landingButtonClasses({ size: "md", className: "w-full justify-center" })}>
-          شروع ساخت فروشگاه
-        </Link>
-      </div>
-    );
-  }
-
-  return <GuestEngagementPanel className={className} />;
+  return (
+    <div className={cn("space-y-4", className)}>
+      <LandingMockup />
+      <Link
+        href={paths.seller.onboarding}
+        className={landingButtonClasses({ size: "md", className: "w-full justify-center" })}
+      >
+        شروع ساخت فروشگاه
+      </Link>
+    </div>
+  );
 }

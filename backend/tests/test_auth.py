@@ -1,7 +1,7 @@
 from sqlalchemy import select
 
 from app.models.notification import NotificationOutbox
-from tests.conftest import mark_user_email_verified
+from conftest import mark_user_email_verified
 
 
 def test_register_seller(client):
@@ -100,7 +100,10 @@ def test_refresh_token(client, db):
     assert response.json()["access_token"]
 
 
-def test_register_duplicate_unverified_email_resumes(client, db):
+def test_register_duplicate_unverified_email_does_not_overwrite(client, db):
+    from app.core.security import verify_password
+    from app.models.user import User
+
     payload = {
         "email": "duplicate@example.com",
         "password": "securepass",
@@ -112,12 +115,18 @@ def test_register_duplicate_unverified_email_resumes(client, db):
         json={**payload, "password": "newsecurepass", "full_name": "Updated User"},
     )
     assert first.status_code == 201
-    assert second.status_code == 201
-    assert second.json()["needs_email_verification"] is True
+    assert second.status_code == 409
+
+    user = db.scalar(select(User).where(User.email == "duplicate@example.com"))
+    assert user is not None
+    assert user.full_name == "Duplicate User"
+    assert verify_password("securepass", user.password_hash)
+    assert not verify_password("newsecurepass", user.password_hash)
 
     outbox = db.scalars(
         select(NotificationOutbox).where(NotificationOutbox.template == "email_verification")
     ).all()
+    # Original register + re-send on duplicate attempt
     assert len(outbox) == 2
 
 

@@ -37,6 +37,8 @@ async def upload_payment_proof(
         old_status = order.status
         if order.status == OrderStatus.PENDING_PAYMENT:
             order.status = OrderStatus.PAYMENT_UPLOADED
+            # Keep reservation until seller confirms/rejects; extend hold while proof is reviewed.
+            order.reservation_expires_at = None
             order_access_service.append_status_history(
                 db,
                 order=order,

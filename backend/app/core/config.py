@@ -58,6 +58,11 @@ class Settings(BaseSettings):
     EMAIL_VERIFICATION_EXPIRE_MINUTES: int = 1440
     SUBSCRIPTION_PAYMENT_PROVIDER: Literal["card_to_card"] = "card_to_card"
     SUBSCRIPTION_PROOF_SUBDIR: str = "subscription-proofs"
+    ORDER_RESERVATION_MINUTES: int = 20
+    PRIVATE_UPLOAD_DIR: str = "./private_uploads"
+    ALLOW_DEMO_SEED: bool = False
+    RESERVATION_CLEANUP_ENABLED: bool = True
+    RESERVATION_CLEANUP_INTERVAL_SECONDS: int = 60
 
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
@@ -73,6 +78,43 @@ class Settings(BaseSettings):
             raise ValueError(
                 "JWT_SECRET_KEY must be at least 32 characters and not a default/placeholder value"
             )
+        return value
+
+    @field_validator("EMAIL_PROVIDER", mode="after")
+    @classmethod
+    def reject_console_email_in_production(cls, value: str, info) -> str:
+        if info.data.get("ENVIRONMENT") == "production" and value == "console":
+            raise ValueError(
+                "EMAIL_PROVIDER=console is not allowed in production; configure smtp or resend"
+            )
+        return value
+
+    @field_validator("SMTP_HOST", mode="after")
+    @classmethod
+    def require_smtp_host_when_smtp(cls, value: str, info) -> str:
+        if info.data.get("ENVIRONMENT") == "production" and info.data.get("EMAIL_PROVIDER") == "smtp":
+            if not value.strip():
+                raise ValueError("SMTP_HOST is required when EMAIL_PROVIDER=smtp in production")
+        return value
+
+    @field_validator("EMAIL_FROM", mode="after")
+    @classmethod
+    def require_email_from_in_production(cls, value: str, info) -> str:
+        provider = info.data.get("EMAIL_PROVIDER")
+        if info.data.get("ENVIRONMENT") == "production" and provider in {"smtp", "resend"}:
+            if not value.strip():
+                raise ValueError("EMAIL_FROM is required in production")
+        return value
+
+    @field_validator("FRONTEND_BASE_URL", mode="after")
+    @classmethod
+    def reject_localhost_frontend_in_production(cls, value: str, info) -> str:
+        if info.data.get("ENVIRONMENT") == "production":
+            lowered = value.lower()
+            if "localhost" in lowered or "127.0.0.1" in lowered:
+                raise ValueError(
+                    "FRONTEND_BASE_URL must not use localhost in production email links"
+                )
         return value
 
     @property

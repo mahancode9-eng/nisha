@@ -14,6 +14,7 @@ from app.api.v1 import (
     auth_router,
     customer_router,
     health_router,
+    media_router,
     public_router,
     seller_router,
     ws_router,
@@ -45,7 +46,10 @@ async def lifespan(app: FastAPI):
     setup_logging()
     upload_dir = Path(settings.UPLOAD_DIR)
     upload_dir.mkdir(parents=True, exist_ok=True)
-    (upload_dir / settings.PAYMENT_PROOF_SUBDIR).mkdir(parents=True, exist_ok=True)
+    private_dir = Path(settings.PRIVATE_UPLOAD_DIR)
+    private_dir.mkdir(parents=True, exist_ok=True)
+    (private_dir / settings.PAYMENT_PROOF_SUBDIR).mkdir(parents=True, exist_ok=True)
+    (private_dir / settings.SUBSCRIPTION_PROOF_SUBDIR).mkdir(parents=True, exist_ok=True)
 
     if settings.DATABASE_URL.startswith("postgresql"):
         from alembic.config import Config as AlembicConfig
@@ -63,11 +67,26 @@ async def lifespan(app: FastAPI):
             notification_worker_loop(notification_stop)
         )
 
+    reservation_stop = asyncio.Event()
+    reservation_task = None
+    if settings.RESERVATION_CLEANUP_ENABLED and settings.DATABASE_URL.startswith("postgresql"):
+        from app.services.reservation_cleanup_service import reservation_cleanup_worker_loop
+
+        reservation_task = asyncio.create_task(
+            reservation_cleanup_worker_loop(
+                reservation_stop,
+                settings.RESERVATION_CLEANUP_INTERVAL_SECONDS,
+            )
+        )
+
     yield
 
     if notification_task is not None:
         notification_stop.set()
         await notification_task
+    if reservation_task is not None:
+        reservation_stop.set()
+        await reservation_task
 
 
 app = FastAPI(
@@ -100,6 +119,7 @@ app.include_router(seller_router, prefix="/api/v1")
 app.include_router(public_router, prefix="/api/v1")
 app.include_router(admin_router, prefix="/api/v1")
 app.include_router(customer_router, prefix="/api/v1")
+app.include_router(media_router, prefix="/api/v1")
 app.include_router(ws_router, prefix="/api/v1")
 
 upload_dir = Path(settings.UPLOAD_DIR)

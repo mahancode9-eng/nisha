@@ -1,9 +1,8 @@
-from __future__ import annotations
-
-from fastapi import APIRouter, Depends, File, UploadFile
+from fastapi import APIRouter, Depends, File, Request, UploadFile
 from sqlalchemy.orm import Session
 
 from app.api.deps import require_seller
+from app.core.limiter import limiter
 from app.db.session import get_db
 from app.models.user import User
 from app.schemas.subscription import (
@@ -133,7 +132,9 @@ def list_invoices(
     "/subscription/invoices/{invoice_id}/proof",
     response_model=SubscriptionInvoiceResponse,
 )
+@limiter.limit("5/minute")
 async def upload_proof(
+    request: Request,
     invoice_id: int,
     file: UploadFile = File(...),
     current_user: User = Depends(require_seller),

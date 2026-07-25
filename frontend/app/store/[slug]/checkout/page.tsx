@@ -388,6 +388,7 @@ export default function CheckoutPage({ params }: PageProps) {
         buyer_note: buyerNote.trim() || null,
         payment_method_id: paymentMethodId,
         discount_code: appliedDiscount ? appliedDiscount.code : null,
+        company_website: "",
         items: items.map((item) => ({
           product_id: item.productId,
           variant_id: item.variantId ?? null,
@@ -773,6 +774,11 @@ export default function CheckoutPage({ params }: PageProps) {
           </CardHeader>
           <CardContent className="space-y-4">
             <Input label="نام کامل" value={buyerName} onChange={(e) => setBuyerName(e.target.value)} required />
+            {/* Bot honeypot — leave empty; visually hidden from users */}
+            <div aria-hidden="true" style={{ position: "absolute", left: "-10000px", top: "auto", width: 1, height: 1, overflow: "hidden" }}>
+              <label htmlFor="company_website">Company website</label>
+              <input id="company_website" name="company_website" type="text" tabIndex={-1} autoComplete="off" defaultValue="" />
+            </div>
             <Input label="تلفن" value={buyerPhone} onChange={(e) => setBuyerPhone(e.target.value)} required pattern="09[0-9]{9}" placeholder="09123456789" title="شماره موبایل باید با 09 شروع شود و 11 رقم باشد" />
             <Textarea
               label="آدرس تحویل"

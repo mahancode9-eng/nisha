@@ -85,8 +85,20 @@ async def _read_upload_bytes(file: UploadFile) -> bytes:
     return content
 
 
-def _store_media(subdir: str, filename: str, content: bytes, content_type: str | None) -> str:
-    return get_storage().save(f"{subdir}/{filename}", content, content_type=content_type)
+def _store_media(
+    subdir: str,
+    filename: str,
+    content: bytes,
+    content_type: str | None,
+    *,
+    private: bool = False,
+) -> str:
+    key = f"{subdir}/{filename}"
+    if private:
+        from app.services.private_media_service import save_private_bytes
+
+        return save_private_bytes(key, content)
+    return get_storage().save(key, content, content_type=content_type)
 
 
 def _save_image_thumbnail(
@@ -95,6 +107,7 @@ def _save_image_thumbnail(
     subdir: str,
     stem: str,
     size: tuple[int, int] = (640, 640),
+    private: bool = False,
 ) -> tuple[str, int | None, int | None]:
     with Image.open(io.BytesIO(content)) as image:
         image = ImageOps.exif_transpose(image)
@@ -104,7 +117,9 @@ def _save_image_thumbnail(
         buffer = io.BytesIO()
         thumb.save(buffer, format="WEBP", quality=82, method=6)
     thumb_name = f"{stem}_thumb.webp"
-    thumbnail_url = _store_media(subdir, thumb_name, buffer.getvalue(), "image/webp")
+    thumbnail_url = _store_media(
+        subdir, thumb_name, buffer.getvalue(), "image/webp", private=private
+    )
     return thumbnail_url, width, height
 
 
@@ -114,6 +129,7 @@ async def save_uploaded_media(
     subdir: str,
     image_only: bool = False,
     thumbnail_size: tuple[int, int] = (640, 640),
+    private: bool = False,
 ) -> UploadedMedia:
     if not file.filename:
         raise ServiceError("File is required", status_code=422)
@@ -138,7 +154,13 @@ async def save_uploaded_media(
 
         stored_name = f"{uuid.uuid4().hex}{declared_ext}"
         stem = stored_name.rsplit(".", 1)[0]
-        public_url = _store_media(subdir, stored_name, content, content_type or file.content_type)
+        public_url = _store_media(
+            subdir,
+            stored_name,
+            content,
+            content_type or file.content_type,
+            private=private,
+        )
 
         try:
             thumbnail_url, width, height = _save_image_thumbnail(
@@ -146,9 +168,11 @@ async def save_uploaded_media(
                 subdir=subdir,
                 stem=stem,
                 size=thumbnail_size,
+                private=private,
             )
         except Exception as exc:
-            get_storage().delete(f"{subdir}/{stored_name}")
+            if not private:
+                get_storage().delete(f"{subdir}/{stored_name}")
             raise ServiceError("Invalid image file content", status_code=422) from exc
         return UploadedMedia(
             url=public_url,
@@ -161,7 +185,13 @@ async def save_uploaded_media(
 
     suffix = declared_ext or ".bin"
     stored_name = f"{uuid.uuid4().hex}{suffix}"
-    public_url = _store_media(subdir, stored_name, content, content_type or file.content_type)
+    public_url = _store_media(
+        subdir,
+        stored_name,
+        content,
+        content_type or file.content_type,
+        private=private,
+    )
     return UploadedMedia(
         url=public_url,
         thumbnail_url=None,
@@ -215,5 +245,16 @@ async def save_payment_proof_image(file: UploadFile, order_id: int) -> str:
         file,
         subdir=settings.PAYMENT_PROOF_SUBDIR,
         image_only=True,
+        private=True,
+    )
+    return media.url
+
+
+async def save_subscription_proof_image(file: UploadFile) -> str:
+    media = await save_uploaded_media(
+        file,
+        subdir=settings.SUBSCRIPTION_PROOF_SUBDIR,
+        image_only=True,
+        private=True,
     )
     return media.url

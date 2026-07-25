@@ -1,22 +1,14 @@
 """WebSocket endpoints for realtime chat (roadmap task 13).
 
 Endpoints (all under /api/v1/ws):
-- /ws/seller?token=<JWT>                  seller panel (badge + subscriptions)
-- /ws/customer?token=<JWT>                customer portal (badge + subscriptions)
-- /ws/orders/{invoice_code}?password=...  guest order chat (auto-subscribed)
+- POST /ws/tickets/seller     -> short-lived one-time ticket (Bearer seller JWT)
+- POST /ws/tickets/customer   -> short-lived one-time ticket (Bearer customer JWT)
+- POST /ws/tickets/order      -> short-lived one-time ticket (invoice + password)
+- /ws/seller?ticket=...       seller panel (badge + subscriptions)
+- /ws/customer?ticket=...     customer portal (badge + subscriptions)
+- /ws/orders/{invoice_code}?ticket=...  guest order chat (auto-subscribed)
 
-Protocol (JSON):
-- client -> server: {"action": "ping"}
-                    {"action": "subscribe", "conversation_id": N}
-                    {"action": "unsubscribe", "conversation_id": N}
-- server -> client: {"type": "ready", ...}
-                    {"type": "pong"}
-                    {"type": "subscribed" | "unsubscribed" | "error", ...}
-                    {"type": "message.new", "conversation_id": N, "message": {...}}
-                    {"type": "unread.bump", "conversation_id": N}
-
-Sending messages stays on the existing REST endpoints, so clients without
-WebSocket support keep working via polling (fallback requirement).
+Sensitive credentials must NOT appear in the WebSocket URL/query string.
 """
 
 from __future__ import annotations
@@ -24,51 +16,81 @@ from __future__ import annotations
 import asyncio
 from typing import Callable
 
-from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from starlette.concurrency import run_in_threadpool
 
-from app.core.security import decode_access_token
+from app.api.deps import get_current_customer, require_seller
 from app.db.session import get_db
 from app.models.conversation import Conversation
 from app.models.customer_account import CustomerAccount
-from app.models.enums import UserRole
 from app.models.order import Order
 from app.models.store import Store
 from app.models.user import User
 from app.services import chat_service, order_access_service
 from app.services.chat_realtime import manager
 from app.services.exceptions import ServiceError
+from app.services.private_media_service import consume_ws_ticket, create_ws_ticket
 
 router = APIRouter(prefix="/ws", tags=["websocket-chat"])
 
 WS_UNAUTHORIZED = 4401
-CUSTOMER_ROLE = "CUSTOMER"
 
 
-def _get_seller_store_from_token(db: Session, token: str) -> Store | None:
+class WsTicketResponse(BaseModel):
+    ticket: str
+    expires_in: int = 60
+
+
+class OrderWsTicketRequest(BaseModel):
+    invoice_code: str = Field(min_length=1, max_length=50)
+    invoice_edit_password: str = Field(min_length=1, max_length=100)
+
+
+@router.post("/tickets/seller", response_model=WsTicketResponse)
+def issue_seller_ws_ticket(
+    seller: User = Depends(require_seller),
+) -> WsTicketResponse:
+    if seller.store is None:
+        raise HTTPException(status_code=404, detail="فروشگاه پیدا نشد")
+    ticket = create_ws_ticket({"purpose": "seller", "store_id": seller.store.id})
+    return WsTicketResponse(ticket=ticket)
+
+
+@router.post("/tickets/customer", response_model=WsTicketResponse)
+def issue_customer_ws_ticket(
+    customer: CustomerAccount = Depends(get_current_customer),
+) -> WsTicketResponse:
+    ticket = create_ws_ticket({"purpose": "customer", "customer_id": customer.id})
+    return WsTicketResponse(ticket=ticket)
+
+
+@router.post("/tickets/order", response_model=WsTicketResponse)
+def issue_order_ws_ticket(
+    payload: OrderWsTicketRequest,
+    db: Session = Depends(get_db),
+) -> WsTicketResponse:
     try:
-        payload = decode_access_token(token)
-        if payload.get("role") == CUSTOMER_ROLE:
-            return None
-        user_id = int(payload.get("sub", ""))
-    except (ValueError, TypeError):
-        return None
-    user = db.get(User, user_id)
-    if user is None or not user.is_active or user.role != UserRole.SELLER:
-        return None
-    return user.store
-
-
-def _get_customer_from_token(db: Session, token: str) -> CustomerAccount | None:
-    try:
-        payload = decode_access_token(token)
-        if payload.get("role") != CUSTOMER_ROLE:
-            return None
-        customer_id = int(payload.get("sub", ""))
-    except (ValueError, TypeError):
-        return None
-    return db.get(CustomerAccount, customer_id)
+        order = order_access_service.authenticate_order(
+            db, payload.invoice_code, payload.invoice_edit_password
+        )
+        conversation = chat_service.get_or_create_conversation(
+            db,
+            order_id=order.id,
+            customer_id=order.customer_id,
+            store_id=order.store_id,
+        )
+    except ServiceError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+    ticket = create_ws_ticket(
+        {
+            "purpose": "order",
+            "invoice_code": order.invoice_code,
+            "conversation_id": conversation.id,
+        }
+    )
+    return WsTicketResponse(ticket=ticket)
 
 
 def _seller_can_access(db: Session, conversation_id: int, store_id: int) -> bool:
@@ -145,12 +167,24 @@ async def _client_loop(
 @router.websocket("/seller")
 async def seller_chat_ws(
     websocket: WebSocket,
-    token: str = Query(...),
+    ticket: str = Query(...),
     db: Session = Depends(get_db),
 ) -> None:
     await websocket.accept()
     manager.set_loop(asyncio.get_running_loop())
-    store = await run_in_threadpool(_get_seller_store_from_token, db, token)
+    try:
+        claims = consume_ws_ticket(ticket)
+    except ValueError:
+        await websocket.close(code=WS_UNAUTHORIZED)
+        return
+    if claims.get("purpose") != "seller":
+        await websocket.close(code=WS_UNAUTHORIZED)
+        return
+    store_id = claims.get("store_id")
+    if not isinstance(store_id, int):
+        await websocket.close(code=WS_UNAUTHORIZED)
+        return
+    store = await run_in_threadpool(db.get, Store, store_id)
     if store is None:
         await websocket.close(code=WS_UNAUTHORIZED)
         return
@@ -167,12 +201,24 @@ async def seller_chat_ws(
 @router.websocket("/customer")
 async def customer_chat_ws(
     websocket: WebSocket,
-    token: str = Query(...),
+    ticket: str = Query(...),
     db: Session = Depends(get_db),
 ) -> None:
     await websocket.accept()
     manager.set_loop(asyncio.get_running_loop())
-    customer = await run_in_threadpool(_get_customer_from_token, db, token)
+    try:
+        claims = consume_ws_ticket(ticket)
+    except ValueError:
+        await websocket.close(code=WS_UNAUTHORIZED)
+        return
+    if claims.get("purpose") != "customer":
+        await websocket.close(code=WS_UNAUTHORIZED)
+        return
+    customer_id = claims.get("customer_id")
+    if not isinstance(customer_id, int):
+        await websocket.close(code=WS_UNAUTHORIZED)
+        return
+    customer = await run_in_threadpool(db.get, CustomerAccount, customer_id)
     if customer is None:
         await websocket.close(code=WS_UNAUTHORIZED)
         return
@@ -190,27 +236,25 @@ async def customer_chat_ws(
 async def order_chat_ws(
     websocket: WebSocket,
     invoice_code: str,
-    password: str = Query(...),
+    ticket: str = Query(...),
     db: Session = Depends(get_db),
 ) -> None:
     await websocket.accept()
     manager.set_loop(asyncio.get_running_loop())
-
-    def _prepare() -> int | None:
-        try:
-            order = order_access_service.authenticate_order(db, invoice_code, password)
-            conversation = chat_service.get_or_create_conversation(
-                db,
-                order_id=order.id,
-                customer_id=order.customer_id,
-                store_id=order.store_id,
-            )
-            return conversation.id
-        except ServiceError:
-            return None
-
-    conversation_id = await run_in_threadpool(_prepare)
-    if conversation_id is None:
+    try:
+        claims = consume_ws_ticket(ticket)
+    except ValueError:
+        await websocket.close(code=WS_UNAUTHORIZED)
+        return
+    if claims.get("purpose") != "order" or claims.get("invoice_code") != invoice_code:
+        await websocket.close(code=WS_UNAUTHORIZED)
+        return
+    conversation_id = claims.get("conversation_id")
+    if not isinstance(conversation_id, int):
+        await websocket.close(code=WS_UNAUTHORIZED)
+        return
+    conversation = await run_in_threadpool(db.get, Conversation, conversation_id)
+    if conversation is None:
         await websocket.close(code=WS_UNAUTHORIZED)
         return
     manager.subscribe_conversation(conversation_id, websocket)

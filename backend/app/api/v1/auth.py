@@ -85,7 +85,12 @@ def login(
 
 
 @router.post("/refresh", response_model=TokenResponse)
-def refresh(payload: RefreshRequest, db: Session = Depends(get_db)) -> TokenResponse:
+@limiter.limit("20/minute")
+def refresh(
+    request: Request,
+    payload: RefreshRequest,
+    db: Session = Depends(get_db),
+) -> TokenResponse:
     try:
         token_payload = decode_refresh_token(payload.refresh_token)
         user_id = int(token_payload.get("sub", ""))

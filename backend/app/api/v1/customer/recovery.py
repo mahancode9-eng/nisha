@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
+from app.core.limiter import limiter
 from app.core.security import create_access_token
 from app.db.session import get_db
 from app.models.customer_account import CustomerAccount
@@ -23,7 +24,9 @@ router = APIRouter(tags=["customer-recovery"])
 
 
 @router.post("/password-recovery/request", response_model=CustomerRecoveryStartResponse)
+@limiter.limit("5/minute")
 def request_recovery(
+    request: Request,
     payload: CustomerRecoveryRequest,
     db: Session = Depends(get_db),
 ) -> CustomerRecoveryStartResponse:
@@ -45,7 +48,9 @@ def request_recovery(
 
 
 @router.post("/password-recovery/verify", response_model=CustomerRecoveryVerifyResponse)
+@limiter.limit("5/minute")
 def verify_recovery(
+    request: Request,
     payload: CustomerRecoveryVerifyRequest,
     db: Session = Depends(get_db),
 ) -> CustomerRecoveryVerifyResponse:

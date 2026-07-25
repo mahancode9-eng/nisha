@@ -50,14 +50,16 @@ export default function SellerDashboardPage() {
     );
   }
 
-  const hasRemainingSetup =
-    data.onboarding_status !== "COMPLETED" && data.onboarding_status !== "SKIPPED";
+  const canResumeOnboarding =
+    data.onboarding_status === "IN_PROGRESS" ||
+    data.onboarding_status === "NOT_STARTED" ||
+    data.onboarding_status === "SKIPPED";
   const readinessPercent = Math.max(0, Math.min(100, data.store_readiness_score));
 
   return (
     <div className="space-y-4 md:space-y-6">
       <PageHeader
-        description="نمای کلی عملکرد فروشگاه شما"
+        description="نمای کلی فروشگاهت؛ سفارش‌ها و درآمد را یک‌جا ببین"
         action={
           <div className="flex flex-wrap items-center gap-2">
             {plan && (
@@ -72,7 +74,7 @@ export default function SellerDashboardPage() {
                 rel="noopener noreferrer"
                 className={buttonClassName({ variant: "secondary" })}
               >
-                مشاهده فروشگاه
+                دیدن فروشگاه
               </Link>
             ) : null}
           </div>
@@ -85,24 +87,24 @@ export default function SellerDashboardPage() {
             <Badge variant={readinessPercent >= 85 ? "success" : "info"}>
               {readinessPercent}% تکمیل پروفایل
             </Badge>
-            {hasRemainingSetup ? (
-              <Badge variant="warning">راه‌اندازی در حال انجام</Badge>
+            {data.onboarding_status === "COMPLETED" ? (
+              <Badge variant="success">راه‌اندازی کامل</Badge>
             ) : data.onboarding_status === "SKIPPED" ? (
               <Badge variant="neutral">راه‌اندازی بعداً</Badge>
             ) : (
-              <Badge variant="success">راه‌اندازی کامل</Badge>
+              <Badge variant="warning">راه‌اندازی در حال انجام</Badge>
             )}
           </div>
 
           <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_220px] lg:items-end">
             <div className="space-y-3">
               <h2 className="text-xl font-semibold text-foreground">
-                {hasRemainingSetup ? "ادامه تنظیمات فروشگاه" : "وضعیت فروشگاه"}
+                {canResumeOnboarding ? "ادامه تنظیمات فروشگاه" : "وضعیت فروشگاه"}
               </h2>
               <p className="max-w-3xl text-sm leading-6 text-foreground-muted">
-                {hasRemainingSetup
-                  ? "هرچه جزئیات بیشتری تکمیل کنید، اعتماد مشتری و شانس تبدیل بالاتر می‌رود."
-                  : "فروشگاه شما فعال است. از تب‌های بالا سفارش‌ها، محصولات و گفتگوها را مدیریت کنید."}
+                {canResumeOnboarding
+                  ? "چند جزئیات مانده؛ کاملش کن تا مشتری راحت‌تر بهت اعتماد کند."
+                  : "فروشگاهت فعال است. از منو سفارش‌ها، محصولات و گفتگوها را مدیریت کن."}
               </p>
               {data.store_readiness_missing_tasks.length > 0 && (
                 <div className="flex flex-wrap gap-2">
@@ -126,12 +128,12 @@ export default function SellerDashboardPage() {
                   style={{ width: `${readinessPercent}%` }}
                 />
               </div>
-              {hasRemainingSetup && (
+              {canResumeOnboarding && (
                 <Link
                   href={paths.seller.onboarding}
                   className={buttonClassName({ className: "w-full" })}
                 >
-                  ادامه راه‌اندازی
+                  {data.onboarding_status === "SKIPPED" ? "ادامه راه‌اندازی" : "ادامه راه‌اندازی"}
                 </Link>
               )}
             </div>

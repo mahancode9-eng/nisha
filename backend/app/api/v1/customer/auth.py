@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_customer
+from app.core.limiter import limiter
 from app.core.security import create_access_token
 from app.db.session import get_db
 from app.models.customer_account import CustomerAccount
@@ -35,7 +36,9 @@ def _build_token_response(customer: CustomerAccount) -> CustomerTokenResponse:
 
 
 @router.post("/register", response_model=CustomerTokenResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit("3/minute")
 def register(
+    request: Request,
     payload: CustomerRegisterRequest,
     db: Session = Depends(get_db),
 ) -> CustomerTokenResponse:
@@ -54,7 +57,9 @@ def register(
 
 
 @router.post("/login", response_model=CustomerTokenResponse)
+@limiter.limit("5/minute")
 def login(
+    request: Request,
     payload: CustomerLoginRequest,
     db: Session = Depends(get_db),
 ) -> CustomerTokenResponse:

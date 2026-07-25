@@ -73,7 +73,7 @@ export function LoginForm({
           {forgotPasswordHref && (
             <p className="text-center text-sm">
               <a href={forgotPasswordHref} className="font-medium text-brand-deep hover:underline">
-                رمز عبور را فراموش کرده‌اید؟
+                رمز عبور را فراموش کردی؟
               </a>
             </p>
           )}

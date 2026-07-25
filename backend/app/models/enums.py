@@ -26,6 +26,7 @@ class OrderStatus(str, Enum):
     SHIPPED = "SHIPPED"
     DELIVERED = "DELIVERED"
     CANCELLED = "CANCELLED"
+    EXPIRED = "EXPIRED"
 
 
 class RecoveryChannel(str, Enum):

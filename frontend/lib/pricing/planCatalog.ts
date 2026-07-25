@@ -9,8 +9,8 @@ export const PLAN_CATALOG = [
     quarterly_price_toman: 0,
     yearly_price_toman: 0,
     is_recommended: false,
-    blurb: "شروع سریع فروشگاه با ابزارهای پایه",
-    highlights: ["تا ۳۰ محصول", "آمار ۷ روزه", "بدون کارمزد روی سفارش مشتری"],
+    blurb: "شروع سریع با ویترین و فروش کارت‌به‌کارت",
+    highlights: ["تا ۳۰ محصول", "آمار ۷ روزه", "بدون کارمزد روی فروش"],
   },
   {
     code: "basic",
@@ -19,8 +19,8 @@ export const PLAN_CATALOG = [
     quarterly_price_toman: 807_000,
     yearly_price_toman: 2_990_000,
     is_recommended: false,
-    blurb: "برای فروشنده‌هایی که جدی‌تر فروش می‌کنند",
-    highlights: ["خرید مهمان", "کد تخفیف", "تا ۲۰۰ محصول"],
+    blurb: "برای فروش جدی‌تر با خرید مهمان",
+    highlights: ["خرید مهمان + کارت‌به‌کارت", "کد تخفیف", "تا ۲۰۰ محصول"],
   },
   {
     code: "pro",
@@ -39,7 +39,7 @@ export const PLAN_CATALOG = [
     quarterly_price_toman: 3_483_000,
     yearly_price_toman: 12_900_000,
     is_recommended: false,
-    blurb: "برای فروش با حجم بالا و پشتیبانی اولویت‌دار",
+    blurb: "برای حجم بالا و پشتیبانی اولویت‌دار",
     highlights: ["همه قابلیت‌های حرفه‌ای", "پشتیبانی اولویت‌دار", "سقف محصول نامحدود"],
   },
 ] as const;

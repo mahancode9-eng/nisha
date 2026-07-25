@@ -9,7 +9,7 @@ from app.models.enums import VerificationAccountKind
 from app.models.notification import NotificationOutbox
 from app.services.notification_service import TEMPLATES
 from app.models.user import User
-from tests.conftest import mark_customer_email_verified, mark_user_email_verified
+from conftest import mark_customer_email_verified, mark_user_email_verified
 
 
 def test_customer_register_requires_verification(client, db):
@@ -150,7 +150,9 @@ def test_resend_verification_is_generic(client, db):
     assert missing.status_code == 200
 
 
-def test_customer_reregister_unverified_email(client, db):
+def test_customer_reregister_unverified_email_does_not_overwrite(client, db):
+    from app.core.security import verify_password
+
     payload = {
         "email": "reregister@example.com",
         "password": "securepass",
@@ -162,16 +164,18 @@ def test_customer_reregister_unverified_email(client, db):
         json={**payload, "password": "newsecurepass", "full_name": "Second Try"},
     )
     assert first.status_code == 201
-    assert second.status_code == 201
-    assert second.json()["needs_email_verification"] is True
+    assert second.status_code == 409
 
     customer = db.scalar(
         select(CustomerAccount).where(CustomerAccount.email == "reregister@example.com")
     )
     assert customer is not None
-    assert customer.full_name == "Second Try"
+    assert customer.full_name == "First Try"
+    assert verify_password("securepass", customer.password_hash)
+    assert not verify_password("newsecurepass", customer.password_hash)
 
     outbox_count = db.scalar(select(func.count()).select_from(NotificationOutbox)) or 0
+    # Original register + re-send on duplicate attempt
     assert outbox_count == 2
 
 

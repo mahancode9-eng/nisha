@@ -78,6 +78,11 @@ class Order(TimestampMixin, Base):
     )
     total_amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
     stock_restored: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    reservation_expires_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        index=True,
+    )
 
     store: Mapped["Store"] = relationship("Store", back_populates="orders")
     customer: Mapped[Optional["CustomerAccount"]] = relationship(

@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
 from sqlalchemy.orm import Session
 
+from app.core.limiter import limiter
 from app.db.session import get_db
 from app.schemas.chat import ConversationDetailResponse, MessageResponse
 from app.schemas.customer_portal import CustomerReviewResponse
@@ -38,7 +39,9 @@ def track_order(payload: OrderTrackRequest, db: Session = Depends(get_db)) -> Or
     "/{invoice_code}/upload-payment-proof",
     response_model=PaymentProofUploadResponse,
 )
+@limiter.limit("5/minute")
 async def upload_payment_proof(
+    request: Request,
     invoice_code: str,
     invoice_edit_password: str = Form(...),
     file: UploadFile = File(...),

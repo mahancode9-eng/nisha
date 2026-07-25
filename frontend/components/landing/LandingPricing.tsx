@@ -18,11 +18,11 @@ export function LandingPricing() {
         <div className="mx-auto max-w-2xl space-y-3 text-center">
           <p className="text-sm font-medium tracking-[0.26em] text-brand">تعرفه</p>
           <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl lg:text-5xl">
-            شروع رایگان، ابزارهای پیشرفته با اشتراک
+            شروع رایگان، فروش بدون کارمزد
           </h2>
           <p className="mx-auto max-w-xl text-sm leading-7 text-foreground-muted sm:text-base">
-            روی سفارش مشتری کارمزدی نمی‌گیریم. هزینه فقط برای ابزارهای پلتفرم است — هر وقت آماده‌ای ارتقا
-            بده.
+            روی هر سفارش مشتری کارمزد نمی‌گیریم. هزینه فقط برای ابزارهای بیشتر پلتفرم است — وقتی خودت
+            آماده‌ای ارتقا بده.
           </p>
         </div>
       </Reveal>

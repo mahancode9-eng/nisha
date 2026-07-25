@@ -34,6 +34,7 @@ STATUS_LABELS: dict[OrderStatus, str] = {
     OrderStatus.SHIPPED: "ارسال شد",
     OrderStatus.DELIVERED: "تحویل داده شد",
     OrderStatus.CANCELLED: "لغو شد",
+    OrderStatus.EXPIRED: "منقضی شد",
 }
 
 # Statuses the buyer should be notified about via SMS.

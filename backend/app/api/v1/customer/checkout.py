@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_customer
+from app.core.limiter import limiter
 from app.db.session import get_db
 from app.models.customer_account import CustomerAccount
 from app.schemas.customer_portal import CustomerCheckoutCreate
@@ -18,7 +19,9 @@ router = APIRouter(prefix="/stores", tags=["customer-checkout"])
     response_model=CheckoutResponse,
     status_code=status.HTTP_201_CREATED,
 )
+@limiter.limit("10/minute")
 def create_customer_order(
+    request: Request,
     slug: str,
     payload: CustomerCheckoutCreate,
     customer: CustomerAccount = Depends(get_current_customer),

@@ -43,35 +43,25 @@ def register_customer(
     if normalized_email:
         existing = get_customer_by_email(db, normalized_email)
         if existing is not None:
-            if existing.email_verified_at is not None:
-                raise AuthError("ایمیل قبلا ثبت شده است", status_code=409)
-            if normalized_phone:
-                phone_owner = get_customer_by_phone(db, normalized_phone)
-                if phone_owner is not None and phone_owner.id != existing.id:
-                    raise AuthError("تلفن قبلا ثبت شده است", status_code=409)
-            existing.full_name = full_name.strip()
-            existing.password_hash = hash_password(password)
-            existing.postal_code = postal_code.strip() if postal_code else None
-            if normalized_phone:
-                existing.phone = normalized_phone
-            try:
-                from app.models.enums import VerificationAccountKind
-                from app.services.email_verification_service import issue_verification
+            # Never overwrite password/profile — prevents account takeover.
+            # Re-send verification only; do not change credentials.
+            if existing.email_verified_at is None:
+                try:
+                    from app.models.enums import VerificationAccountKind
+                    from app.services.email_verification_service import issue_verification
 
-                db.flush()
-                issue_verification(
-                    db,
-                    account_kind=VerificationAccountKind.CUSTOMER,
-                    account_id=existing.id,
-                    email=normalized_email,
-                    full_name=existing.full_name,
-                )
-                db.commit()
-            except IntegrityError as exc:
-                db.rollback()
-                raise AuthError("این حساب قبلا ایجاد شده است", status_code=409) from exc
-            db.refresh(existing)
-            return existing
+                    issue_verification(
+                        db,
+                        account_kind=VerificationAccountKind.CUSTOMER,
+                        account_id=existing.id,
+                        email=normalized_email,
+                        full_name=existing.full_name,
+                    )
+                    db.commit()
+                except IntegrityError as exc:
+                    db.rollback()
+                    raise AuthError("این حساب قبلا ایجاد شده است", status_code=409) from exc
+            raise AuthError("ایمیل قبلا ثبت شده است", status_code=409)
 
     if normalized_phone and get_customer_by_phone(db, normalized_phone) is not None:
         raise AuthError("تلفن قبلا ثبت شده است", status_code=409)

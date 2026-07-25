@@ -77,7 +77,7 @@ export function UserRecoverForm({ title, loginHref, afterVerifyHref }: UserRecov
         <div className="text-center">
           <h1 className="text-2xl font-bold text-foreground">{title}</h1>
           <p className="mt-1 text-sm text-foreground-muted">
-            کد بازیابی به ایمیل شما ارسال می‌شود.
+            کد بازیابی به ایمیلت فرستاده می‌شود.
           </p>
         </div>
         <Card>

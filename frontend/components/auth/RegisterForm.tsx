@@ -46,9 +46,9 @@ export function RegisterForm({ onSubmit, footer, loginHref }: RegisterFormProps)
   return (
     <Card className="mx-auto w-full max-w-md">
       <CardHeader>
-        <CardTitle>ایجاد حساب فروشنده</CardTitle>
+        <CardTitle>ساخت حساب فروشنده</CardTitle>
         <p className="mt-1 text-sm text-foreground-muted">
-          فروش را با فروشگاه آنلاین اختصاصی خود شروع کنید.
+          رایگان شروع کن؛ فروشگاهت را بساز و با کارت‌به‌کارت بفروش.
         </p>
       </CardHeader>
       <CardContent>

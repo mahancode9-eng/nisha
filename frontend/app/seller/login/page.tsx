@@ -45,7 +45,7 @@ export default function SellerLoginPage() {
         </div>
         <LoginForm
           title="ورود فروشنده"
-          subtitle="برای مدیریت فروشگاه وارد شوید"
+          subtitle="برای مدیریت فروشگاهت وارد شو"
           onSubmit={handleLogin}
           forgotPasswordHref={paths.seller.recover}
           footer={

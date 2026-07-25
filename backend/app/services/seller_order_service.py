@@ -109,6 +109,7 @@ def confirm_payment(db: Session, store: Store, order_id: int, seller: User) -> O
 
     old_status = order.status
     order.status = OrderStatus.PAYMENT_CONFIRMED
+    order.reservation_expires_at = None
     order_access_service.append_status_history(
         db,
         order=order,
@@ -129,6 +130,7 @@ def reject_payment(db: Session, store: Store, order_id: int, seller: User) -> Or
     stock_service.restore_order_stock(db, order)
     old_status = order.status
     order.status = OrderStatus.PAYMENT_REJECTED
+    order.reservation_expires_at = None
     order_access_service.append_status_history(
         db,
         order=order,
@@ -156,6 +158,7 @@ def update_order_status(
 
     if target_status == OrderStatus.CANCELLED:
         stock_service.restore_order_stock(db, order)
+        order.reservation_expires_at = None
 
     old_status = order.status
     order.status = target_status

@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.models.enums import BillingPeriod, SellerSubscriptionStatus, SubscriptionInvoiceStatus
 
@@ -64,6 +64,13 @@ class SubscriptionPaymentProofResponse(BaseModel):
     id: int
     image_url: str
     uploaded_at: datetime
+
+    @field_validator("image_url", mode="after")
+    @classmethod
+    def sign_private_proof_url(cls, value: str) -> str:
+        from app.services.private_media_service import sign_private_media_url
+
+        return sign_private_media_url(value)
 
 
 class SubscriptionInvoiceResponse(BaseModel):

@@ -1,7 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from app.models.enums import OrderStatus, PaymentMethodType
 from app.schemas.order_item import OrderItemFieldValueResponse
@@ -36,6 +36,13 @@ class PaymentProofResponse(BaseModel):
     id: int
     image_url: str
     uploaded_at: datetime
+
+    @field_validator("image_url", mode="after")
+    @classmethod
+    def sign_private_proof_url(cls, value: str) -> str:
+        from app.services.private_media_service import sign_private_media_url
+
+        return sign_private_media_url(value)
 
 
 class PaymentProofUploadResponse(BaseModel):

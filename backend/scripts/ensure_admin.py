@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 
 from sqlalchemy import text
 
+from app.core.config import settings
 from app.core.security import hash_password, verify_password
 from app.db.session import SessionLocal
 
@@ -10,6 +11,11 @@ ADMIN_PASSWORD = "admin123456"
 
 
 def main() -> None:
+    if settings.ENVIRONMENT == "production" and not settings.ALLOW_DEMO_SEED:
+        raise SystemExit(
+            "Refusing to ensure_admin in production. Set ALLOW_DEMO_SEED=true to override."
+        )
+
     password_hash = hash_password(ADMIN_PASSWORD)
     assert verify_password(ADMIN_PASSWORD, password_hash)
     now = datetime.now(timezone.utc)
@@ -42,25 +48,24 @@ def main() -> None:
             )
             print("created")
         else:
+            # Never reset an existing admin password.
             db.execute(
                 text(
                     """
                     UPDATE users
-                    SET password_hash = :password_hash,
-                        role = 'ADMIN',
+                    SET role = 'ADMIN',
                         is_active = true,
-                        email_verified_at = :now,
+                        email_verified_at = COALESCE(email_verified_at, :now),
                         updated_at = :now
                     WHERE email = :email
                     """
                 ),
                 {
                     "email": ADMIN_EMAIL,
-                    "password_hash": password_hash,
                     "now": now,
                 },
             )
-            print("updated")
+            print("updated_without_password_reset")
         db.commit()
 
         stored = db.execute(
@@ -70,7 +75,9 @@ def main() -> None:
         print(
             "ok",
             ADMIN_EMAIL,
-            verify_password(ADMIN_PASSWORD, stored.password_hash),
+            verify_password(ADMIN_PASSWORD, stored.password_hash)
+            if row is None
+            else "password_unchanged",
             stored.role,
             stored.email_verified_at is not None,
         )

@@ -10,7 +10,7 @@ export default function SellerRecoverPage() {
       <UserRecoverForm
         title="بازیابی رمز عبور فروشنده"
         loginHref={paths.seller.login}
-        afterVerifyHref={paths.seller.dashboard}
+        afterVerifyHref={paths.seller.onboarding}
       />
     </GuestOnly>
   );
