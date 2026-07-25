@@ -29,6 +29,9 @@ out/
 
 # Uploads & data
 uploads/
+private_uploads/
+backend/private_uploads/
+backups/
 postgres_data/
 
 # IDE

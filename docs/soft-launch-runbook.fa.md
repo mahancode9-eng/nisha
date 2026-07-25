@@ -1,6 +1,6 @@
 # راهنمای Soft Launch نیشا
 
-مراحل عملی قبل از soft launch با ۵–۱۰ فروشنده واقعی. این سند مکمل [`qa-launch-checklist.fa.md`](./qa-launch-checklist.fa.md) است و روی اشتراک پلتفرم، کارت پرداخت و smoke test تمرکز دارد. برای جزئیات امنیتی Wave 1 ببین [`security-hardening-wave1.md`](./security-hardening-wave1.md). راهنمای دیپلوی: [`PRODUCTION_DEPLOYMENT.md`](./PRODUCTION_DEPLOYMENT.md).
+مراحل عملی قبل از soft launch با ۵–۱۰ فروشنده واقعی. این سند مکمل [`qa-launch-checklist.fa.md`](./qa-launch-checklist.fa.md) است و روی اشتراک پلتفرم، کارت پرداخت و smoke test تمرکز دارد. برای جزئیات امنیتی Wave 1 ببین [`security-hardening-wave1.md`](./security-hardening-wave1.md). راهنمای دیپلوی: [`PRODUCTION_DEPLOYMENT.md`](./PRODUCTION_DEPLOYMENT.md). نمونه Nginx: [`../deploy/nginx.conf.example`](../deploy/nginx.conf.example).
 
 ## ۰) Day-0 — امروز بفروش (چک‌لیست سریع)
 
@@ -21,6 +21,8 @@
 
 > فروشگاه آنلاینت را رایگان بساز، با کارت‌به‌کارت بفروش، روی هر سفارش کارمزد نده.
 > لینک: `https://YOUR-DOMAIN`
+
+قالب‌های کامل PV، فالوآپ و تقویم ۱۴روزه اینستاگرام: [`soft-launch-marketing.fa.md`](./soft-launch-marketing.fa.md) · نسخه HTML: [`soft-launch-marketing.html`](./soft-launch-marketing.html).
 
 روی فروش تمرکز کن؛ Wave 2 امنیت و فیچرهای اضافه را بعد از یک هفته با فروشنده واقعی انجام بده.
 

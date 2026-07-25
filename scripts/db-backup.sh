@@ -1,5 +1,5 @@
 #!/bin/sh
-# Nisha - automatic PostgreSQL + uploads backup loop.
+# Nisha - automatic PostgreSQL + uploads + private_uploads backup loop.
 # Runs inside the db-backup container (postgres:16-alpine).
 #
 # Environment variables:
@@ -8,7 +8,8 @@
 #   PGDATABASE              database name (default: nisha)
 #   PGPASSWORD              database password (required, injected by compose)
 #   BACKUP_DIR              where to write backups (default: /backups)
-#   UPLOADS_DIR             uploaded files dir to back up (default: /uploads)
+#   UPLOADS_DIR             public uploaded files dir (default: /uploads)
+#   PRIVATE_UPLOADS_DIR     private proofs dir (default: /private_uploads)
 #   BACKUP_INTERVAL_SECONDS how often to back up (default: 86400 = 24h)
 #   BACKUP_RETENTION_DAYS   delete backups older than this (default: 14)
 set -eu
@@ -18,12 +19,30 @@ set -eu
 : "${PGDATABASE:=nisha}"
 : "${BACKUP_DIR:=/backups}"
 : "${UPLOADS_DIR:=/uploads}"
+: "${PRIVATE_UPLOADS_DIR:=/private_uploads}"
 : "${BACKUP_INTERVAL_SECONDS:=86400}"
 : "${BACKUP_RETENTION_DAYS:=14}"
 
 mkdir -p "$BACKUP_DIR"
 
 echo "[db-backup] starting: every ${BACKUP_INTERVAL_SECONDS}s, retention ${BACKUP_RETENTION_DAYS} days"
+
+archive_dir() {
+  src_dir="$1"
+  label="$2"
+  target="$3"
+  if [ -d "$src_dir" ]; then
+    echo "[db-backup] creating $target"
+    if tar -czf "$target" -C "$src_dir" .; then
+      echo "[db-backup] $label archive done: $target"
+    else
+      echo "[db-backup] ERROR: $label archive failed, removing partial file" >&2
+      rm -f "$target"
+    fi
+  else
+    echo "[db-backup] $label dir $src_dir not found, skipping"
+  fi
+}
 
 while true; do
   timestamp="$(date +%Y%m%d-%H%M%S)"
@@ -38,23 +57,16 @@ while true; do
     rm -f "$db_target"
   fi
 
-  # 2) Uploaded files archive (product images, payment proofs, ...)
-  if [ -d "$UPLOADS_DIR" ]; then
-    files_target="$BACKUP_DIR/uploads-$timestamp.tar.gz"
-    echo "[db-backup] creating $files_target"
-    if tar -czf "$files_target" -C "$UPLOADS_DIR" .; then
-      echo "[db-backup] uploads archive done: $files_target"
-    else
-      echo "[db-backup] ERROR: uploads archive failed, removing partial file" >&2
-      rm -f "$files_target"
-    fi
-  else
-    echo "[db-backup] uploads dir $UPLOADS_DIR not found, skipping files backup"
-  fi
+  # 2) Public uploads (product images, etc.)
+  archive_dir "$UPLOADS_DIR" "uploads" "$BACKUP_DIR/uploads-$timestamp.tar.gz"
 
-  # 3) Remove backups older than the retention window.
+  # 3) Private uploads (payment / subscription proofs)
+  archive_dir "$PRIVATE_UPLOADS_DIR" "private_uploads" "$BACKUP_DIR/private_uploads-$timestamp.tar.gz"
+
+  # 4) Remove backups older than the retention window.
   find "$BACKUP_DIR" -name 'nisha-*.sql.gz' -mtime "+${BACKUP_RETENTION_DAYS}" -delete 2>/dev/null || true
   find "$BACKUP_DIR" -name 'uploads-*.tar.gz' -mtime "+${BACKUP_RETENTION_DAYS}" -delete 2>/dev/null || true
+  find "$BACKUP_DIR" -name 'private_uploads-*.tar.gz' -mtime "+${BACKUP_RETENTION_DAYS}" -delete 2>/dev/null || true
 
   sleep "$BACKUP_INTERVAL_SECONDS"
 done

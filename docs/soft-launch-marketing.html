@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>نیشا — تقویم بازاریابی Soft Launch</title>
+  <style>
+    :root {
+      --ink: #1a2332;
+      --muted: #5a6578;
+      --line: #d8dee8;
+      --bg: #f7f8fb;
+      --card: #ffffff;
+      --accent: #0d6e6e;
+      --accent-soft: #e6f3f3;
+      --feed: #1d4ed8;
+      --story: #b45309;
+      --ok: #0f766e;
+      --warn: #9a3412;
+      --radius: 12px;
+      --font: "Vazirmatn", "Tahoma", "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: var(--font);
+      color: var(--ink);
+      background:
+        radial-gradient(ellipse 80% 50% at 100% 0%, #dff0ef 0%, transparent 55%),
+        radial-gradient(ellipse 60% 40% at 0% 100%, #e8eef8 0%, transparent 50%),
+        var(--bg);
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    a { color: var(--accent); }
+
+    .wrap {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 1.5rem 1.25rem 4rem;
+    }
+
+    header.hero {
+      margin-bottom: 1.5rem;
+    }
+
+    header.hero h1 {
+      margin: 0 0 0.35rem;
+      font-size: clamp(1.5rem, 4vw, 2rem);
+      letter-spacing: -0.02em;
+    }
+
+    header.hero p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 40rem;
+    }
+
+    .domain-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: end;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 1rem;
+      margin-bottom: 1.25rem;
+      box-shadow: 0 1px 0 rgba(26, 35, 50, 0.04);
+    }
+
+    .domain-bar label {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      flex: 1 1 220px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .domain-bar input {
+      font: inherit;
+      padding: 0.65rem 0.75rem;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      direction: ltr;
+      text-align: left;
+    }
+
+    .domain-bar input:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+
+    .hint {
+      font-size: 0.8rem;
+      color: var(--muted);
+      font-weight: 400;
+    }
+
+    nav.tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 1.25rem;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      padding: 0.6rem 0;
+      background: color-mix(in srgb, var(--bg) 88%, transparent);
+      backdrop-filter: blur(8px);
+    }
+
+    nav.tabs button {
+      font: inherit;
+      border: 1px solid var(--line);
+      background: var(--card);
+      color: var(--ink);
+      padding: 0.45rem 0.85rem;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+
+    nav.tabs button[aria-selected="true"] {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    section.panel {
+      display: none;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      box-shadow: 0 1px 0 rgba(26, 35, 50, 0.04);
+    }
+
+    section.panel.active { display: block; }
+
+    section.panel h2 {
+      margin: 0 0 0.75rem;
+      font-size: 1.15rem;
+    }
+
+    section.panel h3 {
+      margin: 1.25rem 0 0.5rem;
+      font-size: 1rem;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin: 0.75rem 0 1rem;
+    }
+
+    .pill {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-radius: 999px;
+      padding: 0.25rem 0.7rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .callout {
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      color: var(--warn);
+      border-radius: 8px;
+      padding: 0.75rem 0.9rem;
+      font-size: 0.9rem;
+      margin: 0.75rem 0;
+    }
+
+    .callout.ok {
+      background: var(--accent-soft);
+      border-color: #9fd0d0;
+      color: var(--ok);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 0.65rem 0.45rem;
+      text-align: right;
+      vertical-align: top;
+    }
+
+    th {
+      font-size: 0.75rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.15rem 0.45rem;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+
+    .badge.feed { background: #dbeafe; color: var(--feed); }
+    .badge.story { background: #ffedd5; color: var(--story); }
+    .badge.both { background: #e0e7ff; color: #4338ca; }
+
+    .msg {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      margin: 0.85rem 0;
+      overflow: hidden;
+    }
+
+    .msg-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.65rem 0.85rem;
+      background: #f3f5f9;
+      border-bottom: 1px solid var(--line);
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .msg pre {
+      margin: 0;
+      padding: 0.9rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: var(--font);
+      font-size: 0.92rem;
+      background: #fff;
+    }
+
+    button.copy {
+      font: inherit;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--accent);
+      border-radius: 8px;
+      padding: 0.3rem 0.65rem;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    button.copy.copied {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    ol.steps, ul {
+      padding-inline-start: 1.25rem;
+      margin: 0.5rem 0 1rem;
+    }
+
+    .flow {
+      font-family: ui-monospace, Consolas, monospace;
+      direction: ltr;
+      text-align: left;
+      background: #0f172a;
+      color: #e2e8f0;
+      border-radius: 8px;
+      padding: 0.9rem 1rem;
+      font-size: 0.8rem;
+      overflow-x: auto;
+      white-space: pre;
+      line-height: 1.55;
+    }
+
+    footer {
+      margin-top: 1.5rem;
+      color: var(--muted);
+      font-size: 0.8rem;
+      text-align: center;
+    }
+
+    @media (max-width: 640px) {
+      th:nth-child(3), td:nth-child(3) { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <h1>نیشا — Soft Launch Marketing</h1>
+      <p>
+        تقویم ۱۴روزه اینستاگرام، پیام‌های PV فروشنده، و چک‌لیست outreach.
+        فایل را با دابل‌کلیک در مرورگر باز کن — سرور لازم نیست.
+      </p>
+    </header>
+
+    <div class="domain-bar">
+      <label>
+        دامنه / لینک ثبت‌نام
+        <input id="domain" type="text" placeholder="https://nisha.example.com" autocomplete="off" spellcheck="false" />
+        <span class="hint">جایگزین <code>[YOUR-DOMAIN]</code> در پیام‌های کپی‌شونده</span>
+      </label>
+    </div>
+
+    <nav class="tabs" role="tablist" aria-label="بخش‌ها">
+      <button type="button" role="tab" aria-selected="true" data-panel="overview">خلاصه</button>
+      <button type="button" role="tab" aria-selected="false" data-panel="calendar">تقویم ۱۴ روز</button>
+      <button type="button" role="tab" aria-selected="false" data-panel="pv">پیام‌های PV</button>
+      <button type="button" role="tab" aria-selected="false" data-panel="outreach">Outreach</button>
+    </nav>
+
+    <section id="overview" class="panel active" role="tabpanel">
+      <h2>مخاطب و وعده</h2>
+      <p>
+        <strong>مخاطب:</strong> فروشگاه‌های اینستا که با استوری/دایرکت می‌فروشند و لینک ویترین درست ندارند.
+      </p>
+      <div class="pill-row">
+        <span class="pill">شروع رایگان</span>
+        <span class="pill">کارت‌به‌کارت</span>
+        <span class="pill">بدون کارمزد روی سفارش</span>
+        <span class="pill">ویترین لینک‌دار</span>
+      </div>
+      <p>
+        <strong>یک خط:</strong>
+        نیشا = فروشگاه‌ساز برای فروشنده‌های اینستا که به‌جای «دایرکت بده» لینک ویترین + سفارش کارت‌به‌کارت می‌خواهند.
+      </p>
+      <div class="callout">
+        ادعای ممنوع: درگاه بانکی رسمی، اپ موبایل، «هزاران فروشگاه». تا ۵ سفارش مهمان واقعی، تبلیغ پولی نزن.
+      </div>
+      <h3>کانال‌ها (هفته ۱–۲)</h3>
+      <table>
+        <thead>
+          <tr><th>کانال</th><th>نقش</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>فید + استوری</td><td>آگاهی و اعتماد؛ ۱–۲ پست فید / هفته، استوری تقریباً روزانه</td></tr>
+          <tr><td>PV فروشنده</td><td>تبدیل اصلی برای ۵–۱۰ فروشنده اول</td></tr>
+          <tr><td>معرفی نرم</td><td>از هر آنبوردشده ۱ دوست فروشنده بخواه</td></tr>
+        </tbody>
+      </table>
+      <h3>هشتگ‌ها (حداکثر ۵)</h3>
+      <p dir="ltr" style="text-align:left">#فروشگاه_اینستاگرام #کارت_به_کارت #فروشنده #نیشا</p>
+      <div class="callout ok">
+        بصری: اسکرین واقعی UI فارسی؛ استوری = ضبط گوشی؛ بدون استوک بنفش/درخشان.
+      </div>
+    </section>
+
+    <section id="calendar" class="panel" role="tabpanel">
+      <h2>تقویم ۱۴ روزه اینستاگرام</h2>
+      <p class="hint">ریتم: یک پست فید یک‌درمیان + استوری بیشتر روزها.</p>
+      <table>
+        <thead>
+          <tr>
+            <th>روز</th>
+            <th>نوع</th>
+            <th>موضوع</th>
+            <th>زاویه کپشن</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>۱</td><td><span class="badge feed">فید</span></td><td>مشکل</td><td>«هنوز فقط تو استوری می‌فروشی و دایرکت شلوغه؟»</td></tr>
+          <tr><td>۱</td><td><span class="badge story">استوری</span></td><td>نظرسنجی</td><td>«سفارش‌هات کجاست؟ دایرکت / لینک فروشگاه»</td></tr>
+          <tr><td>۲</td><td><span class="badge story">استوری</span></td><td>CTA نرم</td><td>۳ اسلاید: مشکل → کارت‌به‌کارت → لینک بایو</td></tr>
+          <tr><td>۳</td><td><span class="badge feed">فید</span></td><td>مزیت</td><td>«روی هر سفارش کارمزد نده — فقط اشتراک پلتفرم اگر خواستی ارتقا بدی»</td></tr>
+          <tr><td>۴</td><td><span class="badge story">استوری</span></td><td>پشت صحنه</td><td>اسکرین ویترین خالی / داشبورد (بدون دیتای دیگران)</td></tr>
+          <tr><td>۵</td><td><span class="badge feed">فید</span></td><td>نحوه کار</td><td>۳ قدم: بساز → محصول بگذار → لینک بفرست</td></tr>
+          <tr><td>۶</td><td><span class="badge story">استوری</span></td><td>پرسش</td><td>«پرداخت چطوریه؟» → کارت‌به‌کارت + آپلود رسید</td></tr>
+          <tr><td>۷</td><td><span class="badge feed">فید</span></td><td>اثبات سبک</td><td>نقل‌قول از ۱ فروشنده بتا یا داستان بنیان‌گذار</td></tr>
+          <tr><td>۸</td><td><span class="badge story">استوری</span></td><td>اعتراض</td><td>«درگاه ندارم» → برای مشتری ایرانی کارت‌به‌کارت آشناست</td></tr>
+          <tr><td>۹</td><td><span class="badge feed">فید</span></td><td>قبل/بعد</td><td>قبل: لیست محصول تو هایلایت / بعد: ویترین مرتب با لینک</td></tr>
+          <tr><td>۱۰</td><td><span class="badge story">استوری</span></td><td>دعوت نرم</td><td>«۵ فروشنده اول برای تست واقعی — دایرکت بده»</td></tr>
+          <tr><td>۱۱</td><td><span class="badge feed">فید</span></td><td>قیمت صادقانه</td><td>رایگان شروع؛ پلن‌ها برای امکانات بیشتر — نه کارمزد فروش</td></tr>
+          <tr><td>۱۲</td><td><span class="badge story">استوری</span></td><td>دمو</td><td>۱۵ثانیه: افزودن محصول → لینک ویترین</td></tr>
+          <tr><td>۱۳</td><td><span class="badge feed">فید</span></td><td>فوریت نرم</td><td>«این هفته دارم با فروشنده‌های واقعی راه می‌ندازم — جا هست؟»</td></tr>
+          <tr><td>۱۴</td><td><span class="badge both">استوری+فید</span></td><td>جمع‌بندی</td><td>چه ساختیم + CTA ثبت‌نام / دایرکت</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="pv" class="panel" role="tabpanel">
+      <h2>پیام‌های PV فروشنده</h2>
+      <p class="hint">دامنه بالا را پر کن، بعد «کپی» بزن. <code>[اسم]</code> را دستی عوض کن.</p>
+
+      <div class="msg" data-template>
+        <div class="msg-head">
+          <span>۱) تماس سرد</span>
+          <button type="button" class="copy" data-copy>کپی</button>
+        </div>
+        <pre data-body>سلام [اسم]، ویترینت تو استوری قشنگه.
+دارم نیشا رو برای فروشنده‌های اینستا راه می‌ندازم:
+فروشگاه لینک‌دار + سفارش کارت‌به‌کارت، شروع رایگان، روی هر سفارش کارمزد نمی‌گیریم.
+اگه دوست داری لینک بفرستم امتحان کنی؟</pre>
+      </div>
+
+      <div class="msg" data-template>
+        <div class="msg-head">
+          <span>۲) پک آنبوردینگ (اگر گفت بله)</span>
+          <button type="button" class="copy" data-copy>کپی</button>
+        </div>
+        <pre data-body>عالی 🌱
+۱) ثبت‌نام فروشنده: [YOUR-DOMAIN]/seller/register
+۲) ویترینت را بساز و یک محصول واقعی بگذار
+۳) لینک را تو بایو/استوری بگذار و یک سفارش تست بگیر
+
+اگر جایی گیر کردی همین‌جا بگو — خودم راهنمایی می‌کنم.
+پیام کوتاه دعوت:
+«فروشگاه آنلاینت را رایگان بساز، با کارت‌به‌کارت بفروش، روی هر سفارش کارمزد نده.»</pre>
+      </div>
+
+      <div class="msg" data-template>
+        <div class="msg-head">
+          <span>۳) فالوآپ ۴۸ساعته</span>
+          <button type="button" class="copy" data-copy>کپی</button>
+        </div>
+        <pre data-body>[اسم] فقط خواستم یادآوری کنم — این هفته چند فروشنده اول را دستی راه می‌ندازم.
+اگر الان وقت نداری اوکی؛ اگر خواستی لینک همان [YOUR-DOMAIN] هست.</pre>
+      </div>
+
+      <div class="msg" data-template>
+        <div class="msg-head">
+          <span>۴) بعد از ساخت فروشگاه</span>
+          <button type="button" class="copy" data-copy>کپی</button>
+        </div>
+        <pre data-body>ویترینت بالاست 👏
+قدم بعدی: لینک را تو استوری بگذار و از یک دوست بخواه یک سفارش تست (حتی ۱ تومن/محصول تست) بزنه.
+اگر رسید/وضعیت سفارش گیج‌کننده بود اسکرین بفرست درستش می‌کنیم.</pre>
+      </div>
+
+      <div class="msg" data-template>
+        <div class="msg-head">
+          <span>۵) درخواست معرفی</span>
+          <button type="button" class="copy" data-copy>کپی</button>
+        </div>
+        <pre data-body>ممنون که تست کردی.
+یکی از دوستات که تو اینستا می‌فروشه و هنوز لینک فروشگاه درست نداره رو معرفی کن؟
+برای ۵–۱۰ نفر اول پشتیبانی مستقیم خودمم.</pre>
+      </div>
+
+      <div class="msg" data-template>
+        <div class="msg-head">
+          <span>۶) بستن بدون فشار</span>
+          <button type="button" class="copy" data-copy>کپی</button>
+        </div>
+        <pre data-body>کاملاً اوکی اگر الان نه.
+اگر بعداً از شلوغی دایرکت خسته شدی، نیشا همان لینک ویترین + کارت‌به‌کارت است — شروعش رایگانه.</pre>
+      </div>
+
+      <div class="msg" data-template>
+        <div class="msg-head">
+          <span>پیام کوتاه Day-0</span>
+          <button type="button" class="copy" data-copy>کپی</button>
+        </div>
+        <pre data-body>فروشگاه آنلاینت را رایگان بساز، با کارت‌به‌کارت بفروش، روی هر سفارش کارمزد نده.
+لینک: [YOUR-DOMAIN]</pre>
+      </div>
+    </section>
+
+    <section id="outreach" class="panel" role="tabpanel">
+      <h2>ریتم Outreach</h2>
+      <ol class="steps">
+        <li>لیست <strong>۲۰</strong> اکانت هدف (فروشنده استوری/دایرکت).</li>
+        <li>حداکثر <strong>۵ دایرکت در روز</strong> (ریسک بلاک).</li>
+        <li>هدف: <strong>۵–۱۰ آنبورد</strong> با حداقل ۱ سفارش مهمان.</li>
+        <li>در شیت لاگ کن (جدول پایین).</li>
+      </ol>
+      <div class="flow">List 20 IG sellers
+  → Day0 cold DM
+  → replied? → onboarding pack
+  → no? → Day2 follow-up
+       → yes → onboarding pack
+       → no  → stop / warm later
+  → help first guest order
+  → ask 1 referral</div>
+
+      <h3>ستون‌های شیت</h3>
+      <table>
+        <thead>
+          <tr><th>ستون</th><th>مثال</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>name</td><td>سارا</td></tr>
+          <tr><td>IG</td><td>@sara.shop</td></tr>
+          <tr><td>DM date</td><td>2026-07-26</td></tr>
+          <tr><td>status</td><td>cold / replied / onboarded / first_order / referred / stopped</td></tr>
+          <tr><td>store URL</td><td>https://YOUR-DOMAIN/store/sara</td></tr>
+          <tr><td>notes</td><td>استوری لباس؛ فالوآپ ۲۶</td></tr>
+        </tbody>
+      </table>
+
+      <h3>بعد از دو هفته</h3>
+      <ul>
+        <li>۵ سفارش مهمان واقعی → می‌توانی تبلیغ سبک تست کنی.</li>
+        <li>کمتر از ۳ آنبورد → outreach دستی بیشتر؛ تقویم را عوض نکن.</li>
+        <li>باگ واقعی فروشنده اولویت دارد؛ فیچر جدید را بلاک فروش نکن.</li>
+      </ul>
+    </section>
+
+    <footer>
+      منبع متن: soft-launch-marketing.fa.md — فقط برای اپراتور، آفلاین باز می‌شود.
+    </footer>
+  </div>
+
+  <script>
+    (function () {
+      var domainInput = document.getElementById("domain");
+      var STORAGE_KEY = "nisha-marketing-domain";
+
+      try {
+        var saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) domainInput.value = saved;
+      } catch (e) {}
+
+      function normalizeDomain(raw) {
+        var d = (raw || "").trim().replace(/\/+$/, "");
+        if (!d) return "https://YOUR-DOMAIN";
+        if (!/^https?:\/\//i.test(d)) d = "https://" + d;
+        return d;
+      }
+
+      function fillTemplate(text) {
+        return text.replaceAll("[YOUR-DOMAIN]", normalizeDomain(domainInput.value));
+      }
+
+      domainInput.addEventListener("input", function () {
+        try {
+          localStorage.setItem(STORAGE_KEY, domainInput.value);
+        } catch (e) {}
+      });
+
+      document.querySelectorAll("[data-copy]").forEach(function (btn) {
+        btn.addEventListener("click", async function () {
+          var pre = btn.closest("[data-template]").querySelector("[data-body]");
+          var text = fillTemplate(pre.textContent);
+          try {
+            await navigator.clipboard.writeText(text);
+            btn.textContent = "کپی شد";
+            btn.classList.add("copied");
+            setTimeout(function () {
+              btn.textContent = "کپی";
+              btn.classList.remove("copied");
+            }, 1400);
+          } catch (err) {
+            window.prompt("کپی دستی:", text);
+          }
+        });
+      });
+
+      var tabs = document.querySelectorAll("nav.tabs button");
+      var panels = document.querySelectorAll("section.panel");
+
+      tabs.forEach(function (tab) {
+        tab.addEventListener("click", function () {
+          var id = tab.getAttribute("data-panel");
+          tabs.forEach(function (t) {
+            t.setAttribute("aria-selected", t === tab ? "true" : "false");
+          });
+          panels.forEach(function (p) {
+            p.classList.toggle("active", p.id === id);
+          });
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

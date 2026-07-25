@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { ErrorBoundaryWrapper } from "@/components/layout/ErrorBoundaryWrapper";
 import { getThemeInitializerScript } from "@/lib/theme";
+import { getSiteUrl } from "@/lib/env";
 import "./globals.css";
 
 const vazirmatn = Vazirmatn({
@@ -14,7 +15,7 @@ const vazirmatn = Vazirmatn({
   variable: "--font-vazirmatn",
 });
 
-const metadataBase = new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000");
+const metadataBase = new URL(getSiteUrl());
 
 export const metadata: Metadata = {
   metadataBase,

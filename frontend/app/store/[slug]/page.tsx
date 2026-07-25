@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import { StorePageClient } from "./StorePageClient";
 import { VisitPing } from "./VisitPing";
 import { sanitizeScriptContent } from "@/lib/sanitize";
+import { getApiUrl, getSiteUrl } from "@/lib/env";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-const API_BASE =
-  process.env.API_INTERNAL_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const SITE_URL = getSiteUrl();
+const API_BASE = getApiUrl();
 
 type PageProps = {
   params: Promise<{ slug: string }>;

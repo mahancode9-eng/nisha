@@ -36,6 +36,7 @@ services:
       - ./backups:/backups
       - ./scripts/db-backup.sh:/usr/local/bin/db-backup.sh:ro
       - backend_uploads:/uploads:ro
+      - backend_private_uploads:/private_uploads:ro
     entrypoint: ["/bin/sh", "/usr/local/bin/db-backup.sh"]
     depends_on:
       db:
@@ -54,7 +55,9 @@ services:
       DATABASE_URL: postgresql://nisha:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@db:5432/nisha
       CORS_ORIGINS: ${CORS_ORIGINS:?CORS_ORIGINS is required}
       UPLOAD_DIR: /app/uploads
+      PRIVATE_UPLOAD_DIR: /app/private_uploads
       PAYMENT_PROOF_SUBDIR: payment-proofs
+      SUBSCRIPTION_PROOF_SUBDIR: subscription-proofs
       MAX_UPLOAD_SIZE_BYTES: 5242880
       LOW_STOCK_THRESHOLD: 5
       LOG_LEVEL: INFO
@@ -74,21 +77,22 @@ services:
       SMS_PROVIDER: ${SMS_PROVIDER:-console}
       SMS_SENDER: ${SMS_SENDER:-}
       KAVENEGAR_API_KEY: ${KAVENEGAR_API_KEY:-}
-      EMAIL_PROVIDER: ${EMAIL_PROVIDER:-console}
+      EMAIL_PROVIDER: ${EMAIL_PROVIDER:?EMAIL_PROVIDER is required (smtp or resend)}
       SMTP_HOST: ${SMTP_HOST:-}
       SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_USERNAME: ${SMTP_USERNAME:-}
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       SMTP_USE_TLS: ${SMTP_USE_TLS:-true}
-      EMAIL_FROM: ${EMAIL_FROM:-}
+      EMAIL_FROM: ${EMAIL_FROM:?EMAIL_FROM is required}
       RESEND_API_KEY: ${RESEND_API_KEY:-}
-      FRONTEND_BASE_URL: ${FRONTEND_BASE_URL:-http://localhost:3000}
+      FRONTEND_BASE_URL: ${FRONTEND_BASE_URL:?FRONTEND_BASE_URL is required (https public URL)}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:?JWT_SECRET_KEY is required}
       JWT_ALGORITHM: HS256
       JWT_ACCESS_TOKEN_EXPIRE_MINUTES: 30
       JWT_REFRESH_TOKEN_EXPIRE_DAYS: 7
     volumes:
       - backend_uploads:/app/uploads
+      - backend_private_uploads:/app/private_uploads
     depends_on:
       db:
         condition: service_healthy
@@ -111,13 +115,16 @@ services:
       dockerfile: Dockerfile.prod
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:?NEXT_PUBLIC_API_URL is required}
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:?NEXT_PUBLIC_SITE_URL is required}
     restart: unless-stopped
     logging: *default-logging
     ports:
       - "127.0.0.1:3000:3000"
     environment:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:?NEXT_PUBLIC_API_URL is required}
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:?NEXT_PUBLIC_SITE_URL is required}
       API_URL: http://backend:8000
+      API_INTERNAL_URL: http://backend:8000
     depends_on:
       backend:
         condition: service_healthy
@@ -125,3 +132,4 @@ services:
 volumes:
   postgres_data:
   backend_uploads:
+  backend_private_uploads:

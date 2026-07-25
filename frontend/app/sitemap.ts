@@ -1,8 +1,8 @@
 import type { MetadataRoute } from "next";
+import { getApiUrl, getSiteUrl } from "@/lib/env";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-const API_BASE =
-  process.env.API_INTERNAL_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const SITE_URL = getSiteUrl();
+const API_BASE = getApiUrl();
 
 type SitemapPayload = {
   stores?: Array<{ slug: string }>;
