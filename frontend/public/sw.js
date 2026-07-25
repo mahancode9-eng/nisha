@@ -1,7 +1,8 @@
-const CACHE_NAME = 'nisha-v1';
+const CACHE_NAME = 'nisha-v2';
 const STATIC_ASSETS = [
   '/',
-  '/icon.svg',
+  '/icon-192.png',
+  '/logo-mark.png',
   '/apple-touch-icon.png',
   '/manifest.json',
 ];
