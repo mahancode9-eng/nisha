@@ -4,6 +4,7 @@ from decimal import Decimal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.models.enums import ProductFieldType
+from app.schemas.product_category import ProductCategorySummary
 
 MAX_PRODUCT_IMAGES = 8
 
@@ -105,6 +106,8 @@ class ProductCreate(BaseModel):
     images: list[ProductImageInput] | None = Field(default=None, max_length=MAX_PRODUCT_IMAGES)
     form_fields: list[ProductFormFieldInput] | None = None
     variants: list[ProductVariantInput] | None = None
+    category_id: int | None = None
+    shipping_cost: Decimal | None = Field(default=None, ge=0)
 
 
 class ProductUpdate(BaseModel):
@@ -119,6 +122,8 @@ class ProductUpdate(BaseModel):
     images: list[ProductImageInput] | None = Field(default=None, max_length=MAX_PRODUCT_IMAGES)
     form_fields: list[ProductFormFieldInput] | None = None
     variants: list[ProductVariantInput] | None = None
+    category_id: int | None = None
+    shipping_cost: Decimal | None = Field(default=None, ge=0)
 
 
 class ProductResponse(BaseModel):
@@ -136,5 +141,8 @@ class ProductResponse(BaseModel):
     images: list[ProductImageResponse]
     form_fields: list[ProductFormFieldResponse]
     variants: list[ProductVariantResponse] = Field(default_factory=list)
+    category_id: int | None = None
+    category: ProductCategorySummary | None = None
+    shipping_cost: Decimal | None = None
     created_at: datetime
     updated_at: datetime

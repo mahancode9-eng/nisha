@@ -11,6 +11,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useCustomerAuth } from "@/contexts/CustomerAuthContext";
 import { ApiError } from "@/lib/api/errors";
 import { formatMoney } from "@/lib/format";
+import { computeShippingAmount } from "@/lib/shipping";
 import { publicPaths } from "@/lib/paths/public";
 import { useToast } from "@/contexts/ToastContext";
 import { OrderSuccessPanel } from "@/components/store/OrderSuccessPanel";
@@ -24,7 +25,7 @@ import { LoadingState } from "@/components/ui/LoadingState";
 import { Textarea } from "@/components/ui/Textarea";
 import { paths } from "@/lib/auth/paths";
 import type { CheckoutResponse, DiscountPreviewResponse, OrderItemFieldValueInput } from "@/types/public/checkout";
-import type { PublicPaymentMethod, PublicProduct, PublicProductFormField } from "@/types/public/store";
+import type { PublicPaymentMethod, PublicProduct, PublicProductFormField, PublicStoreProfile } from "@/types/public/store";
 import type { CustomerAddress } from "@/types/customer/profile";
 
 type PageProps = {
@@ -105,6 +106,7 @@ export default function CheckoutPage({ params }: PageProps) {
   const { customer, isLoading: customerLoading } = useCustomerAuth();
 
   const [loading, setLoading] = useState(true);
+  const [storeProfile, setStoreProfile] = useState<PublicStoreProfile | null>(null);
   const [paymentMethods, setPaymentMethods] = useState<PublicPaymentMethod[]>([]);
   const [storeProducts, setStoreProducts] = useState<PublicProduct[]>([]);
   const [fieldState, setFieldState] = useState<CheckoutFieldStateMap>({});
@@ -155,7 +157,25 @@ export default function CheckoutPage({ params }: PageProps) {
   }, [items]);
 
   const discountAmount = appliedDiscount ? parseFloat(appliedDiscount.discount_amount) : 0;
-  const payableTotal = Math.max(subtotal - discountAmount, 0);
+  const shippingAmount = useMemo(() => {
+    if (!storeProfile) return 0;
+    return computeShippingAmount(
+      subtotal,
+      {
+        default_shipping_cost: storeProfile.default_shipping_cost ?? "0",
+        free_shipping_min_subtotal: storeProfile.free_shipping_min_subtotal,
+      },
+      items.map((line) => {
+        const product = productsById.get(line.productId);
+        return {
+          productId: line.productId,
+          quantity: line.quantity,
+          shippingCost: product?.shipping_cost,
+        };
+      }),
+    );
+  }, [storeProfile, subtotal, items, productsById]);
+  const payableTotal = Math.max(subtotal - discountAmount + shippingAmount, 0);
 
   useEffect(() => {
     if (successOrder) return;
@@ -167,6 +187,7 @@ export default function CheckoutPage({ params }: PageProps) {
         if (cancelled) return;
         reconcileWithProducts(store.products);
         setStoreProducts(store.products);
+        setStoreProfile(store.store);
         setPaymentMethods(store.payment_methods);
         setGuestCheckoutEnabled(store.store.guest_checkout_enabled);
         if (store.payment_methods.length > 0) {
@@ -579,6 +600,10 @@ export default function CheckoutPage({ params }: PageProps) {
                 <span>− {formatMoney(appliedDiscount.discount_amount)}</span>
               </div>
             )}
+            <div className="flex justify-between text-sm">
+              <span>هزینه ارسال</span>
+              <span>{formatMoney(shippingAmount)}</span>
+            </div>
             <div className="flex justify-between font-semibold">
               <span>مبلغ قابل پرداخت</span>
               <span>{formatMoney(payableTotal)}</span>

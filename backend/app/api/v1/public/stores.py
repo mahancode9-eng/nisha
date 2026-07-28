@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.core.limiter import limiter
 from app.db.session import get_db
 from app.schemas.product import ProductFormFieldResponse, ProductImageResponse
+from app.schemas.product_category import ProductCategorySummary
 from app.schemas.public import (
     PublicProductDetailResponse,
     GuestOrderCreate,
@@ -29,7 +30,10 @@ router = APIRouter(prefix="/stores", tags=["public-stores"])
 
 
 def _public_product(product) -> PublicProduct:
-    return PublicProduct(
+  category = None
+  if product.category is not None:
+    category = ProductCategorySummary.model_validate(product.category)
+  return PublicProduct(
         id=product.id,
         title=product.title,
         description=product.description,
@@ -45,6 +49,8 @@ def _public_product(product) -> PublicProduct:
             if variant.is_active
         ],
         image_count=len(product.images),
+        shipping_cost=product.shipping_cost,
+        category=category,
     )
 
 
@@ -60,7 +66,7 @@ def _public_store_profile(store, badges, db: Session) -> PublicStoreProfile:
 @router.get("/{slug}", response_model=PublicStorePageResponse, response_model_exclude_none=True)
 def get_public_store(slug: str, db: Session = Depends(get_db)) -> PublicStorePageResponse:
     try:
-        store, products, social_links, payment_methods, reviews, average_rating, review_count, badges = (
+        store, products, categories, social_links, payment_methods, reviews, average_rating, review_count, badges = (
             public_store_service.get_store_page(db, slug)
         )
     except ServiceError as exc:
@@ -72,6 +78,7 @@ def get_public_store(slug: str, db: Session = Depends(get_db)) -> PublicStorePag
         store=store_profile,
         social_links=[PublicStoreSocialLink.model_validate(link) for link in social_links],
         products=[_public_product(product) for product in products],
+        categories=[ProductCategorySummary.model_validate(category) for category in categories],
         payment_methods=[PublicPaymentMethod.model_validate(m) for m in payment_methods],
         review_summary=PublicStoreReviewSummary(
             average_rating=average_rating,
@@ -143,6 +150,7 @@ def list_public_products(
     min_price: Decimal | None = Query(default=None, ge=0),
     max_price: Decimal | None = Query(default=None, ge=0),
     in_stock: bool = Query(default=False),
+    category: str | None = Query(default=None, max_length=100),
     sort: Literal["newest", "cheapest", "most_expensive", "best_selling"] = Query(default="newest"),
     page: int = Query(default=1, ge=1),
     page_size: int = Query(
@@ -161,6 +169,7 @@ def list_public_products(
             min_price=min_price,
             max_price=max_price,
             in_stock=in_stock,
+            category_slug=category,
             sort=sort,
             page=page,
             page_size=page_size,

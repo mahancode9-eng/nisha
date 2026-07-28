@@ -14,6 +14,7 @@ import type { OrderItemFieldValue, OrderLineItem } from "@/types/order-item";
 type OrderItemsPanelProps = {
   items: OrderLineItem[];
   subtotalAmount?: string;
+  shippingAmount?: string | number;
   totalAmount?: string;
   embedded?: boolean;
   showUnitPrice?: boolean;
@@ -72,6 +73,7 @@ function FieldValuesList({ fields }: { fields: OrderItemFieldValue[] }) {
 export function OrderItemsPanel({
   items,
   subtotalAmount,
+  shippingAmount,
   totalAmount,
   embedded = true,
   showUnitPrice = true,
@@ -124,10 +126,13 @@ export function OrderItemsPanel({
           })}
         </TableBody>
       </Table>
-      {(subtotalAmount || totalAmount) && (
-        <div className="mt-4 flex justify-end gap-6 text-sm">
+      {(subtotalAmount || shippingAmount || totalAmount) && (
+        <div className="mt-4 flex flex-col items-end gap-1 text-sm">
           {subtotalAmount && (
             <span className="text-foreground-muted">جمع جزء: {formatMoney(subtotalAmount)}</span>
+          )}
+          {shippingAmount !== undefined && Number(shippingAmount) > 0 && (
+            <span className="text-foreground-muted">هزینه ارسال: {formatMoney(shippingAmount)}</span>
           )}
           {totalAmount && <span className="font-semibold">مجموع: {formatMoney(totalAmount)}</span>}
         </div>

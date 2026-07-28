@@ -49,6 +49,7 @@ export type SellerOrderDetail = {
   buyer_address: string;
   buyer_note: string | null;
   subtotal_amount: string;
+  shipping_amount?: string;
   total_amount: string;
   customer_id: number | null;
   receipt_status: "RECEIVED" | "NOT_RECEIVED" | null;

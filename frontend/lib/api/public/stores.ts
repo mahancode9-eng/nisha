@@ -28,6 +28,7 @@ export type ProductSearchQuery = {
   min_price?: string;
   max_price?: string;
   in_stock?: boolean;
+  category?: string;
   sort?: ProductSortKey;
   page?: number;
   page_size?: number;
@@ -42,6 +43,7 @@ export function searchStoreProducts(
   if (query.min_price) params.set("min_price", query.min_price);
   if (query.max_price) params.set("max_price", query.max_price);
   if (query.in_stock) params.set("in_stock", "true");
+  if (query.category) params.set("category", query.category);
   if (query.sort) params.set("sort", query.sort);
   if (query.page) params.set("page", String(query.page));
   if (query.page_size) params.set("page_size", String(query.page_size));

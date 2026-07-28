@@ -33,6 +33,7 @@ export type OrderTrackResponse = {
   subtotal_amount: string;
   discount_code?: string | null;
   discount_amount?: string;
+  shipping_amount?: string;
   total_amount: string;
   created_at: string;
   items: OrderTrackItem[];

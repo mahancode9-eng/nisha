@@ -6,9 +6,12 @@ import { ApiError } from "@/lib/api/errors";
 import { paths } from "@/lib/auth/paths";
 import { uploadPublicImage, uploadPublicVideo } from "@/lib/api/public/uploads";
 import { useSellerEntitlements } from "@/hooks/useSellerEntitlements";
+import { useSellerFetch } from "@/hooks/useSellerFetch";
+import * as categoriesApi from "@/lib/api/seller/categories";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import type {
   Product,
@@ -166,10 +169,13 @@ export function ProductForm({
   const maxImages = entitlements.max_product_images || FALLBACK_MAX_IMAGES;
   const canVideo = entitlements.product_video;
   const canCustomFields = entitlements.custom_fields;
+  const { data: categories } = useSellerFetch(() => categoriesApi.listCategories(), []);
   const [title, setTitle] = useState(initial?.title ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
   const [price, setPrice] = useState(initial?.price ?? "");
   const [stock, setStock] = useState(String(initial?.stock_quantity ?? 0));
+  const [categoryId, setCategoryId] = useState(initial?.category_id ? String(initial.category_id) : "");
+  const [shippingCost, setShippingCost] = useState(initial?.shipping_cost ?? "");
   const [isActive, setIsActive] = useState(initial?.is_active ?? true);
   const [images, setImages] = useState<EditableImage[]>(
     initial && initial.images.length > 0 ? normalizeImages(initial.images) : [emptyImage()],
@@ -196,6 +202,8 @@ export function ProductForm({
     setDescription(initial?.description ?? "");
     setPrice(initial?.price ?? "");
     setStock(String(initial?.stock_quantity ?? 0));
+    setCategoryId(initial?.category_id ? String(initial.category_id) : "");
+    setShippingCost(initial?.shipping_cost ?? "");
     setIsActive(initial?.is_active ?? true);
     setImages(initial && initial.images.length > 0 ? normalizeImages(initial.images) : [emptyImage()]);
     setFields(initial ? normalizeFields(initial.form_fields) : []);
@@ -420,12 +428,25 @@ export function ProductForm({
 
     setLoading(true);
     try {
+      const shippingText = shippingCost.trim();
+      let parsedShipping: number | null = null;
+      if (shippingText) {
+        parsedShipping = parseFloat(shippingText);
+        if (Number.isNaN(parsedShipping) || parsedShipping < 0) {
+          setError("هزینه ارسال محصول باید ۰ یا بیشتر باشد.");
+          setLoading(false);
+          return;
+        }
+      }
+
       await onSubmit({
         title: title.trim(),
         description: description.trim() || null,
         price: priceNum,
         stock_quantity: stockNum,
         is_active: isActive,
+        category_id: categoryId ? parseInt(categoryId, 10) : null,
+        shipping_cost: parsedShipping,
         video_url: canVideo ? videoUrl.trim() || null : null,
         video_mime_type: canVideo && videoUrl.trim() ? videoMimeType.trim() || null : null,
         images: payloadImages.length > 0 ? payloadImages : null,
@@ -486,6 +507,27 @@ export function ProductForm({
                 <span className="whitespace-nowrap text-sm text-foreground-muted">تومان</span>
               </div>
             </div>
+            <Select
+              label="دسته‌بندی"
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
+            >
+              <option value="">بدون دسته‌بندی</option>
+              {(categories ?? []).map((category) => (
+                <option key={category.id} value={String(category.id)}>
+                  {category.name}
+                </option>
+              ))}
+            </Select>
+            <Input
+              label="هزینه ارسال این محصول (تومان)"
+              type="number"
+              min="0"
+              step="1"
+              value={shippingCost}
+              onChange={(e) => setShippingCost(e.target.value)}
+              hint="خالی = طبق تنظیمات فروشگاه"
+            />
               <div className="flex items-end">
                 <label htmlFor="product-is-active" className="flex items-center gap-2 text-sm text-foreground">
                   <input

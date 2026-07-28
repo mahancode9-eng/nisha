@@ -13,6 +13,7 @@ from app.models.mixins import TimestampMixin
 
 if TYPE_CHECKING:
     from app.models.order import OrderItem
+    from app.models.product_category import ProductCategory
     from app.models.store import Store
 
 
@@ -32,8 +33,18 @@ class Product(TimestampMixin, Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     video_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     video_mime_type: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    category_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("product_categories.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    shipping_cost: Mapped[Optional[Decimal]] = mapped_column(Numeric(12, 2), nullable=True)
 
     store: Mapped["Store"] = relationship("Store", back_populates="products")
+    category: Mapped[Optional["ProductCategory"]] = relationship(
+        "ProductCategory",
+        back_populates="products",
+    )
     images: Mapped[list["ProductImage"]] = relationship(
         "ProductImage",
         back_populates="product",

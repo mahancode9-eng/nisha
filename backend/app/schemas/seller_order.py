@@ -50,6 +50,9 @@ class SellerOrderDetailResponse(BaseModel):
     buyer_address: str
     buyer_note: str | None
     subtotal_amount: Decimal
+    discount_code: str | None = None
+    discount_amount: Decimal = Decimal("0")
+    shipping_amount: Decimal = Decimal("0")
     total_amount: Decimal
     customer_id: int | None = None
     receipt_status: CustomerReceiptStatus | None = None

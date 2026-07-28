@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from decimal import Decimal
+
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
@@ -51,6 +53,8 @@ class StoreResponse(BaseModel):
     primary_color: str | None = None
     about_text: str | None = None
     shipping_policy_text: str | None = None
+    default_shipping_cost: Decimal = Decimal("0")
+    free_shipping_min_subtotal: Decimal | None = None
     social_links: list[StoreSocialLinkResponse] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime
@@ -79,6 +83,8 @@ class StoreUpdate(BaseModel):
     primary_color: str | None = Field(default=None, max_length=20)
     about_text: str | None = None
     shipping_policy_text: str | None = None
+    default_shipping_cost: Decimal | None = Field(default=None, ge=0)
+    free_shipping_min_subtotal: Decimal | None = Field(default=None, ge=0)
 
     @model_validator(mode="after")
     def require_at_least_one_field(self) -> "StoreUpdate":

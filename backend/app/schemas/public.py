@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.models.enums import OrderStatus, PaymentMethodType, ReviewStatus
 from app.schemas.product import ProductFormFieldResponse, ProductImageResponse
+from app.schemas.product_category import ProductCategoryResponse, ProductCategorySummary
 
 
 class PublicStoreProfile(BaseModel):
@@ -33,6 +34,8 @@ class PublicStoreProfile(BaseModel):
     primary_color: str | None = None
     about_text: str | None = None
     shipping_policy_text: str | None = None
+    default_shipping_cost: Decimal = Decimal("0")
+    free_shipping_min_subtotal: Decimal | None = None
 
 
 class PublicStoreSocialLink(BaseModel):
@@ -72,6 +75,8 @@ class PublicProduct(BaseModel):
     form_fields: list[ProductFormFieldResponse]
     variants: list[PublicProductVariant] = Field(default_factory=list)
     image_count: int = 0
+    shipping_cost: Decimal | None = None
+    category: ProductCategorySummary | None = None
 
 
 class PublicStoreReview(BaseModel):
@@ -113,6 +118,7 @@ class PublicStorePageResponse(BaseModel):
     store: PublicStoreProfile
     social_links: list[PublicStoreSocialLink]
     products: list[PublicProduct]
+    categories: list[ProductCategorySummary] = Field(default_factory=list)
     payment_methods: list[PublicPaymentMethod]
     review_summary: PublicStoreReviewSummary
 
@@ -268,6 +274,7 @@ class CheckoutResponse(BaseModel):
     subtotal_amount: Decimal
     discount_code: str | None = None
     discount_amount: Decimal = Decimal("0")
+    shipping_amount: Decimal = Decimal("0")
     total_amount: Decimal
     items: list[CheckoutOrderItemSummary]
     payment_method: CheckoutPaymentInstructions

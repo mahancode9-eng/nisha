@@ -92,7 +92,7 @@ export default function SellerProductsPage() {
 
       <ErrorAlert message={error ?? ""} />
 
-      {isLoading && <TableSkeleton rows={6} columns={5} />}
+      {isLoading && <TableSkeleton rows={6} columns={6} />}
 
       {!isLoading && !error && data && data.total === 0 && (
         <EmptyState
@@ -112,6 +112,7 @@ export default function SellerProductsPage() {
             <TableHead>
               <TableRow>
                 <TableHeaderCell>عنوان</TableHeaderCell>
+                <TableHeaderCell>دسته‌بندی</TableHeaderCell>
                 <TableHeaderCell>قیمت</TableHeaderCell>
                 <TableHeaderCell>موجودی</TableHeaderCell>
                 <TableHeaderCell>وضعیت</TableHeaderCell>
@@ -122,6 +123,7 @@ export default function SellerProductsPage() {
               {items.map((product) => (
                 <TableRow key={product.id}>
                   <TableCell className="font-medium">{product.title}</TableCell>
+                  <TableCell>{product.category?.name ?? "—"}</TableCell>
                   <TableCell>{formatMoney(product.price)}</TableCell>
                   <TableCell>{product.stock_quantity}</TableCell>
                   <TableCell>

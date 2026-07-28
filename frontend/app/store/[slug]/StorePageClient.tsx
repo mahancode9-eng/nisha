@@ -151,7 +151,7 @@ export function StorePageClient({ slug, initialData, initialError }: StorePageCl
     return <EmptyState title="فروشگاه پیدا نشد" description="این فروشگاه وجود ندارد یا فعال نیست." />;
   }
 
-  const { store, products, review_summary } = data;
+  const { store, products, categories, review_summary } = data;
   const coverUrl = store.cover_image_url ? resolveMediaUrl(store.cover_image_url) : null;
   const logoUrl = store.logo_url ? resolveMediaUrl(store.logo_url) : null;
   const ratingText = review_summary.average_rating.toFixed(1);
@@ -273,7 +273,7 @@ export function StorePageClient({ slug, initialData, initialError }: StorePageCl
           </div>
 
           <Suspense fallback={null}>
-            <ProductBrowser slug={slug} initialProducts={products} />
+            <ProductBrowser slug={slug} initialProducts={products} categories={categories} />
           </Suspense>
         </section>
       )}

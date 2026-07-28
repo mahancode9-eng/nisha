@@ -5,6 +5,7 @@ import type { OrderTrackResponse } from "@/types/public/order";
 
 export function InvoiceView({ order }: { order: OrderTrackResponse }) {
   const hasDiscount = Number(order.discount_amount ?? 0) > 0;
+  const hasShipping = Number(order.shipping_amount ?? 0) > 0;
 
   return (
     <div className="invoice-print space-y-6 rounded-xl border border-border bg-surface p-6 sm:p-8">
@@ -45,6 +46,12 @@ export function InvoiceView({ order }: { order: OrderTrackResponse }) {
         <div className="flex justify-end text-sm text-emerald-600">
           تخفیف{order.discount_code ? ` (${order.discount_code})` : ""}: −
           {formatMoney(order.discount_amount ?? "0")}
+        </div>
+      )}
+
+      {hasShipping && (
+        <div className="flex justify-end text-sm text-foreground-muted">
+          هزینه ارسال: {formatMoney(order.shipping_amount ?? "0")}
         </div>
       )}
 

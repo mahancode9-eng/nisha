@@ -76,6 +76,12 @@ class Order(TimestampMixin, Base):
         server_default="0",
         nullable=False,
     )
+    shipping_amount: Mapped[Decimal] = mapped_column(
+        Numeric(12, 2),
+        default=Decimal("0"),
+        server_default="0",
+        nullable=False,
+    )
     total_amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
     stock_restored: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     reservation_expires_at: Mapped[Optional[datetime]] = mapped_column(

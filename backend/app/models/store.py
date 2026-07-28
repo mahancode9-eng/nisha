@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import json
 from datetime import datetime
+from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Optional
 
-from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, String, Text, UniqueConstraint, func
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Numeric, String, Text, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -16,7 +17,7 @@ if TYPE_CHECKING:
     from app.models.order import Order
     from app.models.payment_method import PaymentMethod
     from app.models.product import Product
-    from app.models.user import User
+    from app.models.product_category import ProductCategory
     from app.models.user import User
 
 
@@ -124,6 +125,16 @@ class Store(TimestampMixin, Base):
     primary_color: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
     about_text: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     shipping_policy_text: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    default_shipping_cost: Mapped[Decimal] = mapped_column(
+        Numeric(12, 2),
+        default=Decimal("0"),
+        server_default="0",
+        nullable=False,
+    )
+    free_shipping_min_subtotal: Mapped[Optional[Decimal]] = mapped_column(
+        Numeric(12, 2),
+        nullable=True,
+    )
 
     owner: Mapped["User"] = relationship("User", back_populates="store")
     products: Mapped[list["Product"]] = relationship(
@@ -163,6 +174,12 @@ class Store(TimestampMixin, Base):
         back_populates="store",
         cascade="all, delete-orphan",
         order_by="StoreTrustBadgeHistory.created_at.desc()",
+    )
+    product_categories: Mapped[list["ProductCategory"]] = relationship(
+        "ProductCategory",
+        back_populates="store",
+        cascade="all, delete-orphan",
+        order_by="ProductCategory.sort_order, ProductCategory.id",
     )
 
     @property

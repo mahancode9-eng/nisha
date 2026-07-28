@@ -82,6 +82,7 @@ class OrderTrackResponse(BaseModel):
     subtotal_amount: Decimal
     discount_code: str | None = None
     discount_amount: Decimal = Decimal("0")
+    shipping_amount: Decimal = Decimal("0")
     total_amount: Decimal
     created_at: datetime
     items: list[OrderTrackItemResponse]

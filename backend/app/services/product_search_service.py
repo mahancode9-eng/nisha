@@ -19,6 +19,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.models.order import OrderItem
 from app.models.product import Product
+from app.models.product_category import ProductCategory
 
 SortKey = Literal["newest", "cheapest", "most_expensive", "best_selling"]
 
@@ -73,6 +74,7 @@ def search_products(
     min_price: Decimal | None = None,
     max_price: Decimal | None = None,
     in_stock: bool = False,
+    category_slug: str | None = None,
     sort: SortKey = "newest",
     page: int = 1,
     page_size: int = DEFAULT_PAGE_SIZE,
@@ -103,6 +105,16 @@ def search_products(
         filters.append(Product.price <= max_price)
     if in_stock:
         filters.append(Product.stock_quantity > 0)
+    if category_slug:
+        filters.append(
+            Product.category_id.in_(
+                select(ProductCategory.id).where(
+                    ProductCategory.store_id == store_id,
+                    ProductCategory.slug == category_slug,
+                    ProductCategory.is_active.is_(True),
+                )
+            )
+        )
 
     total = int(db.scalar(select(func.count(Product.id)).where(*filters)) or 0)
 
@@ -111,6 +123,8 @@ def search_products(
         .options(
             selectinload(Product.images),
             selectinload(Product.form_fields),
+            selectinload(Product.variants),
+            selectinload(Product.category),
         )
         .where(*filters)
     )

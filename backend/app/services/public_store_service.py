@@ -7,6 +7,7 @@ from app.models.customer_portal import CustomerReview
 from app.models.order import Order
 from app.models.product import Product
 from app.models.store import Store, StoreTrustBadge
+from app.services import product_category_service
 from app.models.enums import ReviewStatus
 from app.services.review_service import get_review_summary, list_reviews_for_store
 from app.services.trust_service import list_active_badges
@@ -21,6 +22,7 @@ def get_active_store_by_slug(db: Session, slug: str) -> Store:
             selectinload(Store.payment_methods),
             selectinload(Store.products).selectinload(Product.images),
             selectinload(Store.products).selectinload(Product.form_fields),
+            selectinload(Store.products).selectinload(Product.category),
             selectinload(Store.trust_badges),
         )
         .where(Store.slug == slug)
@@ -37,6 +39,7 @@ def list_available_products(db: Session, store_id: int) -> list[Product]:
             .options(
                 selectinload(Product.images),
                 selectinload(Product.form_fields),
+                selectinload(Product.category),
             )
             .where(Product.store_id == store_id, Product.is_active.is_(True))
             .order_by(Product.id)
@@ -83,6 +86,7 @@ def list_public_reviews(db: Session, store_id: int, *, limit: int = 6):
 def get_store_page(db: Session, slug: str):
     store = get_active_store_by_slug(db, slug)
     products = list_available_products(db, store.id)
+    categories = product_category_service.list_categories(db, store.id, active_only=True)
     social_links = list_active_social_links(db, store.id)
     payment_methods = list_active_payment_methods(db, store.id)
     reviews, average_rating, review_count = list_public_reviews(db, store.id)
@@ -90,6 +94,7 @@ def get_store_page(db: Session, slug: str):
     return (
         store,
         products,
+        categories,
         social_links,
         payment_methods,
         reviews,

@@ -98,6 +98,10 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
   const [primaryColor, setPrimaryColor] = useState(store.primary_color ?? "");
   const [aboutText, setAboutText] = useState(store.about_text ?? "");
   const [shippingPolicyText, setShippingPolicyText] = useState(store.shipping_policy_text ?? "");
+  const [defaultShippingCost, setDefaultShippingCost] = useState(store.default_shipping_cost ?? "0");
+  const [freeShippingMinSubtotal, setFreeShippingMinSubtotal] = useState(
+    store.free_shipping_min_subtotal ?? "",
+  );
   const [logoPreview, setLogoPreview] = useState<string | null>(store.logo_url ? resolveMediaUrl(store.logo_url) : null);
   const [coverPreview, setCoverPreview] = useState<string | null>(
     store.cover_image_url ? resolveMediaUrl(store.cover_image_url) : null,
@@ -142,6 +146,8 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
     setPrimaryColor(store.primary_color ?? "");
     setAboutText(store.about_text ?? "");
     setShippingPolicyText(store.shipping_policy_text ?? "");
+    setDefaultShippingCost(store.default_shipping_cost ?? "0");
+    setFreeShippingMinSubtotal(store.free_shipping_min_subtotal ?? "");
     setLogoPreview(store.logo_url ? resolveMediaUrl(store.logo_url) : null);
     setCoverPreview(store.cover_image_url ? resolveMediaUrl(store.cover_image_url) : null);
   }, [store]);
@@ -252,6 +258,10 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
         primary_color: primaryColor.trim() || null,
         about_text: aboutText.trim() || null,
         shipping_policy_text: shippingPolicyText.trim() || null,
+        default_shipping_cost: defaultShippingCost.trim() === "" ? 0 : parseFloat(defaultShippingCost),
+        free_shipping_min_subtotal: freeShippingMinSubtotal.trim()
+          ? parseFloat(freeShippingMinSubtotal)
+          : null,
       });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "ذخیره تنظیمات فروشگاه ممکن نشد");
@@ -461,6 +471,32 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
                   </div>
                 ))
               )}
+            </div>
+          </FormSection>
+
+          <FormSection
+            title="هزینه ارسال"
+            description="هزینه پایه و آستانه ارسال رایگان در checkout محاسبه می‌شود."
+          >
+            <div className="grid gap-4 md:grid-cols-2">
+              <Input
+                label="هزینه ارسال پایه (تومان)"
+                type="number"
+                min="0"
+                step="1"
+                value={defaultShippingCost}
+                onChange={(e) => setDefaultShippingCost(e.target.value)}
+                hint="۰ = ارسال رایگان به‌صورت پیش‌فرض"
+              />
+              <Input
+                label="ارسال رایگان از مبلغ سفارش (تومان)"
+                type="number"
+                min="0"
+                step="1"
+                value={freeShippingMinSubtotal}
+                onChange={(e) => setFreeShippingMinSubtotal(e.target.value)}
+                hint="خالی = بدون آستانه ارسال رایگان"
+              />
             </div>
           </FormSection>
 

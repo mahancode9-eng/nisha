@@ -31,6 +31,7 @@ from app.services.exceptions import ServiceError
 from app.services.platform_setting_service import is_guest_checkout_enabled
 from app.services.product_service import build_form_field_snapshot
 from app.services.public_store_service import get_active_store_by_slug
+from app.services.shipping_service import ShippingLineInput, compute_shipping_amount
 from app.utils.invoice import generate_invoice_code, generate_invoice_password
 
 
@@ -330,6 +331,20 @@ def create_guest_order(
             discount_service.consume_discount(db, discount)
             applied_code = discount.code
 
+        shipping_amount = compute_shipping_amount(
+            subtotal=subtotal,
+            default_shipping_cost=Decimal(store.default_shipping_cost),
+            free_shipping_min_subtotal=store.free_shipping_min_subtotal,
+            lines=[
+                ShippingLineInput(
+                    product_id=line.product_id,
+                    quantity=line.quantity,
+                    shipping_cost=line.product.shipping_cost,
+                )
+                for line in line_items
+            ],
+        )
+
         plain_password = generate_invoice_password()
         invoice_code = generate_invoice_code(db)
 
@@ -350,7 +365,8 @@ def create_guest_order(
             subtotal_amount=subtotal,
             discount_code=applied_code,
             discount_amount=discount_amount,
-            total_amount=subtotal - discount_amount,
+            shipping_amount=shipping_amount,
+            total_amount=subtotal - discount_amount + shipping_amount,
             stock_restored=False,
             reservation_expires_at=reservation_expires_at,
         )
@@ -405,6 +421,7 @@ def create_guest_order(
         subtotal_amount=order.subtotal_amount,
         discount_code=order.discount_code,
         discount_amount=order.discount_amount,
+        shipping_amount=order.shipping_amount,
         total_amount=order.total_amount,
         items=[
             CheckoutOrderItemSummary(

@@ -53,6 +53,7 @@ export type CheckoutResponse = {
   subtotal_amount: string;
   discount_code?: string | null;
   discount_amount?: string;
+  shipping_amount?: string;
   total_amount: string;
   items: CheckoutOrderItemSummary[];
   payment_method: CheckoutPaymentInstructions;

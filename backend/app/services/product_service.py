@@ -18,7 +18,7 @@ from app.schemas.product import (
     ProductUpdate,
     ProductVariantInput,
 )
-from app.services import entitlement_service
+from app.services import entitlement_service, product_category_service, product_category_service
 from app.services.exceptions import ServiceError
 
 MAX_IMAGES_MESSAGE = "تعداد تصاویر از سقف پلن شما بیشتر است"
@@ -196,6 +196,7 @@ def _products_base_query(store: Store):
             selectinload(Product.images),
             selectinload(Product.form_fields),
             selectinload(Product.variants),
+            selectinload(Product.category),
         )
         .where(Product.store_id == store.id)
     )
@@ -228,6 +229,7 @@ def get_product(db: Session, store: Store, product_id: int) -> Product:
             selectinload(Product.images),
             selectinload(Product.form_fields),
             selectinload(Product.variants),
+            selectinload(Product.category),
         )
         .where(Product.id == product_id, Product.store_id == store.id)
     )
@@ -261,6 +263,8 @@ def create_product(db: Session, store: Store, data: ProductCreate) -> Product:
         is_active=data.is_active,
         video_url=data.video_url,
         video_mime_type=data.video_mime_type,
+        category_id=product_category_service.resolve_category_id(db, store.id, data.category_id),
+        shipping_cost=data.shipping_cost,
     )
     db.add(product)
     db.flush()
@@ -299,6 +303,11 @@ def update_product(
     images = update_data.pop("images", None)
     form_fields = update_data.pop("form_fields", None)
     variants = update_data.pop("variants", None)
+    if "category_id" in update_data:
+        category_id = update_data.pop("category_id")
+        product.category_id = product_category_service.resolve_category_id(
+            db, store.id, category_id
+        )
     for field, value in update_data.items():
         setattr(product, field, value)
 

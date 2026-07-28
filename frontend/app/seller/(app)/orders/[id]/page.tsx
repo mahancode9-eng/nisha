@@ -201,6 +201,7 @@ export default function SellerOrderDetailPage({ params }: PageProps) {
           <OrderItemsPanel
             items={data.items}
             subtotalAmount={data.subtotal_amount}
+            shippingAmount={data.shipping_amount}
             totalAmount={data.total_amount}
             productEditHref={(productId) => paths.seller.productEdit(productId)}
           />

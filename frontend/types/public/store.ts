@@ -24,6 +24,14 @@ export type PublicStoreProfile = {
   primary_color?: string | null;
   about_text?: string | null;
   shipping_policy_text?: string | null;
+  default_shipping_cost?: string;
+  free_shipping_min_subtotal?: string | null;
+};
+
+export type PublicProductCategory = {
+  id: number;
+  name: string;
+  slug: string;
 };
 
 export type PublicStoreSocialLink = {
@@ -59,6 +67,8 @@ export type PublicProduct = {
   form_fields: PublicProductFormField[];
   variants?: PublicProductVariant[];
   image_count: number;
+  shipping_cost?: string | null;
+  category?: PublicProductCategory | null;
 };
 
 export type ProductSortKey = "newest" | "cheapest" | "most_expensive" | "best_selling";
@@ -103,6 +113,7 @@ export type PublicPaymentMethod = {
 export type PublicStorePageResponse = {
   store: PublicStoreProfile;
   social_links: PublicStoreSocialLink[];
+  categories: PublicProductCategory[];
   products: PublicProduct[];
   payment_methods: PublicPaymentMethod[];
   review_summary: PublicStoreReviewSummary;

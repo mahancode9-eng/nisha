@@ -22,6 +22,8 @@ export type Store = {
   primary_color: string | null;
   about_text: string | null;
   shipping_policy_text: string | null;
+  default_shipping_cost: string;
+  free_shipping_min_subtotal: string | null;
   social_links: StoreSocialLink[];
   created_at: string;
   updated_at: string;
@@ -69,5 +71,7 @@ export type StoreUpdate = {
   primary_color?: string | null;
   about_text?: string | null;
   shipping_policy_text?: string | null;
+  default_shipping_cost?: number | string | null;
+  free_shipping_min_subtotal?: number | string | null;
   social_links?: StoreSocialLinkInput[];
 };

@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from app.api.v1.seller.analytics import router as analytics_router
+from app.api.v1.seller.categories import router as categories_router
 from app.api.v1.seller.conversations import router as conversations_router
 from app.api.v1.seller.dashboard import router as dashboard_router
 from app.api.v1.seller.discounts import router as discounts_router
@@ -14,6 +15,7 @@ from app.api.v1.seller.subscription import router as subscription_router
 
 router = APIRouter(prefix="/seller", tags=["seller"])
 router.include_router(store_router)
+router.include_router(categories_router)
 router.include_router(products_router)
 router.include_router(payment_methods_router)
 router.include_router(orders_router)

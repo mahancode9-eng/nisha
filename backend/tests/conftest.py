@@ -33,6 +33,7 @@ import app.models.order  # noqa: F401
 import app.models.payment_method  # noqa: F401
 import app.models.platform_setting  # noqa: F401
 import app.models.product  # noqa: F401
+import app.models.product_category  # noqa: F401
 import app.models.store  # noqa: F401
 import app.models.subscription  # noqa: F401
 import app.models.user  # noqa: F401

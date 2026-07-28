@@ -10,12 +10,14 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import type {
   ProductSortKey,
   PublicProduct,
+  PublicProductCategory,
   PublicProductListResponse,
 } from "@/types/public/store";
 
 type ProductBrowserProps = {
   slug: string;
   initialProducts: PublicProduct[];
+  categories?: PublicProductCategory[];
 };
 
 const SORT_OPTIONS: { value: ProductSortKey; label: string }[] = [
@@ -35,7 +37,7 @@ const FIELD_CLASSES =
  * in the URL query string so the page stays shareable; the component reads
  * the URL as its single source of truth and only writes to it on user input.
  */
-export function ProductBrowser({ slug, initialProducts }: ProductBrowserProps) {
+export function ProductBrowser({ slug, initialProducts, categories = [] }: ProductBrowserProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -44,6 +46,7 @@ export function ProductBrowser({ slug, initialProducts }: ProductBrowserProps) {
   const minPrice = searchParams.get("min") ?? "";
   const maxPrice = searchParams.get("max") ?? "";
   const inStock = searchParams.get("stock") === "1";
+  const category = searchParams.get("category") ?? "";
   const sortParam = searchParams.get("sort");
   const sort: ProductSortKey = SORT_OPTIONS.some((option) => option.value === sortParam)
     ? (sortParam as ProductSortKey)
@@ -52,7 +55,8 @@ export function ProductBrowser({ slug, initialProducts }: ProductBrowserProps) {
 
   // With no active search/filter/sort the initial SSR product list is shown
   // as-is and no extra request is made.
-  const isDefaultView = !q && !minPrice && !maxPrice && !inStock && sort === "newest" && page === 1;
+  const isDefaultView =
+    !q && !minPrice && !maxPrice && !inStock && !category && sort === "newest" && page === 1;
 
   const [searchText, setSearchText] = useState(q);
   const [minText, setMinText] = useState(minPrice);
@@ -111,6 +115,7 @@ export function ProductBrowser({ slug, initialProducts }: ProductBrowserProps) {
         min_price: minPrice || undefined,
         max_price: maxPrice || undefined,
         in_stock: inStock || undefined,
+        category: category || undefined,
         sort,
         page,
       })
@@ -132,7 +137,7 @@ export function ProductBrowser({ slug, initialProducts }: ProductBrowserProps) {
     return () => {
       cancelled = true;
     };
-  }, [slug, q, minPrice, maxPrice, inStock, sort, page, isDefaultView]);
+  }, [slug, q, minPrice, maxPrice, inStock, category, sort, page, isDefaultView]);
 
   const products = isDefaultView ? initialProducts : (result?.items ?? []);
   const total = isDefaultView ? initialProducts.length : (result?.total ?? 0);
@@ -141,6 +146,40 @@ export function ProductBrowser({ slug, initialProducts }: ProductBrowserProps) {
 
   return (
     <div className="space-y-4">
+      {categories.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => updateParams({ category: null })}
+            className={
+              "rounded-full border px-3 py-1.5 text-sm transition " +
+              (category
+                ? "border-border text-foreground hover:bg-surface-muted"
+                : "border-brand bg-brand/10 text-brand")
+            }
+          >
+            همه
+          </button>
+          {categories.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() =>
+                updateParams({ category: item.slug === category ? null : item.slug })
+              }
+              className={
+                "rounded-full border px-3 py-1.5 text-sm transition " +
+                (category === item.slug
+                  ? "border-brand bg-brand/10 text-brand"
+                  : "border-border text-foreground hover:bg-surface-muted")
+              }
+            >
+              {item.name}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="flex flex-col gap-3 rounded-2xl border border-border bg-surface p-4 md:flex-row md:flex-wrap md:items-end">
         <div className="min-w-0 flex-1">
           <label htmlFor="product-search" className="mb-1 block text-xs font-medium text-foreground-muted">
