@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/Input";
 import { paths } from "@/lib/auth/paths";
 import { ApiError } from "@/lib/api/errors";
 import { resendVerificationEmail } from "@/lib/api/verify-email";
-import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 
 export default function CustomerLoginForm() {
   const { login, customer, isLoading } = useCustomerAuth();
@@ -49,9 +48,6 @@ export default function CustomerLoginForm() {
 
   return (
     <div className="relative flex min-h-screen items-center justify-center bg-background px-4 py-12">
-      <div className="absolute right-4 top-4 z-10">
-        <ThemeSwitcher variant="button" />
-      </div>
       <div className="w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-sm">
         <h1 className="text-2xl font-bold text-foreground max-md:text-xl">ورود مشتری</h1>
         <p className="mt-1 text-sm text-foreground-muted">برای ارسال پیام به فروشندگان و حفظ تاریخچه گفتگو وارد شوید</p>

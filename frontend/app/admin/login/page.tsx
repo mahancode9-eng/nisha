@@ -7,7 +7,6 @@ import { LoginForm } from "@/components/auth/LoginForm";
 import { useAuth } from "@/contexts/AuthContext";
 import { ApiError } from "@/lib/api/errors";
 import { paths } from "@/lib/auth/paths";
-import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 
 export default function AdminLoginPage() {
   const { login } = useAuth();
@@ -27,9 +26,6 @@ export default function AdminLoginPage() {
   return (
     <GuestOnly role="ADMIN">
       <div className="relative flex min-h-screen items-center justify-center bg-background px-4 py-12">
-        <div className="absolute right-4 top-4 z-10">
-          <ThemeSwitcher variant="button" />
-        </div>
         <LoginForm
           title="ورود مدیر"
           subtitle="مدیریت و نظارت بر پلتفرم"

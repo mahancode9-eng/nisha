@@ -3,7 +3,6 @@
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { verifyEmail, type VerifyEmailKind } from "@/lib/api/verify-email";
 import { paths } from "@/lib/auth/paths";
@@ -37,9 +36,6 @@ function VerifyEmailContent() {
 
   return (
     <div className="relative flex min-h-screen items-center justify-center bg-background px-4 py-12">
-      <div className="absolute right-4 top-4 z-10">
-        <ThemeSwitcher variant="button" />
-      </div>
       <div className="w-full max-w-md rounded-2xl border border-border bg-surface p-6 text-center shadow-sm">
         {status === "loading" && <p className="text-foreground-muted">در حال تأیید ایمیل...</p>}
         {status !== "loading" && (

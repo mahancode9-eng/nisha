@@ -8,7 +8,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { ApiError } from "@/lib/api/errors";
 import * as onboardingApi from "@/lib/api/seller/onboarding";
 import { paths } from "@/lib/auth/paths";
-import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 
 export default function SellerLoginPage() {
   const { login } = useAuth();
@@ -40,9 +39,6 @@ export default function SellerLoginPage() {
   return (
     <GuestOnly role="SELLER">
       <div className="relative flex min-h-screen items-center justify-center bg-background px-4 py-12">
-        <div className="absolute right-4 top-4 z-10">
-          <ThemeSwitcher variant="button" />
-        </div>
         <LoginForm
           title="ورود فروشنده"
           subtitle="برای مدیریت فروشگاهت وارد شو"

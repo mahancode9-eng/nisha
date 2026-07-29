@@ -6,6 +6,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { ErrorBoundaryWrapper } from "@/components/layout/ErrorBoundaryWrapper";
+import { GlobalThemeToggle } from "@/components/theme/GlobalThemeToggle";
 import { getThemeInitializerScript } from "@/lib/theme";
 import { getSiteUrl } from "@/lib/env";
 import "./globals.css";
@@ -76,6 +77,7 @@ export default function RootLayout({
       <body className={`${vazirmatn.variable} min-h-screen bg-background text-foreground antialiased`}>
         <LanguageProvider>
           <ThemeProvider>
+            <GlobalThemeToggle />
             <AuthProvider>
               <CustomerAuthProvider>
                 <ToastProvider>

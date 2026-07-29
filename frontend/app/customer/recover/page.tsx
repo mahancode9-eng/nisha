@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/Input";
 import { Card, CardContent } from "@/components/ui/Card";
 import { ApiError } from "@/lib/api/errors";
 import { useCustomerAuth } from "@/contexts/CustomerAuthContext";
-import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 import { paths } from "@/lib/auth/paths";
 import { requestRecovery, verifyRecovery } from "@/lib/api/customer/recovery";
 import type { RecoveryChannel } from "@/types/customer/recovery";
@@ -63,9 +62,6 @@ export default function CustomerRecoverPage() {
 
   return (
     <div className="relative flex min-h-screen items-center justify-center bg-background px-4 py-12">
-      <div className="absolute right-4 top-4 z-10">
-        <ThemeSwitcher variant="button" />
-      </div>
       <div className="w-full max-w-xl space-y-6">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-foreground max-md:text-xl">بازیابی رمز عبور</h1>
