@@ -20,6 +20,7 @@ import {
   type SocialPlatformKey,
   getSocialPlatformLabel,
 } from "@/components/ui/SocialIcon";
+import { socialInputHint, socialInputPlaceholder } from "@/lib/seller/contactChannels";
 import type { Store, StoreUpdate } from "@/types/seller/store";
 
 type EditableSocialLink = {
@@ -433,7 +434,9 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
                           label="نشانی"
                           value={link.url}
                           onChange={(e) => updateLink(index, { url: e.target.value })}
-                          type={link.platform === "email" ? "email" : "url"}
+                          type={link.platform === "email" ? "email" : "text"}
+                          placeholder={socialInputPlaceholder(link.platform)}
+                          hint={socialInputHint(link.platform)}
                         />
                         <label className="flex items-center gap-2 text-sm text-foreground">
                           <input

@@ -16,15 +16,67 @@ export function makeSocialLinkLabel(platform: SocialPlatformKey, customLabel: st
   return platform === "other" ? customLabel.trim() || "دیگر" : getSocialPlatformLabel(platform);
 }
 
+export function socialInputPlaceholder(platform: SocialPlatformKey): string {
+  switch (platform) {
+    case "telegram":
+      return "@username یا https://t.me/...";
+    case "instagram":
+    case "x":
+      return "@handle یا لینک پروفایل";
+    case "whatsapp":
+      return "شماره یا لینک wa.me";
+    case "website":
+      return "https://example.com";
+    case "email":
+      return "name@email.com";
+    case "discord":
+    case "other":
+    default:
+      return "لینک یا شناسه";
+  }
+}
+
+export function socialInputHint(platform: SocialPlatformKey): string | undefined {
+  switch (platform) {
+    case "email":
+      return undefined;
+    case "website":
+      return "با یا بدون https مجاز است";
+    case "telegram":
+    case "instagram":
+    case "x":
+    case "whatsapp":
+    case "discord":
+    case "other":
+    default:
+      return "هر سه شکل مجاز: @، لینک، یا شناسه ساده";
+  }
+}
+
+function stripAt(handle: string): string {
+  return handle.replace(/^@+/, "").trim();
+}
+
+/** Normalize stored contact values into openable hrefs for storefront display. */
 export function resolveContactHref(platform: SocialPlatformKey, value: string): string {
   const trimmed = value.trim();
   if (!trimmed) return trimmed;
+
   if (platform === "email") {
     return trimmed.startsWith("mailto:") ? trimmed : `mailto:${trimmed}`;
   }
+
   if (platform === "website" && !/^https?:\/\//i.test(trimmed)) {
     return `https://${trimmed}`;
   }
+
+  if (trimmed.startsWith("@")) {
+    const handle = stripAt(trimmed);
+    if (!handle) return trimmed;
+    if (platform === "telegram") return `https://t.me/${handle}`;
+    if (platform === "instagram") return `https://instagram.com/${handle}`;
+    if (platform === "x") return `https://x.com/${handle}`;
+  }
+
   return trimmed;
 }
-

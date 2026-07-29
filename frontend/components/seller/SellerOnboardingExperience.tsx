@@ -23,7 +23,8 @@ import {
   SocialIcon,
   type SocialPlatformKey,
 } from "@/components/ui/SocialIcon";
-import { makeSocialLinkLabel, normalizeSocialPlatform, resolveContactHref } from "@/lib/seller/contactChannels";
+import { makeSocialLinkLabel, normalizeSocialPlatform, resolveContactHref, socialInputHint, socialInputPlaceholder } from "@/lib/seller/contactChannels";
+import { BrandMark } from "@/components/layout/chrome/BrandMark";
 import type { SellerOnboardingResponse, SellerOnboardingStepKey } from "@/types/seller/onboarding";
 
 type EditableContactLink = {
@@ -886,12 +887,12 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
     switch (activeStep.key) {
       case "welcome":
         return (
-          <Card className="border-0 bg-white/5 shadow-none ring-1 ring-white/10 backdrop-blur">
-            <CardContent className="space-y-5 py-8 text-white">
+          <Card className="border-border bg-surface shadow-sm">
+            <CardContent className="space-y-5 py-8">
               <div className="space-y-2">
-                <h1 className="text-2xl font-semibold sm:text-3xl">{activeStep.title}</h1>
+                <h1 className="text-2xl font-semibold text-foreground sm:text-3xl">{activeStep.title}</h1>
                 {activeStep.description && (
-                  <p className="max-w-xl text-sm leading-6 text-white/75">{activeStep.description}</p>
+                  <p className="max-w-xl text-sm leading-6 text-foreground-muted">{activeStep.description}</p>
                 )}
               </div>
               <div className="flex flex-wrap gap-3">
@@ -1115,11 +1116,44 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
                 <h2 className="mt-2 text-2xl font-semibold text-foreground">راه‌های ارتباطی مشتری را اضافه کنید</h2>
                 <p className="mt-2 text-sm leading-6 text-foreground-muted">{activeStep.helper}</p>
               </div>
+
+              <div className="space-y-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() =>
+                    markDraftChange((current) => ({
+                      ...current,
+                      contactChannels: [...current.contactChannels, blankContactLink()],
+                    }))
+                  }
+                >
+                  {drafts.contactChannels.length === 0 ? "افزودن لینک" : "افزودن لینک دیگر"}
+                </Button>
+                <p className="text-xs text-foreground-muted">
+                  بعد از هر لینک، برای لینک بعدی همین دکمه را بزن. وقتی تمام شد، ذخیره و ادامه.
+                </p>
+              </div>
+
               <div className="space-y-3">
                 {drafts.contactChannels.length === 0 ? (
                   <EmptyState
                     title="هنوز کانالی اضافه نشده"
                     description="می‌توانید این مرحله را رد کنید و بعداً از داشبورد تکمیلش کنید."
+                    action={
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() =>
+                          markDraftChange((current) => ({
+                            ...current,
+                            contactChannels: [...current.contactChannels, blankContactLink()],
+                          }))
+                        }
+                      >
+                        افزودن اولین لینک
+                      </Button>
+                    }
                   />
                 ) : (
                   drafts.contactChannels.map((link, index) => (
@@ -1164,6 +1198,8 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
                             label="نشانی یا شناسه"
                             type={link.platform === "email" ? "email" : "text"}
                             value={link.url}
+                            placeholder={socialInputPlaceholder(link.platform)}
+                            hint={socialInputHint(link.platform)}
                             onChange={(e) =>
                               markDraftChange((current) => ({
                                 ...current,
@@ -1244,19 +1280,8 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
                   ))
                 )}
               </div>
-              <div className="flex flex-wrap gap-3">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() =>
-                    markDraftChange((current) => ({
-                      ...current,
-                      contactChannels: [...current.contactChannels, blankContactLink()],
-                    }))
-                  }
-                >
-                  افزودن لینک
-                </Button>
+
+              <div className="flex flex-wrap gap-3 border-t border-border pt-4">
                 <Button type="button" variant="secondary" onClick={() => void moveStep(-1)}>
                   بازگشت
                 </Button>
@@ -1421,24 +1446,31 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(99,102,241,0.22),_transparent_32%),radial-gradient(circle_at_bottom_right,_rgba(236,72,153,0.14),_transparent_28%),linear-gradient(180deg,_#081018_0%,_#0f172a_100%)] px-4 py-6 text-foreground sm:px-6 lg:px-8">
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:42px_42px] opacity-30" />
+    <div className="relative min-h-screen overflow-hidden bg-background px-4 py-6 text-foreground sm:px-6 lg:px-8">
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -left-20 top-24 h-64 w-64 rounded-full bg-brand/10 blur-3xl dark:bg-brand/15" />
+        <div className="absolute -right-16 top-40 h-72 w-72 rounded-full bg-accent/10 blur-3xl dark:bg-fuchsia-500/10" />
+        <div className="absolute bottom-0 left-1/3 h-80 w-80 rounded-full bg-brand/5 blur-3xl dark:bg-brand/10" />
+      </div>
       <div className="relative mx-auto flex min-h-[calc(100vh-3rem)] max-w-7xl flex-col gap-6">
-        <div className="rounded-[2rem] border border-white/10 bg-white/6 p-5 backdrop-blur-xl">
+        <div className="rounded-[2rem] border border-border bg-surface/90 p-5 shadow-sm backdrop-blur-xl">
+          <div className="mb-5">
+            <BrandMark showTagline />
+          </div>
           <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-            <div className="space-y-2 text-white">
-              <h1 className="text-xl font-semibold sm:text-2xl">{activeStep.title}</h1>
+            <div className="space-y-2">
+              <h1 className="text-xl font-semibold text-foreground sm:text-2xl">{activeStep.title}</h1>
               {activeStep.description ? (
-                <p className="max-w-xl text-sm text-white/75">{activeStep.description}</p>
+                <p className="max-w-xl text-sm text-foreground-muted">{activeStep.description}</p>
               ) : null}
             </div>
-            <div className="min-w-[220px] space-y-3 rounded-3xl border border-white/10 bg-black/20 p-4">
-              <div className="flex items-center justify-between text-sm text-white/70">
+            <div className="min-w-[220px] space-y-3 rounded-3xl border border-border bg-surface-muted/60 p-4">
+              <div className="flex items-center justify-between text-sm text-foreground-muted">
                 <span>پیشرفت</span>
                 <span>{progressPercent}%</span>
               </div>
               <ProgressBar current={activeStepIndex} total={STEP_ORDER.length} />
-              <p className="text-xs text-white/55">{savingNote}</p>
+              <p className="text-xs text-foreground-muted">{savingNote}</p>
             </div>
           </div>
         </div>

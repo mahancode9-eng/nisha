@@ -1,16 +1,14 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useMemo, useState, type ReactNode } from "react";
-import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
+import { BrandMark } from "@/components/layout/chrome/BrandMark";
 import { ChromeNav, type ChromeNavItem } from "@/components/layout/chrome/ChromeNav";
 import {
   ChromeMenuToggle,
   ChromeMobileDrawer,
 } from "@/components/layout/chrome/ChromeMobileDrawer";
 import { UserChip } from "@/components/layout/chrome/UserChip";
-import { paths } from "@/lib/auth/paths";
 import { cn } from "@/lib/cn";
 import { Button } from "@/components/ui/Button";
 
@@ -32,7 +30,7 @@ type WorkspaceShellProps = {
 
 export function WorkspaceShell({
   variant,
-  brandLabel,
+  brandLabel: _brandLabel,
   roleLabel,
   title,
   subtitle,
@@ -64,22 +62,18 @@ export function WorkspaceShell({
             <h1 className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">
               {activeNav?.label ?? title}
             </h1>
-            <ThemeSwitcher variant="button" />
           </div>
 
           <div className="mx-auto hidden max-w-7xl px-4 py-3 sm:px-6 md:block">
             <div className="flex items-center justify-between gap-3">
-              <Link
-                href={paths.home}
-                className="min-w-0 truncate text-sm text-foreground-muted hover:text-foreground"
-              >
-                <span className="font-medium text-foreground">{brandLabel}</span>
-                <span className="mx-1.5 text-border">·</span>
-                <span>{roleLabel}</span>
-              </Link>
+              <div className="flex min-w-0 items-center gap-3">
+                <BrandMark />
+                <span className="hidden truncate text-sm text-foreground-muted sm:inline">
+                  {roleLabel}
+                </span>
+              </div>
               <div className="flex shrink-0 flex-wrap items-center gap-2">
                 <UserChip userName={userName} userMeta={userMeta} />
-                <ThemeSwitcher variant="button" />
                 {topActions}
                 <Button variant="ghost" size="sm" onClick={onLogout}>
                   خروج
@@ -97,14 +91,8 @@ export function WorkspaceShell({
         </header>
 
         <ChromeMobileDrawer open={menuOpen} onClose={closeMenu}>
-          <div className="space-y-1 border-b border-border pb-4">
-            <Link
-              href={paths.home}
-              onClick={closeMenu}
-              className="text-xs font-medium tracking-[0.24em] text-foreground-muted hover:text-foreground"
-            >
-              {brandLabel}
-            </Link>
+          <div className="space-y-1 border-b border-border pb-4" onClickCapture={closeMenu}>
+            <BrandMark />
             <p className="text-xs tracking-[0.2em] text-brand-deep">{roleLabel}</p>
           </div>
           <UserChip
@@ -163,12 +151,7 @@ export function WorkspaceShell({
         )}
       >
         <div className="border-b border-border px-5 py-5">
-          <Link
-            href={paths.home}
-            className="text-xs font-medium tracking-[0.24em] text-foreground-muted hover:text-foreground"
-          >
-            {brandLabel}
-          </Link>
+          <BrandMark />
           <p className="mt-1 text-sm tracking-[0.2em] text-brand-deep">{roleLabel}</p>
           <p className="mt-2 text-lg font-semibold text-foreground">{title}</p>
           {subtitle && <p className="mt-1 text-sm text-foreground-muted">{subtitle}</p>}
@@ -184,9 +167,8 @@ export function WorkspaceShell({
         </div>
 
         <div className="border-t border-border p-3">
-          <ThemeSwitcher variant="group" />
-          {topActions && <div className="mt-3">{topActions}</div>}
-          <Button variant="ghost" size="sm" className="mt-3 w-full justify-start" onClick={onLogout}>
+          {topActions && <div className="mb-3">{topActions}</div>}
+          <Button variant="ghost" size="sm" className="w-full justify-start" onClick={onLogout}>
             خروج
           </Button>
         </div>
