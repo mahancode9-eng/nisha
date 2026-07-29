@@ -10,7 +10,6 @@ import {
   MobileNavLink,
 } from "@/components/layout/chrome/ChromeMobileDrawer";
 import { SellerPrimaryCta } from "@/components/landing/SellerPrimaryCta";
-import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 import { paths } from "@/lib/auth/paths";
 import { Button } from "@/components/ui/Button";
 
@@ -37,7 +36,18 @@ export function LandingShell({ children }: LandingShellProps) {
             <BrandMark showTagline />
 
             <div className="hidden items-center gap-2 md:flex">
-              <ThemeSwitcher variant="button" />
+              <Link
+                href={paths.pricing}
+                className="rounded-lg px-3 py-2 text-sm text-foreground-muted transition-colors hover:text-foreground"
+              >
+                قیمت‌ها
+              </Link>
+              <Link
+                href={paths.about}
+                className="rounded-lg px-3 py-2 text-sm text-foreground-muted transition-colors hover:text-foreground"
+              >
+                درباره ما
+              </Link>
               <Link href={paths.seller.login}>
                 <Button variant="ghost" size="sm">ورود فروشنده</Button>
               </Link>
@@ -59,12 +69,17 @@ export function LandingShell({ children }: LandingShellProps) {
       </div>
 
       <ChromeMobileDrawer open={menuOpen} onClose={closeMenu}>
-        <ThemeSwitcher variant="button" />
-        <MobileNavLink href={paths.seller.login} onClose={closeMenu}>
-          <Button variant="ghost" size="sm" className="w-full justify-start">ورود فروشنده</Button>
+        <MobileNavLink href={paths.pricing} onClose={closeMenu}>
+          <Button variant="ghost" size="sm" className="w-full justify-start">قیمت‌ها</Button>
+        </MobileNavLink>
+        <MobileNavLink href={paths.about} onClose={closeMenu}>
+          <Button variant="ghost" size="sm" className="w-full justify-start">درباره ما</Button>
         </MobileNavLink>
         <MobileNavLink href={paths.trackOrder} onClose={closeMenu}>
           <Button variant="ghost" size="sm" className="w-full justify-start">پیگیری سفارش</Button>
+        </MobileNavLink>
+        <MobileNavLink href={paths.seller.login} onClose={closeMenu}>
+          <Button variant="ghost" size="sm" className="w-full justify-start">ورود فروشنده</Button>
         </MobileNavLink>
         <div onClickCapture={closeMenu}>
           <SellerPrimaryCta variant="secondary" size="md" className="w-full justify-start" />

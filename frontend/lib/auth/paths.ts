@@ -1,6 +1,8 @@
 export const paths = {
   home: "/",
   trackOrder: "/track-order",
+  pricing: "/pricing",
+  about: "/about",
   terms: "/terms",
   privacy: "/privacy",
   complaintsPolicy: "/complaints",

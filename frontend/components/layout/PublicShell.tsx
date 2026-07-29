@@ -7,7 +7,6 @@ import { ChromeFooter } from "@/components/layout/chrome/ChromeFooter";
 import { ChromeHeader } from "@/components/layout/chrome/ChromeHeader";
 import { ChromeMobileDrawer, MobileNavLink } from "@/components/layout/chrome/ChromeMobileDrawer";
 import { ChromeNav, type ChromeNavItem } from "@/components/layout/chrome/ChromeNav";
-import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 import { paths } from "@/lib/auth/paths";
 import { Button } from "@/components/ui/Button";
 
@@ -37,6 +36,12 @@ export function PublicShell({
 
   const defaultActions = showDefaultActions ? (
     <>
+      <Link href={paths.pricing}>
+        <Button variant="ghost" size="sm">قیمت‌ها</Button>
+      </Link>
+      <Link href={paths.about}>
+        <Button variant="ghost" size="sm">درباره ما</Button>
+      </Link>
       <Link href={paths.trackOrder}>
         <Button variant="ghost" size="sm">پیگیری سفارش</Button>
       </Link>
@@ -51,7 +56,6 @@ export function PublicShell({
 
   const headerActions = (
     <>
-      <ThemeSwitcher variant="button" />
       {actions}
       {defaultActions}
     </>
@@ -59,9 +63,14 @@ export function PublicShell({
 
   const mobileMenu = (
     <>
-      <ThemeSwitcher variant="button" />
       {showDefaultActions && (
         <>
+          <MobileNavLink href={paths.pricing} onClose={closeMenu}>
+            <Button variant="ghost" size="sm" className="w-full justify-start">قیمت‌ها</Button>
+          </MobileNavLink>
+          <MobileNavLink href={paths.about} onClose={closeMenu}>
+            <Button variant="ghost" size="sm" className="w-full justify-start">درباره ما</Button>
+          </MobileNavLink>
           <MobileNavLink href={paths.trackOrder} onClose={closeMenu}>
             <Button variant="ghost" size="sm" className="w-full justify-start">پیگیری سفارش</Button>
           </MobileNavLink>
