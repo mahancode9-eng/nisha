@@ -85,6 +85,7 @@ class StoreOnboardingStep(str, Enum):
     STORE_IDENTITY = "store_identity"
     STORE_INFORMATION = "store_information"
     CONTACT_CHANNELS = "contact_channels"
+    PAYMENT_DETAILS = "payment_details"
     FIRST_PRODUCT = "first_product"
     EDUCATION = "education"
     ACTIVATION = "activation"

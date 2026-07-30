@@ -7,7 +7,6 @@ import { useToast } from "@/contexts/ToastContext";
 import { useSellerFetch } from "@/hooks/useSellerFetch";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { StoreSettingsForm } from "@/components/seller/StoreSettingsForm";
-import { ProductCategoryManager } from "@/components/seller/ProductCategoryManager";
 import { Button } from "@/components/ui/Button";
 import { ErrorAlert } from "@/components/ui/ErrorAlert";
 import { LoadingState } from "@/components/ui/LoadingState";
@@ -44,7 +43,6 @@ export default function SellerStorePage() {
         }
       />
       <StoreSettingsForm store={data} onSubmit={handleSubmit} />
-      <ProductCategoryManager />
     </div>
   );
 }

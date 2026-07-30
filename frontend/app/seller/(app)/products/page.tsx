@@ -10,6 +10,7 @@ import { useToast } from "@/contexts/ToastContext";
 import { useSellerEntitlements } from "@/hooks/useSellerEntitlements";
 import { useSellerFetch } from "@/hooks/useSellerFetch";
 import { ConfirmModal } from "@/components/seller/ConfirmModal";
+import { ProductCategoryManager } from "@/components/seller/ProductCategoryManager";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Badge } from "@/components/ui/Badge";
 import { Button, buttonClassName } from "@/components/ui/Button";
@@ -91,6 +92,8 @@ export default function SellerProductsPage() {
       />
 
       <ErrorAlert message={error ?? ""} />
+
+      <ProductCategoryManager />
 
       {isLoading && <TableSkeleton rows={6} columns={6} />}
 

@@ -58,12 +58,23 @@ export function ProductBrowser({ slug, initialProducts, categories = [] }: Produ
   const isDefaultView =
     !q && !minPrice && !maxPrice && !inStock && !category && sort === "newest" && page === 1;
 
+  const hasAdvancedFilters = Boolean(minPrice || maxPrice || inStock || sort !== "newest");
+  const activeFilterCount =
+    (minPrice ? 1 : 0) + (maxPrice ? 1 : 0) + (inStock ? 1 : 0) + (sort !== "newest" ? 1 : 0);
+
   const [searchText, setSearchText] = useState(q);
   const [minText, setMinText] = useState(minPrice);
   const [maxText, setMaxText] = useState(maxPrice);
+  const [filtersOpen, setFiltersOpen] = useState(hasAdvancedFilters);
   const [result, setResult] = useState<PublicProductListResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (hasAdvancedFilters) {
+      setFiltersOpen(true);
+    }
+  }, [hasAdvancedFilters]);
 
   const updateParams = useCallback(
     (updates: Record<string, string | null>, resetPage = true) => {
@@ -180,91 +191,121 @@ export function ProductBrowser({ slug, initialProducts, categories = [] }: Produ
         </div>
       )}
 
-      <div className="flex flex-col gap-3 rounded-2xl border border-border bg-surface p-4 md:flex-row md:flex-wrap md:items-end">
-        <div className="min-w-0 flex-1">
-          <label htmlFor="product-search" className="mb-1 block text-xs font-medium text-foreground-muted">
-            جستجو در محصولات
-          </label>
-          <input
-            id="product-search"
-            type="search"
-            dir="rtl"
-            value={searchText}
-            onChange={(event) => setSearchText(event.target.value)}
-            placeholder="مثلا: کیف چرم"
-            className={"w-full " + FIELD_CLASSES}
-          />
-        </div>
-        <div className="flex items-end gap-2">
-          <div>
-            <label htmlFor="min-price" className="mb-1 block text-xs font-medium text-foreground-muted">
-              حداقل قیمت
-            </label>
-            <input
-              id="min-price"
-              type="number"
-              inputMode="numeric"
-              min={0}
-              value={minText}
-              onChange={(event) => setMinText(event.target.value)}
-              onBlur={commitPrices}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  commitPrices();
-                }
-              }}
-              className={"w-28 " + FIELD_CLASSES}
-            />
+      <div className="rounded-2xl border border-border bg-surface p-3 md:p-4">
+        <div className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-end">
+          <div className="flex min-w-0 flex-1 items-end gap-2">
+            <div className="min-w-0 flex-1">
+              <label htmlFor="product-search" className="mb-1 block text-xs font-medium text-foreground-muted">
+                جستجو در محصولات
+              </label>
+              <input
+                id="product-search"
+                type="search"
+                dir="rtl"
+                value={searchText}
+                onChange={(event) => setSearchText(event.target.value)}
+                placeholder="مثلا: کیف چرم"
+                className={"w-full " + FIELD_CLASSES}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => setFiltersOpen((open) => !open)}
+              aria-expanded={filtersOpen}
+              className={
+                "relative shrink-0 rounded-xl border px-3 py-2 text-sm transition md:hidden " +
+                (filtersOpen || activeFilterCount > 0
+                  ? "border-brand bg-brand/10 text-brand"
+                  : "border-border text-foreground hover:bg-surface-muted")
+              }
+            >
+              {filtersOpen ? "بستن" : "فیلترها"}
+              {activeFilterCount > 0 && (
+                <span className="absolute -left-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1 text-[11px] font-medium text-white">
+                  {activeFilterCount}
+                </span>
+              )}
+            </button>
           </div>
-          <div>
-            <label htmlFor="max-price" className="mb-1 block text-xs font-medium text-foreground-muted">
-              حداکثر قیمت
-            </label>
-            <input
-              id="max-price"
-              type="number"
-              inputMode="numeric"
-              min={0}
-              value={maxText}
-              onChange={(event) => setMaxText(event.target.value)}
-              onBlur={commitPrices}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  commitPrices();
-                }
-              }}
-              className={"w-28 " + FIELD_CLASSES}
-            />
-          </div>
-        </div>
-        <div>
-          <label htmlFor="product-sort" className="mb-1 block text-xs font-medium text-foreground-muted">
-            مرتب‌سازی
-          </label>
-          <select
-            id="product-sort"
-            value={sort}
-            onChange={(event) =>
-              updateParams({ sort: event.target.value === "newest" ? null : event.target.value })
+
+          <div
+            className={
+              (filtersOpen ? "flex" : "hidden") +
+              " flex-col gap-3 md:contents"
             }
-            className={FIELD_CLASSES}
           >
-            {SORT_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+            <div className="flex items-end gap-2">
+              <div className="min-w-0 flex-1 md:flex-none">
+                <label htmlFor="min-price" className="mb-1 block text-xs font-medium text-foreground-muted">
+                  حداقل قیمت
+                </label>
+                <input
+                  id="min-price"
+                  type="number"
+                  inputMode="numeric"
+                  min={0}
+                  value={minText}
+                  onChange={(event) => setMinText(event.target.value)}
+                  onBlur={commitPrices}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      commitPrices();
+                    }
+                  }}
+                  className={"w-full md:w-28 " + FIELD_CLASSES}
+                />
+              </div>
+              <div className="min-w-0 flex-1 md:flex-none">
+                <label htmlFor="max-price" className="mb-1 block text-xs font-medium text-foreground-muted">
+                  حداکثر قیمت
+                </label>
+                <input
+                  id="max-price"
+                  type="number"
+                  inputMode="numeric"
+                  min={0}
+                  value={maxText}
+                  onChange={(event) => setMaxText(event.target.value)}
+                  onBlur={commitPrices}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      commitPrices();
+                    }
+                  }}
+                  className={"w-full md:w-28 " + FIELD_CLASSES}
+                />
+              </div>
+            </div>
+            <div>
+              <label htmlFor="product-sort" className="mb-1 block text-xs font-medium text-foreground-muted">
+                مرتب‌سازی
+              </label>
+              <select
+                id="product-sort"
+                value={sort}
+                onChange={(event) =>
+                  updateParams({ sort: event.target.value === "newest" ? null : event.target.value })
+                }
+                className={"w-full md:w-auto " + FIELD_CLASSES}
+              >
+                {SORT_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <label className="flex items-center gap-2 pb-2 text-sm text-foreground">
+              <input
+                type="checkbox"
+                checked={inStock}
+                onChange={(event) => updateParams({ stock: event.target.checked ? "1" : null })}
+                className="h-4 w-4 rounded border-border"
+              />
+              فقط کالاهای موجود
+            </label>
+          </div>
         </div>
-        <label className="flex items-center gap-2 pb-2 text-sm text-foreground">
-          <input
-            type="checkbox"
-            checked={inStock}
-            onChange={(event) => updateParams({ stock: event.target.checked ? "1" : null })}
-            className="h-4 w-4 rounded border-border"
-          />
-          فقط کالاهای موجود
-        </label>
       </div>
 
       {error && <ErrorAlert message={error} />}

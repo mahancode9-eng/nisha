@@ -64,7 +64,12 @@ def is_platform_guest_checkout_enabled(db: Session) -> bool:
 
 
 def is_guest_checkout_enabled(db: Session, store: Store) -> bool:
-    return is_platform_guest_checkout_enabled(db) and store.guest_checkout_enabled
+    if not is_platform_guest_checkout_enabled(db) or not store.guest_checkout_enabled:
+        return False
+    from app.services.entitlement_service import get_seller_entitlements
+
+    entitlements = get_seller_entitlements(db, store.owner_id)
+    return bool(entitlements.get("guest_checkout"))
 
 
 def get_subscription_card_settings(db: Session) -> dict[str, str]:

@@ -103,19 +103,16 @@ def update_store(db: Session, store: Store, data: StoreUpdate) -> Store:
     if theme_fields.intersection(update_data):
         entitlements = get_seller_entitlements(db, store.owner_id)
         if not entitlements.get("store_theme"):
-            raise ServiceError(
-                "شخصی‌سازی ظاهر فروشگاه در پلن فعلی شما فعال نیست.",
-                status_code=403,
-            )
+            # Ignore theme fields on lower plans so other store settings can still save.
+            for field in theme_fields:
+                update_data.pop(field, None)
 
     page_fields = {"about_text", "shipping_policy_text"}
     if page_fields.intersection(update_data):
         entitlements = get_seller_entitlements(db, store.owner_id)
         if not entitlements.get("store_pages"):
-            raise ServiceError(
-                "صفحات درباره ما / ارسال در پلن فعلی شما فعال نیست.",
-                status_code=403,
-            )
+            for field in page_fields:
+                update_data.pop(field, None)
 
     for field, value in update_data.items():
         setattr(store, field, value)

@@ -11,8 +11,10 @@ import * as categoriesApi from "@/lib/api/seller/categories";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
+import { MoneyInput } from "@/components/ui/MoneyInput";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
+import { formatMoneyInput, moneyInputToNumber, parseMoneyInput } from "@/lib/moneyInput";
 import type {
   Product,
   ProductCreate,
@@ -96,7 +98,7 @@ function normalizeVariants(variants: Product["variants"]): EditableVariant[] {
   return (variants ?? []).map((variant, index) => ({
     clientKey: `${variant.id}-${index}`,
     name: variant.name,
-    priceOverride: variant.price_override ?? "",
+    priceOverride: variant.price_override ? formatMoneyInput(variant.price_override) : "",
     stockQuantity: String(variant.stock_quantity),
     isActive: variant.is_active,
   }));
@@ -172,10 +174,12 @@ export function ProductForm({
   const { data: categories } = useSellerFetch(() => categoriesApi.listCategories(), []);
   const [title, setTitle] = useState(initial?.title ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
-  const [price, setPrice] = useState(initial?.price ?? "");
+  const [price, setPrice] = useState(() => formatMoneyInput(initial?.price ?? ""));
   const [stock, setStock] = useState(String(initial?.stock_quantity ?? 0));
   const [categoryId, setCategoryId] = useState(initial?.category_id ? String(initial.category_id) : "");
-  const [shippingCost, setShippingCost] = useState(initial?.shipping_cost ?? "");
+  const [shippingCost, setShippingCost] = useState(() =>
+    initial?.shipping_cost ? formatMoneyInput(initial.shipping_cost) : "",
+  );
   const [isActive, setIsActive] = useState(initial?.is_active ?? true);
   const [images, setImages] = useState<EditableImage[]>(
     initial && initial.images.length > 0 ? normalizeImages(initial.images) : [emptyImage()],
@@ -200,10 +204,10 @@ export function ProductForm({
   useEffect(() => {
     setTitle(initial?.title ?? "");
     setDescription(initial?.description ?? "");
-    setPrice(initial?.price ?? "");
+    setPrice(formatMoneyInput(initial?.price ?? ""));
     setStock(String(initial?.stock_quantity ?? 0));
     setCategoryId(initial?.category_id ? String(initial.category_id) : "");
-    setShippingCost(initial?.shipping_cost ?? "");
+    setShippingCost(initial?.shipping_cost ? formatMoneyInput(initial.shipping_cost) : "");
     setIsActive(initial?.is_active ?? true);
     setImages(initial && initial.images.length > 0 ? normalizeImages(initial.images) : [emptyImage()]);
     setFields(initial ? normalizeFields(initial.form_fields) : []);
@@ -338,7 +342,7 @@ export function ProductForm({
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
-    const priceNum = parseFloat(price);
+    const priceNum = moneyInputToNumber(price);
     const stockNum = parseInt(stock, 10);
     if (!title.trim()) {
       setError("عنوان الزامی است.");
@@ -403,11 +407,11 @@ export function ProductForm({
         const overrideText = variant.priceOverride.trim();
         let priceOverride: number | null = null;
         if (overrideText) {
-          const parsed = parseFloat(overrideText);
+          const parsed = moneyInputToNumber(overrideText);
           if (Number.isNaN(parsed) || parsed <= 0) {
             throw new Error(`قیمت واریانت ${name} باید بزرگ‌تر از 0 باشد.`);
-        }
-        priceOverride = parsed;
+          }
+          priceOverride = parsed;
         }
         const stockParsed = parseInt(variant.stockQuantity, 10);
         if (Number.isNaN(stockParsed) || stockParsed < 0) {
@@ -428,10 +432,10 @@ export function ProductForm({
 
     setLoading(true);
     try {
-      const shippingText = shippingCost.trim();
+      const shippingText = parseMoneyInput(shippingCost);
       let parsedShipping: number | null = null;
       if (shippingText) {
-        parsedShipping = parseFloat(shippingText);
+        parsedShipping = moneyInputToNumber(shippingCost);
         if (Number.isNaN(parsedShipping) || parsedShipping < 0) {
           setError("هزینه ارسال محصول باید ۰ یا بیشتر باشد.");
           setLoading(false);
@@ -492,21 +496,12 @@ export function ProductForm({
               rows={3}
               className="md:col-span-2"
             />
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-foreground">قیمت</label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  step="1"
-                  min="1"
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
-                  required
-                  className="block w-full rounded-xl border border-border bg-surface px-3 py-2.5 text-sm text-foreground shadow-sm placeholder:text-foreground-muted focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
-                />
-                <span className="whitespace-nowrap text-sm text-foreground-muted">تومان</span>
-              </div>
-            </div>
+            <MoneyInput
+              label="قیمت"
+              value={price}
+              onValueChange={setPrice}
+              required
+            />
             <Select
               label="دسته‌بندی"
               value={categoryId}
@@ -519,13 +514,10 @@ export function ProductForm({
                 </option>
               ))}
             </Select>
-            <Input
-              label="هزینه ارسال این محصول (تومان)"
-              type="number"
-              min="0"
-              step="1"
+            <MoneyInput
+              label="هزینه ارسال این محصول"
               value={shippingCost}
-              onChange={(e) => setShippingCost(e.target.value)}
+              onValueChange={setShippingCost}
               hint="خالی = طبق تنظیمات فروشگاه"
             />
               <div className="flex items-end">
@@ -567,13 +559,10 @@ export function ProductForm({
                         onChange={(e) => setVariant(index, { name: e.target.value })}
                         placeholder="مثلا سایز L"
                       />
-                      <Input
+                      <MoneyInput
                         label="قیمت واریانت (اختیاری)"
-                        type="number"
-                        min="1"
-                        step="1"
                         value={variant.priceOverride}
-                        onChange={(e) => setVariant(index, { priceOverride: e.target.value })}
+                        onValueChange={(next) => setVariant(index, { priceOverride: next })}
                         placeholder="خالی = قیمت اصلی"
                       />
                       <Input

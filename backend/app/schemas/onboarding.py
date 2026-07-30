@@ -5,7 +5,7 @@ from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.models.enums import StoreOnboardingStatus, StoreOnboardingStep
+from app.models.enums import PaymentMethodType, StoreOnboardingStatus, StoreOnboardingStep
 from app.schemas.public import PublicHomepageCategory
 from app.schemas.store import StoreResponse
 
@@ -47,10 +47,23 @@ class StoreOnboardingFirstProductDraft(BaseModel):
     is_active: bool = True
 
 
+class StoreOnboardingPaymentDraft(BaseModel):
+    payment_method_id: int | None = None
+    type: PaymentMethodType = PaymentMethodType.CARD_TO_CARD
+    display_name: str | None = Field(default=None, max_length=255)
+    card_number: str | None = Field(default=None, max_length=50)
+    wallet_address: str | None = Field(default=None, max_length=255)
+    external_url: str | None = Field(default=None, max_length=500)
+    owner_name: str | None = Field(default=None, max_length=255)
+    instructions: str | None = None
+    is_active: bool = True
+
+
 class StoreOnboardingDrafts(BaseModel):
     store_identity: StoreOnboardingIdentityDraft = Field(default_factory=StoreOnboardingIdentityDraft)
     store_information: StoreOnboardingInformationDraft = Field(default_factory=StoreOnboardingInformationDraft)
     contact_channels: list[StoreOnboardingContactChannelDraft] = Field(default_factory=list)
+    payment_details: StoreOnboardingPaymentDraft = Field(default_factory=StoreOnboardingPaymentDraft)
     first_product: StoreOnboardingFirstProductDraft = Field(default_factory=StoreOnboardingFirstProductDraft)
 
 
@@ -64,6 +77,7 @@ class StoreOnboardingStateResponse(BaseModel):
     completed_at: datetime | None = None
     skipped_at: datetime | None = None
     first_product_id: int | None = None
+    payment_method_id: int | None = None
     events: list[StoreOnboardingEvent] = Field(default_factory=list)
 
 
@@ -74,8 +88,10 @@ class StoreOnboardingUpdate(BaseModel):
     store_identity: StoreOnboardingIdentityDraft | None = None
     store_information: StoreOnboardingInformationDraft | None = None
     contact_channels: list[StoreOnboardingContactChannelDraft] | None = None
+    payment_details: StoreOnboardingPaymentDraft | None = None
     first_product: StoreOnboardingFirstProductDraft | None = None
     first_product_id: int | None = None
+    payment_method_id: int | None = None
 
 
 class SellerOnboardingResponse(BaseModel):

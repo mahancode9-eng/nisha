@@ -48,7 +48,7 @@ class StoreResponse(BaseModel):
     support_contact: str | None
     trust_badges: list[str] = Field(default_factory=list, validation_alias="badge_labels")
     is_active: bool
-    guest_checkout_enabled: bool = True
+    guest_checkout_enabled: bool = False
     theme_preset: str | None = None
     primary_color: str | None = None
     about_text: str | None = None

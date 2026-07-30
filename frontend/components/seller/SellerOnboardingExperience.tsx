@@ -4,10 +4,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { uploadPublicImage } from "@/lib/api/public/uploads";
 import * as onboardingApi from "@/lib/api/seller/onboarding";
+import * as paymentMethodsApi from "@/lib/api/seller/payment-methods";
 import * as productsApi from "@/lib/api/seller/products";
 import * as storeApi from "@/lib/api/seller/store";
 import { paths } from "@/lib/auth/paths";
 import { formatMoney } from "@/lib/format";
+import { formatMoneyInput, parseMoneyInput } from "@/lib/moneyInput";
 import { cn } from "@/lib/cn";
 import { resolveMediaUrl } from "@/lib/media";
 import { useToast } from "@/contexts/ToastContext";
@@ -16,6 +18,7 @@ import { Card, CardContent } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorAlert } from "@/components/ui/ErrorAlert";
 import { Input } from "@/components/ui/Input";
+import { MoneyInput } from "@/components/ui/MoneyInput";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import {
@@ -25,6 +28,7 @@ import {
 } from "@/components/ui/SocialIcon";
 import { makeSocialLinkLabel, normalizeSocialPlatform, resolveContactHref, socialInputHint, socialInputPlaceholder } from "@/lib/seller/contactChannels";
 import { BrandMark } from "@/components/layout/chrome/BrandMark";
+import type { PaymentMethodCreate, PaymentMethodType } from "@/types/seller/payment-method";
 import type { SellerOnboardingResponse, SellerOnboardingStepKey } from "@/types/seller/onboarding";
 
 type EditableContactLink = {
@@ -47,6 +51,16 @@ type DraftState = {
     location: string;
   };
   contactChannels: EditableContactLink[];
+  paymentDetails: {
+    type: PaymentMethodType;
+    displayName: string;
+    cardNumber: string;
+    ownerName: string;
+    walletAddress: string;
+    externalUrl: string;
+    instructions: string;
+    isActive: boolean;
+  };
   firstProduct: {
     title: string;
     price: string;
@@ -91,6 +105,12 @@ const STEP_ORDER: StepMeta[] = [
     helper: "اگر الان نداری، رد کن و بعداً اضافه کن.",
   },
   {
+    key: "payment_details",
+    title: "جزئیات پرداخت",
+    description: "کارت، رمزارز یا درگاه — تا مشتری بداند چطور پرداخت کند.",
+    helper: "بدون روش پرداخت، سفارش کامل نمی‌شود.",
+  },
+  {
     key: "first_product",
     title: "اولین محصول",
     description: "یک محصول با عکس و قیمت کافی است تا فروشگاه زنده شود.",
@@ -128,8 +148,15 @@ function toEditableContact(link: SellerOnboardingResponse["store"]["social_links
   };
 }
 
+function paymentTypeLabel(type: PaymentMethodType): string {
+  if (type === "CARD_TO_CARD") return "کارت‌به‌کارت";
+  if (type === "CRYPTO") return "رمزارز";
+  return "درگاه خارجی";
+}
+
 function buildDrafts(data: SellerOnboardingResponse): DraftState {
   const { store, state } = data;
+  const payment = state.drafts.payment_details;
   return {
     storeIdentity: {
       name: state.drafts.store_identity.name ?? store.name ?? "",
@@ -151,9 +178,19 @@ function buildDrafts(data: SellerOnboardingResponse): DraftState {
             is_active: link.is_active,
           }))
         : store.social_links.map(toEditableContact),
+    paymentDetails: {
+      type: payment?.type ?? "CARD_TO_CARD",
+      displayName: payment?.display_name ?? "",
+      cardNumber: payment?.card_number ?? "",
+      ownerName: payment?.owner_name ?? "",
+      walletAddress: payment?.wallet_address ?? "",
+      externalUrl: payment?.external_url ?? "",
+      instructions: payment?.instructions ?? "",
+      isActive: payment?.is_active ?? true,
+    },
     firstProduct: {
       title: state.drafts.first_product.title ?? "",
-      price: state.drafts.first_product.price ?? "",
+      price: state.drafts.first_product.price ? formatMoneyInput(state.drafts.first_product.price) : "",
       description: state.drafts.first_product.description ?? "",
       imageUrl: state.drafts.first_product.image_url ?? "",
       thumbnailUrl: state.drafts.first_product.thumbnail_url ?? "",
@@ -169,7 +206,12 @@ function stepIndex(step: SellerOnboardingStepKey): number {
 }
 
 function isValidMoney(value: string): boolean {
-  return /^\d+(\.\d{1,2})?$/.test(value.trim()) && Number(value) > 0;
+  const raw = parseMoneyInput(value);
+  return /^\d+(\.\d{1,2})?$/.test(raw) && Number(raw) > 0;
+}
+
+function moneyForApi(value: string): string {
+  return parseMoneyInput(value);
 }
 
 function useBlobPreview() {
@@ -217,7 +259,7 @@ function StepBadge({ active, done, label }: { active?: boolean; done?: boolean; 
 
 function ProgressBar({ current, total }: { current: number; total: number }) {
   return (
-    <div className="grid gap-2 sm:grid-cols-6">
+    <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${total}, minmax(0, 1fr))` }}>
       {Array.from({ length: total }).map((_, index) => {
         const active = index <= current;
         return (
@@ -308,12 +350,26 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
                     is_active: link.is_active,
                   }))
                 : undefined,
+            payment_details:
+              activeStep.key === "payment_details"
+                ? {
+                    payment_method_id: serverState.payment_method_id,
+                    type: drafts.paymentDetails.type,
+                    display_name: drafts.paymentDetails.displayName || null,
+                    card_number: drafts.paymentDetails.cardNumber || null,
+                    owner_name: drafts.paymentDetails.ownerName || null,
+                    wallet_address: drafts.paymentDetails.walletAddress || null,
+                    external_url: drafts.paymentDetails.externalUrl || null,
+                    instructions: drafts.paymentDetails.instructions || null,
+                    is_active: drafts.paymentDetails.isActive,
+                  }
+                : undefined,
             first_product:
               activeStep.key === "first_product"
                 ? {
                     product_id: drafts.firstProduct.imageUrl ? serverState.first_product_id : null,
                     title: drafts.firstProduct.title,
-                    price: drafts.firstProduct.price,
+                    price: moneyForApi(drafts.firstProduct.price) || null,
                     description: drafts.firstProduct.description || null,
                     image_url: drafts.firstProduct.imageUrl || null,
                     thumbnail_url: drafts.firstProduct.thumbnailUrl || null,
@@ -322,6 +378,7 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
                   }
                 : undefined,
             first_product_id: serverState.first_product_id,
+            payment_method_id: serverState.payment_method_id,
           });
           setServerState(response.state);
           setSavingNote("ذخیره شد");
@@ -332,7 +389,7 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
     }, 700);
 
     return () => window.clearTimeout(timer);
-  }, [activeStep.key, draftVersion, drafts, loading, serverState.first_product_id]);
+  }, [activeStep.key, draftVersion, drafts, loading, serverState.first_product_id, serverState.payment_method_id]);
 
   function markDraftChange(updater: (current: DraftState) => DraftState) {
     setDrafts((current) => updater(current));
@@ -388,6 +445,22 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
             is_active: link.is_active,
           })),
         };
+      case "payment_details":
+        return {
+          ...base,
+          payment_method_id: serverState.payment_method_id,
+          payment_details: {
+            payment_method_id: serverState.payment_method_id,
+            type: drafts.paymentDetails.type,
+            display_name: drafts.paymentDetails.displayName.trim() || null,
+            card_number: drafts.paymentDetails.cardNumber.trim() || null,
+            owner_name: drafts.paymentDetails.ownerName.trim() || null,
+            wallet_address: drafts.paymentDetails.walletAddress.trim() || null,
+            external_url: drafts.paymentDetails.externalUrl.trim() || null,
+            instructions: drafts.paymentDetails.instructions.trim() || null,
+            is_active: drafts.paymentDetails.isActive,
+          },
+        };
       case "first_product":
         return {
           ...base,
@@ -395,7 +468,7 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
           first_product: {
             product_id: serverState.first_product_id,
             title: drafts.firstProduct.title.trim() || null,
-            price: isValidMoney(drafts.firstProduct.price) ? drafts.firstProduct.price.trim() : null,
+            price: isValidMoney(drafts.firstProduct.price) ? moneyForApi(drafts.firstProduct.price) : null,
             description: drafts.firstProduct.description.trim() || null,
             image_url: drafts.firstProduct.imageUrl || null,
             thumbnail_url: drafts.firstProduct.thumbnailUrl || null,
@@ -559,7 +632,7 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
 
       await storeApi.updateStore({ social_links });
       await saveOnboardingProgress({
-        current_step: "first_product",
+        current_step: "payment_details",
         completed_steps: [...completedSteps, "contact_channels"],
         contact_channels: social_links.map((link) => ({
           platform: (link.icon_key ?? "other") as SocialPlatformKey,
@@ -583,12 +656,109 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
     setError(null);
     try {
       await saveOnboardingProgress({
-        current_step: "first_product",
+        current_step: "payment_details",
         completed_steps: [...completedSteps, "contact_channels"],
         status: "IN_PROGRESS",
       });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "ذخیره ممکن نشد";
+      setError(msg);
+      toast.error(msg);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function buildPaymentPayload(): PaymentMethodCreate {
+    const base = {
+      type: drafts.paymentDetails.type,
+      display_name: drafts.paymentDetails.displayName.trim(),
+      instructions: drafts.paymentDetails.instructions.trim() || null,
+      is_active: drafts.paymentDetails.isActive,
+    };
+    if (drafts.paymentDetails.type === "CARD_TO_CARD") {
+      return {
+        ...base,
+        card_number: drafts.paymentDetails.cardNumber.trim(),
+        owner_name: drafts.paymentDetails.ownerName.trim(),
+      };
+    }
+    if (drafts.paymentDetails.type === "CRYPTO") {
+      return {
+        ...base,
+        wallet_address: drafts.paymentDetails.walletAddress.trim(),
+      };
+    }
+    return {
+      ...base,
+      external_url: drafts.paymentDetails.externalUrl.trim(),
+    };
+  }
+
+  function buildPaymentUpdatePayload() {
+    const payload = buildPaymentPayload();
+    return {
+      ...payload,
+      card_number: payload.type === "CARD_TO_CARD" ? payload.card_number ?? null : null,
+      owner_name: payload.type === "CARD_TO_CARD" ? payload.owner_name ?? null : null,
+      wallet_address: payload.type === "CRYPTO" ? payload.wallet_address ?? null : null,
+      external_url: payload.type === "EXTERNAL_GATEWAY" ? payload.external_url ?? null : null,
+    };
+  }
+
+  function validatePaymentDetails() {
+    if (!drafts.paymentDetails.displayName.trim()) {
+      throw new Error("نام نمایشی روش پرداخت الزامی است.");
+    }
+    if (drafts.paymentDetails.type === "CARD_TO_CARD") {
+      if (!drafts.paymentDetails.cardNumber.trim()) {
+        throw new Error("شماره کارت را وارد کنید.");
+      }
+      if (!drafts.paymentDetails.ownerName.trim()) {
+        throw new Error("نام صاحب حساب را وارد کنید.");
+      }
+    } else if (drafts.paymentDetails.type === "CRYPTO") {
+      if (!drafts.paymentDetails.walletAddress.trim()) {
+        throw new Error("آدرس کیف پول را وارد کنید.");
+      }
+    } else if (!drafts.paymentDetails.externalUrl.trim()) {
+      throw new Error("نشانی درگاه را وارد کنید.");
+    }
+  }
+
+  async function continuePaymentDetails() {
+    setLoading(true);
+    setError(null);
+    try {
+      validatePaymentDetails();
+      let paymentMethodId = serverState.payment_method_id;
+
+      if (paymentMethodId) {
+        await paymentMethodsApi.updatePaymentMethod(paymentMethodId, buildPaymentUpdatePayload());
+      } else {
+        const created = await paymentMethodsApi.createPaymentMethod(buildPaymentPayload());
+        paymentMethodId = created.id;
+      }
+
+      await saveOnboardingProgress({
+        current_step: "first_product",
+        completed_steps: [...completedSteps, "payment_details"],
+        payment_method_id: paymentMethodId,
+        payment_details: {
+          payment_method_id: paymentMethodId,
+          type: drafts.paymentDetails.type,
+          display_name: drafts.paymentDetails.displayName.trim(),
+          card_number: drafts.paymentDetails.cardNumber.trim() || null,
+          owner_name: drafts.paymentDetails.ownerName.trim() || null,
+          wallet_address: drafts.paymentDetails.walletAddress.trim() || null,
+          external_url: drafts.paymentDetails.externalUrl.trim() || null,
+          instructions: drafts.paymentDetails.instructions.trim() || null,
+          is_active: drafts.paymentDetails.isActive,
+        },
+        status: "IN_PROGRESS",
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "ذخیره جزئیات پرداخت ناموفق بود";
       setError(msg);
       toast.error(msg);
     } finally {
@@ -614,7 +784,7 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
         await productsApi.updateProduct(serverState.first_product_id, {
           title: drafts.firstProduct.title.trim(),
           description: drafts.firstProduct.description.trim() || null,
-          price: drafts.firstProduct.price.trim(),
+          price: moneyForApi(drafts.firstProduct.price),
           stock_quantity: drafts.firstProduct.stockQuantity || 1,
           is_active: true,
           images: [
@@ -634,7 +804,7 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
           first_product: {
             product_id: serverState.first_product_id,
             title: drafts.firstProduct.title.trim(),
-            price: drafts.firstProduct.price.trim(),
+            price: moneyForApi(drafts.firstProduct.price),
             description: drafts.firstProduct.description.trim() || null,
             image_url: drafts.firstProduct.imageUrl.trim() || null,
             thumbnail_url: drafts.firstProduct.thumbnailUrl.trim() || null,
@@ -659,7 +829,7 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
       const created = await productsApi.createProduct({
         title: drafts.firstProduct.title.trim(),
         description: drafts.firstProduct.description.trim() || null,
-        price: drafts.firstProduct.price.trim(),
+        price: moneyForApi(drafts.firstProduct.price),
         stock_quantity: drafts.firstProduct.stockQuantity || 1,
         is_active: true,
         images: [
@@ -679,7 +849,7 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
         first_product: {
           product_id: created.id,
           title: drafts.firstProduct.title.trim(),
-          price: drafts.firstProduct.price.trim(),
+          price: moneyForApi(drafts.firstProduct.price),
           description: drafts.firstProduct.description.trim() || null,
           image_url: drafts.firstProduct.imageUrl.trim() || null,
           thumbnail_url: drafts.firstProduct.thumbnailUrl.trim() || null,
@@ -703,6 +873,7 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
     try {
       const canComplete =
         Boolean(serverState.first_product_id) &&
+        Boolean(serverState.payment_method_id) &&
         Boolean(drafts.storeIdentity.name.trim()) &&
         Boolean(drafts.storeInformation.description.trim()) &&
         Boolean(drafts.storeInformation.categorySlug.trim());
@@ -714,6 +885,7 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
               "store_identity",
               "store_information",
               "contact_channels",
+              "payment_details",
               "first_product",
               "activation",
             ]
@@ -749,9 +921,19 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
         label: "راه‌های ارتباطی (اختیاری)",
         done: drafts.contactChannels.some((link) => link.url.trim()),
       },
+      {
+        label: "جزئیات پرداخت ثبت شد",
+        done: Boolean(serverState.payment_method_id),
+      },
       { label: "اولین محصول اضافه شد", done: Boolean(serverState.first_product_id) },
     ],
-    [drafts.storeIdentity, drafts.storeInformation, drafts.contactChannels, serverState.first_product_id],
+    [
+      drafts.storeIdentity,
+      drafts.storeInformation,
+      drafts.contactChannels,
+      serverState.first_product_id,
+      serverState.payment_method_id,
+    ],
   );
 
   function renderPreview() {
@@ -844,6 +1026,38 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
             </CardContent>
           </Card>
         );
+      case "payment_details":
+        return (
+          <Card className="border-border bg-surface shadow-sm">
+            <CardContent className="space-y-4 py-6">
+              <p className="text-xs tracking-[0.2em] text-foreground-muted">روش پرداخت</p>
+              <div className="rounded-2xl border border-border bg-surface-muted/40 px-4 py-4">
+                <p className="text-sm font-medium text-foreground">
+                  {drafts.paymentDetails.displayName || "نام روش پرداخت"}
+                </p>
+                <p className="mt-1 text-xs text-foreground-muted">
+                  {paymentTypeLabel(drafts.paymentDetails.type)}
+                </p>
+                {drafts.paymentDetails.type === "CARD_TO_CARD" && (
+                  <div className="mt-3 space-y-1 text-sm text-foreground-muted">
+                    <p>{drafts.paymentDetails.cardNumber || "شماره کارت"}</p>
+                    <p>{drafts.paymentDetails.ownerName || "نام صاحب حساب"}</p>
+                  </div>
+                )}
+                {drafts.paymentDetails.type === "CRYPTO" && (
+                  <p className="mt-3 break-all text-sm text-foreground-muted">
+                    {drafts.paymentDetails.walletAddress || "آدرس کیف پول"}
+                  </p>
+                )}
+                {drafts.paymentDetails.type === "EXTERNAL_GATEWAY" && (
+                  <p className="mt-3 break-all text-sm text-foreground-muted">
+                    {drafts.paymentDetails.externalUrl || "نشانی درگاه"}
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        );
       case "first_product":
         return (
           <Card className="border-border bg-surface shadow-sm">
@@ -868,7 +1082,9 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
                 </p>
                 <div className="mt-3 flex items-center gap-2">
                   <span className="rounded-full bg-brand/10 px-3 py-1 text-sm font-medium text-brand">
-                    {drafts.firstProduct.price ? formatMoney(drafts.firstProduct.price) : "قیمت"}
+                    {drafts.firstProduct.price
+                      ? formatMoney(moneyForApi(drafts.firstProduct.price))
+                      : "قیمت"}
                   </span>
                   <span className="rounded-full bg-surface-muted px-3 py-1 text-sm text-foreground-muted">
                     {drafts.firstProduct.stockQuantity || 1} موجود
@@ -1295,6 +1511,123 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
             </CardContent>
           </Card>
         );
+      case "payment_details":
+        return (
+          <Card className="border-border bg-surface shadow-sm">
+            <CardContent className="space-y-6 py-6">
+              <div>
+                <h2 className="text-xl font-semibold text-foreground">{activeStep.title}</h2>
+                <p className="mt-2 text-sm leading-6 text-foreground-muted">{activeStep.helper}</p>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-1.5 md:col-span-2">
+                  <label className="block text-sm font-medium text-foreground">نوع پرداخت</label>
+                  <select
+                    value={drafts.paymentDetails.type}
+                    onChange={(e) =>
+                      markDraftChange((current) => ({
+                        ...current,
+                        paymentDetails: {
+                          ...current.paymentDetails,
+                          type: e.target.value as PaymentMethodType,
+                        },
+                      }))
+                    }
+                    className="block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm"
+                  >
+                    <option value="CARD_TO_CARD">کارت‌به‌کارت</option>
+                    <option value="CRYPTO">رمزارز</option>
+                    <option value="EXTERNAL_GATEWAY">درگاه خارجی</option>
+                  </select>
+                </div>
+                <Input
+                  label="نام نمایشی"
+                  value={drafts.paymentDetails.displayName}
+                  onChange={(e) =>
+                    markDraftChange((current) => ({
+                      ...current,
+                      paymentDetails: { ...current.paymentDetails, displayName: e.target.value },
+                    }))
+                  }
+                  hint="مثلاً کارت ملت یا تتر"
+                  className="md:col-span-2"
+                />
+                {drafts.paymentDetails.type === "CARD_TO_CARD" && (
+                  <>
+                    <Input
+                      label="شماره کارت"
+                      value={drafts.paymentDetails.cardNumber}
+                      onChange={(e) =>
+                        markDraftChange((current) => ({
+                          ...current,
+                          paymentDetails: { ...current.paymentDetails, cardNumber: e.target.value },
+                        }))
+                      }
+                    />
+                    <Input
+                      label="نام صاحب حساب"
+                      value={drafts.paymentDetails.ownerName}
+                      onChange={(e) =>
+                        markDraftChange((current) => ({
+                          ...current,
+                          paymentDetails: { ...current.paymentDetails, ownerName: e.target.value },
+                        }))
+                      }
+                    />
+                  </>
+                )}
+                {drafts.paymentDetails.type === "CRYPTO" && (
+                  <Input
+                    label="آدرس کیف پول"
+                    value={drafts.paymentDetails.walletAddress}
+                    onChange={(e) =>
+                      markDraftChange((current) => ({
+                        ...current,
+                        paymentDetails: { ...current.paymentDetails, walletAddress: e.target.value },
+                      }))
+                    }
+                    className="md:col-span-2"
+                  />
+                )}
+                {drafts.paymentDetails.type === "EXTERNAL_GATEWAY" && (
+                  <Input
+                    label="نشانی درگاه"
+                    type="url"
+                    value={drafts.paymentDetails.externalUrl}
+                    onChange={(e) =>
+                      markDraftChange((current) => ({
+                        ...current,
+                        paymentDetails: { ...current.paymentDetails, externalUrl: e.target.value },
+                      }))
+                    }
+                    className="md:col-span-2"
+                  />
+                )}
+                <Textarea
+                  label="توضیحات برای مشتری"
+                  value={drafts.paymentDetails.instructions}
+                  onChange={(e) =>
+                    markDraftChange((current) => ({
+                      ...current,
+                      paymentDetails: { ...current.paymentDetails, instructions: e.target.value },
+                    }))
+                  }
+                  rows={3}
+                  className="md:col-span-2"
+                  hint="مثلاً بعد از واریز، رسید را در سفارش بارگذاری کنید."
+                />
+              </div>
+              <div className="flex flex-wrap gap-3 border-t border-border pt-4">
+                <Button type="button" variant="secondary" onClick={() => void moveStep(-1)}>
+                  بازگشت
+                </Button>
+                <Button type="button" onClick={() => void continuePaymentDetails()} loading={loading}>
+                  {serverState.payment_method_id ? "به‌روزرسانی و ادامه" : "ذخیره و ادامه"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        );
       case "first_product":
         return (
           <Card className="border-border bg-surface shadow-sm">
@@ -1315,14 +1648,13 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
                     }))
                   }
                 />
-                <Input
+                <MoneyInput
                   label="قیمت"
-                  inputMode="decimal"
                   value={drafts.firstProduct.price}
-                  onChange={(e) =>
+                  onValueChange={(next) =>
                     markDraftChange((current) => ({
                       ...current,
-                      firstProduct: { ...current.firstProduct, price: e.target.value },
+                      firstProduct: { ...current.firstProduct, price: next },
                     }))
                   }
                   hint="فروشگاه‌ها وقتی محصول اول سریع منتشر می‌شود، زودتر فعال می‌شوند."

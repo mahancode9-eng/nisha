@@ -1,5 +1,6 @@
 import type { PublicHomepageCategory } from "@/types/public/store";
 import type { SocialPlatformKey } from "@/components/ui/SocialIcon";
+import type { PaymentMethodType } from "@/types/seller/payment-method";
 import type { Store } from "@/types/seller/store";
 
 export type SellerOnboardingStatus = "NOT_STARTED" | "IN_PROGRESS" | "SKIPPED" | "COMPLETED";
@@ -9,6 +10,7 @@ export type SellerOnboardingStepKey =
   | "store_identity"
   | "store_information"
   | "contact_channels"
+  | "payment_details"
   | "first_product"
   | "education"
   | "activation";
@@ -39,6 +41,18 @@ export type SellerOnboardingContactChannelDraft = {
   is_active: boolean;
 };
 
+export type SellerOnboardingPaymentDraft = {
+  payment_method_id: number | null;
+  type: PaymentMethodType;
+  display_name: string | null;
+  card_number: string | null;
+  wallet_address: string | null;
+  external_url: string | null;
+  owner_name: string | null;
+  instructions: string | null;
+  is_active: boolean;
+};
+
 export type SellerOnboardingFirstProductDraft = {
   product_id: number | null;
   title: string | null;
@@ -54,6 +68,7 @@ export type SellerOnboardingDrafts = {
   store_identity: SellerOnboardingIdentityDraft;
   store_information: SellerOnboardingInformationDraft;
   contact_channels: SellerOnboardingContactChannelDraft[];
+  payment_details: SellerOnboardingPaymentDraft;
   first_product: SellerOnboardingFirstProductDraft;
 };
 
@@ -67,6 +82,7 @@ export type SellerOnboardingState = {
   completed_at: string | null;
   skipped_at: string | null;
   first_product_id: number | null;
+  payment_method_id: number | null;
   events: SellerOnboardingEvent[];
 };
 
@@ -83,7 +99,8 @@ export type SellerOnboardingUpdate = {
   store_identity?: Partial<SellerOnboardingIdentityDraft>;
   store_information?: Partial<SellerOnboardingInformationDraft>;
   contact_channels?: SellerOnboardingContactChannelDraft[];
+  payment_details?: Partial<SellerOnboardingPaymentDraft>;
   first_product?: Partial<SellerOnboardingFirstProductDraft>;
   first_product_id?: number | null;
+  payment_method_id?: number | null;
 };
-

@@ -45,7 +45,7 @@ class AdminStoreListItem(BaseModel):
     slug: str
     owner_email: str
     is_active: bool
-    guest_checkout_enabled: bool = True
+    guest_checkout_enabled: bool = False
     product_count: int
     order_count: int
     created_at: datetime

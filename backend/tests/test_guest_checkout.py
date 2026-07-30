@@ -147,3 +147,81 @@ def test_admin_platform_settings(client, admin_headers, db):
         platform_setting_service.GUEST_CHECKOUT_PLATFORM_KEY,
         True,
     )
+
+
+def test_guest_order_blocked_on_free_plan(client, seller_headers, db):
+    from app.models.enums import BillingPeriod
+    from app.models.user import User
+    from app.services import subscription_billing_service
+    from app.services.auth_service import normalize_email
+    from sqlalchemy import select
+
+    seller = db.scalar(select(User).where(User.email == normalize_email("seller-a@example.com")))
+    assert seller is not None
+    subscription_billing_service.admin_assign_plan(
+        db,
+        seller.id,
+        plan_code="free",
+        period=BillingPeriod.MONTHLY,
+        months=1,
+    )
+
+    enable = client.put(
+        "/api/v1/seller/store",
+        headers=seller_headers,
+        json={"guest_checkout_enabled": True},
+    )
+    assert enable.status_code == 403
+
+    store = client.get("/api/v1/seller/store", headers=seller_headers)
+    assert store.status_code == 200
+    slug = store.json()["slug"]
+
+    # Even if the store flag was previously on, free plan must not expose guest checkout.
+    from app.models.store import Store
+
+    store_row = db.scalar(select(Store).where(Store.slug == slug))
+    assert store_row is not None
+    store_row.guest_checkout_enabled = True
+    db.commit()
+
+    public = client.get(f"/api/v1/public/stores/{slug}")
+    assert public.status_code == 200
+    assert public.json()["store"]["guest_checkout_enabled"] is False
+
+    payment = client.post(
+        "/api/v1/seller/payment-methods",
+        headers=seller_headers,
+        json={
+            "type": "CARD_TO_CARD",
+            "display_name": "Free Plan Card",
+            "card_number": "6037-0000-0000-0001",
+            "owner_name": "Seller A",
+        },
+    )
+    assert payment.status_code == 201
+
+    product = client.post(
+        "/api/v1/seller/products",
+        headers=seller_headers,
+        json={
+            "title": "Free Plan Product",
+            "price": "10.00",
+            "stock_quantity": 5,
+            "is_active": True,
+        },
+    )
+    assert product.status_code == 201
+
+    order = client.post(
+        f"/api/v1/public/stores/{slug}/orders",
+        json={
+            "buyer_name": "Ali Customer",
+            "buyer_phone": "+989121111111",
+            "buyer_address": "Tehran, Iran",
+            "payment_method_id": payment.json()["id"],
+            "items": [{"product_id": product.json()["id"], "quantity": 1}],
+        },
+    )
+    assert order.status_code == 403
+    assert "خرید مهمان" in order.json()["detail"]

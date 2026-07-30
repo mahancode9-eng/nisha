@@ -11,11 +11,11 @@ from app.models.store import Store
 from app.schemas.onboarding import (
     SellerOnboardingResponse,
     StoreOnboardingContactChannelDraft,
-    StoreOnboardingDrafts,
     StoreOnboardingEvent,
     StoreOnboardingFirstProductDraft,
     StoreOnboardingIdentityDraft,
     StoreOnboardingInformationDraft,
+    StoreOnboardingPaymentDraft,
     StoreOnboardingStateResponse,
     StoreOnboardingUpdate,
 )
@@ -125,6 +125,10 @@ def update_onboarding_state(db: Session, store: Store, payload: StoreOnboardingU
         ]
         has_draft_changes = True
 
+    if payload.payment_details is not None:
+        state.drafts.payment_details = StoreOnboardingPaymentDraft.model_validate(payload.payment_details)
+        has_draft_changes = True
+
     if payload.first_product is not None:
         state.drafts.first_product = StoreOnboardingFirstProductDraft.model_validate(payload.first_product)
         has_draft_changes = True
@@ -132,6 +136,11 @@ def update_onboarding_state(db: Session, store: Store, payload: StoreOnboardingU
     if payload.first_product_id is not None:
         state.first_product_id = payload.first_product_id
         state.drafts.first_product.product_id = payload.first_product_id
+        has_draft_changes = True
+
+    if payload.payment_method_id is not None:
+        state.payment_method_id = payload.payment_method_id
+        state.drafts.payment_details.payment_method_id = payload.payment_method_id
         has_draft_changes = True
 
     if payload.status is not None:
@@ -157,6 +166,7 @@ def update_onboarding_state(db: Session, store: Store, payload: StoreOnboardingU
                 StoreOnboardingStep.STORE_IDENTITY,
                 StoreOnboardingStep.STORE_INFORMATION,
                 StoreOnboardingStep.CONTACT_CHANNELS,
+                StoreOnboardingStep.PAYMENT_DETAILS,
                 StoreOnboardingStep.FIRST_PRODUCT,
                 StoreOnboardingStep.EDUCATION,
                 StoreOnboardingStep.ACTIVATION,
@@ -165,6 +175,8 @@ def update_onboarding_state(db: Session, store: Store, payload: StoreOnboardingU
         _append_event(state, event_type="completed", step=StoreOnboardingStep.ACTIVATION, now=now)
     elif payload.first_product_id is not None:
         _append_event(state, event_type="first_product_created", step=payload.current_step or state.current_step, now=now)
+    elif payload.payment_method_id is not None:
+        _append_event(state, event_type="payment_method_saved", step=payload.current_step or state.current_step, now=now)
     elif has_draft_changes:
         event_type = "started" if len(state.events) == 0 else "step_saved"
         _append_event(state, event_type=event_type, step=payload.current_step or state.current_step, now=now)

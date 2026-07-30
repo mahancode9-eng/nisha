@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { FormSection } from "@/components/ui/FormSection";
 import { Input } from "@/components/ui/Input";
+import { MoneyInput } from "@/components/ui/MoneyInput";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import {
@@ -21,6 +22,7 @@ import {
   getSocialPlatformLabel,
 } from "@/components/ui/SocialIcon";
 import { socialInputHint, socialInputPlaceholder } from "@/lib/seller/contactChannels";
+import { formatMoneyInput, moneyInputToNumber, parseMoneyInput } from "@/lib/moneyInput";
 import type { Store, StoreUpdate } from "@/types/seller/store";
 
 type EditableSocialLink = {
@@ -94,14 +96,18 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
       : [],
   );
   const [isActive, setIsActive] = useState(store.is_active);
-  const [guestCheckoutEnabled, setGuestCheckoutEnabled] = useState(store.guest_checkout_enabled);
+  const [guestCheckoutEnabled, setGuestCheckoutEnabled] = useState(
+    Boolean(store.guest_checkout_enabled && entitlements.guest_checkout),
+  );
   const [themePreset, setThemePreset] = useState(store.theme_preset ?? "default");
   const [primaryColor, setPrimaryColor] = useState(store.primary_color ?? "");
   const [aboutText, setAboutText] = useState(store.about_text ?? "");
   const [shippingPolicyText, setShippingPolicyText] = useState(store.shipping_policy_text ?? "");
-  const [defaultShippingCost, setDefaultShippingCost] = useState(store.default_shipping_cost ?? "0");
-  const [freeShippingMinSubtotal, setFreeShippingMinSubtotal] = useState(
-    store.free_shipping_min_subtotal ?? "",
+  const [defaultShippingCost, setDefaultShippingCost] = useState(() =>
+    formatMoneyInput(store.default_shipping_cost ?? "0"),
+  );
+  const [freeShippingMinSubtotal, setFreeShippingMinSubtotal] = useState(() =>
+    store.free_shipping_min_subtotal ? formatMoneyInput(store.free_shipping_min_subtotal) : "",
   );
   const [logoPreview, setLogoPreview] = useState<string | null>(store.logo_url ? resolveMediaUrl(store.logo_url) : null);
   const [coverPreview, setCoverPreview] = useState<string | null>(
@@ -142,16 +148,18 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
       }),
     );
     setIsActive(store.is_active);
-    setGuestCheckoutEnabled(store.guest_checkout_enabled);
+    setGuestCheckoutEnabled(Boolean(store.guest_checkout_enabled && canGuestCheckout));
     setThemePreset(store.theme_preset ?? "default");
     setPrimaryColor(store.primary_color ?? "");
     setAboutText(store.about_text ?? "");
     setShippingPolicyText(store.shipping_policy_text ?? "");
-    setDefaultShippingCost(store.default_shipping_cost ?? "0");
-    setFreeShippingMinSubtotal(store.free_shipping_min_subtotal ?? "");
+    setDefaultShippingCost(formatMoneyInput(store.default_shipping_cost ?? "0"));
+    setFreeShippingMinSubtotal(
+      store.free_shipping_min_subtotal ? formatMoneyInput(store.free_shipping_min_subtotal) : "",
+    );
     setLogoPreview(store.logo_url ? resolveMediaUrl(store.logo_url) : null);
     setCoverPreview(store.cover_image_url ? resolveMediaUrl(store.cover_image_url) : null);
-  }, [store]);
+  }, [store, canGuestCheckout]);
 
   useEffect(
     () => () => {
@@ -254,14 +262,24 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
           is_active: link.is_active,
         })),
         is_active: isActive,
-        guest_checkout_enabled: guestCheckoutEnabled,
-        theme_preset: themePreset || null,
-        primary_color: primaryColor.trim() || null,
-        about_text: aboutText.trim() || null,
-        shipping_policy_text: shippingPolicyText.trim() || null,
-        default_shipping_cost: defaultShippingCost.trim() === "" ? 0 : parseFloat(defaultShippingCost),
-        free_shipping_min_subtotal: freeShippingMinSubtotal.trim()
-          ? parseFloat(freeShippingMinSubtotal)
+        guest_checkout_enabled: canGuestCheckout ? guestCheckoutEnabled : false,
+        ...(canTheme
+          ? {
+              theme_preset: themePreset || null,
+              primary_color: primaryColor.trim() || null,
+            }
+          : {}),
+        ...(canPages
+          ? {
+              about_text: aboutText.trim() || null,
+              shipping_policy_text: shippingPolicyText.trim() || null,
+            }
+          : {}),
+        default_shipping_cost: parseMoneyInput(defaultShippingCost)
+          ? moneyInputToNumber(defaultShippingCost)
+          : 0,
+        free_shipping_min_subtotal: parseMoneyInput(freeShippingMinSubtotal)
+          ? moneyInputToNumber(freeShippingMinSubtotal)
           : null,
       });
     } catch (err) {
@@ -482,22 +500,16 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
             description="هزینه پایه و آستانه ارسال رایگان در checkout محاسبه می‌شود."
           >
             <div className="grid gap-4 md:grid-cols-2">
-              <Input
-                label="هزینه ارسال پایه (تومان)"
-                type="number"
-                min="0"
-                step="1"
+              <MoneyInput
+                label="هزینه ارسال پایه"
                 value={defaultShippingCost}
-                onChange={(e) => setDefaultShippingCost(e.target.value)}
+                onValueChange={setDefaultShippingCost}
                 hint="۰ = ارسال رایگان به‌صورت پیش‌فرض"
               />
-              <Input
-                label="ارسال رایگان از مبلغ سفارش (تومان)"
-                type="number"
-                min="0"
-                step="1"
+              <MoneyInput
+                label="ارسال رایگان از مبلغ سفارش"
                 value={freeShippingMinSubtotal}
-                onChange={(e) => setFreeShippingMinSubtotal(e.target.value)}
+                onValueChange={setFreeShippingMinSubtotal}
                 hint="خالی = بدون آستانه ارسال رایگان"
               />
             </div>

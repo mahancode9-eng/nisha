@@ -5,8 +5,9 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.models.enums import OrderStatus, StoreBadgeType, StoreOnboardingStatus
+from app.models.enums import OrderStatus
 from app.models.order import Order
+from app.models.payment_method import PaymentMethod
 from app.models.product import Product
 from app.models.store import Store, StoreSocialLink
 from app.schemas.dashboard import (
@@ -15,7 +16,6 @@ from app.schemas.dashboard import (
     SellerDashboardResponse,
 )
 from app.schemas.onboarding import StoreOnboardingStateResponse
-from app.services.trust_service import list_active_badges
 
 CONFIRMED_STATUSES = {
     OrderStatus.PAYMENT_CONFIRMED,
@@ -42,6 +42,14 @@ def _count_active_products(db: Session, store_id: int) -> int:
     ) or 0
 
 
+def _count_active_payment_methods(db: Session, store_id: int) -> int:
+    return db.scalar(
+        select(func.count())
+        .select_from(PaymentMethod)
+        .where(PaymentMethod.store_id == store_id, PaymentMethod.is_active.is_(True))
+    ) or 0
+
+
 def _calculate_store_readiness(
     db: Session,
     store: Store,
@@ -49,8 +57,7 @@ def _calculate_store_readiness(
     product_count: int,
 ) -> tuple[int, list[str]]:
     contact_count = _count_active_contact_links(db, store.id)
-    badges = list_active_badges(db, store.id)
-    verified = any(badge.badge_type == StoreBadgeType.VERIFIED for badge in badges)
+    payment_method_count = _count_active_payment_methods(db, store.id)
 
     missing_tasks: list[str] = []
     score = 0
@@ -81,10 +88,10 @@ def _calculate_store_readiness(
     else:
         missing_tasks.append("اولین محصول را منتشر کنید")
 
-    if verified:
+    if payment_method_count > 0:
         score += 10
     else:
-        missing_tasks.append("حساب را تأیید کنید")
+        missing_tasks.append("جزئیات پرداخت را اضافه کنید")
 
     if not store.cover_image_url:
         missing_tasks.append("تصویر جلد اضافه کنید")

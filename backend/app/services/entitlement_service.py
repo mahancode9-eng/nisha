@@ -134,9 +134,17 @@ def ensure_plans_seeded(db: Session) -> None:
             plan.set_entitlements(seed["entitlements"])
             db.add(plan)
             created = True
-        elif getattr(plan, "quarterly_price_toman", None) in (None, 0) and seed["quarterly_price_toman"]:
-            plan.quarterly_price_toman = seed["quarterly_price_toman"]
-            created = True
+        else:
+            if getattr(plan, "quarterly_price_toman", None) in (None, 0) and seed["quarterly_price_toman"]:
+                plan.quarterly_price_toman = seed["quarterly_price_toman"]
+                created = True
+            # Keep free plan guest checkout off even if an older DB row had it enabled.
+            if seed["code"] == PLAN_FREE:
+                entitlements = dict(plan.entitlements or {})
+                if entitlements.get("guest_checkout") is not False:
+                    entitlements["guest_checkout"] = False
+                    plan.set_entitlements(entitlements)
+                    created = True
     if created:
         db.commit()
 
