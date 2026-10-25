@@ -116,6 +116,14 @@ class Store(TimestampMixin, Base):
     whatsapp: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     instagram: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     bale: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    telegram_chat_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    bale_chat_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    telegram_linked_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    bale_linked_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     website: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     support_contact: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     onboarding_state_json: Mapped[Optional[str]] = mapped_column(Text, nullable=True)

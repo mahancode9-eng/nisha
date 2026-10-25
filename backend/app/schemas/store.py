@@ -44,6 +44,10 @@ class StoreResponse(BaseModel):
     whatsapp: str | None
     instagram: str | None
     bale: str | None
+    telegram_chat_id: str | None = None
+    bale_chat_id: str | None = None
+    telegram_linked_at: datetime | None = None
+    bale_linked_at: datetime | None = None
     website: str | None
     support_contact: str | None
     trust_badges: list[str] = Field(default_factory=list, validation_alias="badge_labels")

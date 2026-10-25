@@ -10,7 +10,7 @@ export const PLAN_CATALOG = [
     yearly_price_toman: 0,
     is_recommended: false,
     blurb: "فروشگاهت رو بساز و با کارت‌به‌کارت بفروش",
-    highlights: ["تا ۳۰ محصول", "آمار ۷ روزه", "بدون کارمزد از فروشت"],
+    highlights: ["خرید مهمان", "یک کد تخفیف فعال", "تا ۳۰ محصول"],
   },
   {
     code: "basic",
@@ -20,7 +20,7 @@ export const PLAN_CATALOG = [
     yearly_price_toman: 2_990_000,
     is_recommended: false,
     blurb: "وقتی سفارش‌ها بیشتر شد",
-    highlights: ["خرید مهمان با کارت‌به‌کارت", "کد تخفیف", "تا ۲۰۰ محصول"],
+    highlights: ["کد تخفیف نامحدود", "تایید رسید از تلگرام", "تا ۲۰۰ محصول"],
   },
   {
     code: "pro",
@@ -79,8 +79,12 @@ export function highlightsForPlan(plan: SubscriptionPlan | CatalogPlan): string[
   if (e.max_products == null) items.push("محصول نامحدود");
   else items.push(`تا ${e.max_products} محصول`);
   items.push(`تا ${e.max_product_images} عکس برای هر محصول`);
-  if (e.discounts) items.push("کد تخفیف");
+  if (e.discounts) {
+    if (e.max_active_discount_codes == null) items.push("کد تخفیف نامحدود");
+    else items.push(`${e.max_active_discount_codes} کد تخفیف فعال`);
+  }
   if (e.guest_checkout) items.push("خرید مهمان");
+  if (e.messenger_receipt_actions) items.push("تایید رسید از تلگرام/بله");
   items.push(`آمار تا ${e.analytics_max_days} روز`);
   if (e.product_video) items.push("ویدیوی محصول");
   if (e.store_theme || e.store_pages) items.push("تم و صفحات فروشگاه");

@@ -22,9 +22,12 @@ import {
   getSocialPlatformLabel,
 } from "@/components/ui/SocialIcon";
 import { socialInputHint, socialInputPlaceholder } from "@/lib/seller/contactChannels";
+import * as messengerApi from "@/lib/api/seller/messenger";
 import { formatMoneyInput, moneyInputToNumber, parseMoneyInput } from "@/lib/moneyInput";
 import { cn } from "@/lib/cn";
+import { useToast } from "@/contexts/ToastContext";
 import type { Store, StoreUpdate } from "@/types/seller/store";
+import type { MessengerStatus } from "@/lib/api/seller/messenger";
 
 type EditableSocialLink = {
   platform: SocialPlatformKey;
@@ -64,10 +67,13 @@ function makeSocialLinkLabel(platform: SocialPlatformKey, customLabel: string): 
 }
 
 export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
+  const toast = useToast();
   const { entitlements } = useSellerEntitlements();
   const canGuestCheckout = entitlements.guest_checkout;
   const canTheme = entitlements.store_theme;
   const canPages = entitlements.store_pages;
+  const [messenger, setMessenger] = useState<MessengerStatus | null>(null);
+  const [messengerBusy, setMessengerBusy] = useState<"telegram" | "bale" | null>(null);
   const [name, setName] = useState(store.name);
   const [slug, setSlug] = useState(store.slug);
   const [description, setDescription] = useState(store.description ?? "");
@@ -121,6 +127,47 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
   const [loading, setLoading] = useState(false);
   const logoInputRef = useRef<HTMLInputElement | null>(null);
   const coverInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void messengerApi
+      .getMessengerStatus()
+      .then((status) => {
+        if (!cancelled) setMessenger(status);
+      })
+      .catch(() => {
+        if (!cancelled) setMessenger(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [store.id]);
+
+  async function handleMessengerConnect(channel: "telegram" | "bale") {
+    setMessengerBusy(channel);
+    try {
+      const res = await messengerApi.connectMessenger(channel);
+      window.open(res.deep_link, "_blank", "noopener,noreferrer");
+      toast.success("ربات باز شد. استارت رو بزن تا وصل بشه.");
+      setMessenger(await messengerApi.getMessengerStatus());
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : "وصل نشد. دوباره امتحان کن.");
+    } finally {
+      setMessengerBusy(null);
+    }
+  }
+
+  async function handleMessengerDisconnect(channel: "telegram" | "bale") {
+    setMessengerBusy(channel);
+    try {
+      setMessenger(await messengerApi.disconnectMessenger(channel));
+      toast.success("قطع شد");
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : "قطع نشد. دوباره امتحان کن.");
+    } finally {
+      setMessengerBusy(null);
+    }
+  }
 
   useEffect(() => {
     setName(store.name);
@@ -412,6 +459,65 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
               <Input label="راه ارتباطی پشتیبانی" value={supportContact} onChange={(e) => setSupportContact(e.target.value)} />
             </div>
           </FormSection>
+
+          <FormSection
+            title="خبر سفارش در تلگرام و بله"
+            description="ربات نیشا بهت خبر می‌ده سفارش جدید اومد یا رسید آپلود شد. لینک پنل هم روشه. تو پلن پایه به بالا، عکس رسید و دکمه تایید/رد هم می‌فرسته."
+          >
+            <div className="space-y-3 text-sm">
+              {(["telegram", "bale"] as const).map((channel) => {
+                const linked =
+                  channel === "telegram" ? messenger?.telegram_linked : messenger?.bale_linked;
+                const configured =
+                  channel === "telegram"
+                    ? messenger?.telegram_configured
+                    : messenger?.bale_configured;
+                const label = channel === "telegram" ? "تلگرام" : "بله";
+                return (
+                  <div
+                    key={channel}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border px-3 py-2"
+                  >
+                    <div>
+                      <p className="font-medium text-foreground">{label}</p>
+                      <p className="text-xs text-foreground-muted">
+                        {!messenger
+                          ? "وضعیت در حال بارگذاری…"
+                          : !configured
+                            ? "ربات هنوز از سمت نیشا تنظیم نشده"
+                            : linked
+                              ? "وصل است"
+                              : "هنوز وصل نیست"}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      {linked ? (
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          loading={messengerBusy === channel}
+                          onClick={() => void handleMessengerDisconnect(channel)}
+                        >
+                          قطع اتصال
+                        </Button>
+                      ) : (
+                        <Button
+                          type="button"
+                          size="sm"
+                          disabled={!configured}
+                          loading={messengerBusy === channel}
+                          onClick={() => void handleMessengerConnect(channel)}
+                        >
+                          اتصال
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </FormSection>
         </div>
 
         <div className="space-y-6">
@@ -625,7 +731,7 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
               </label>
               {!canGuestCheckout ? (
                 <p className="text-xs text-foreground-muted">
-                  خرید مهمان از پلن پایه به بالا فعاله.{" "}
+                  خرید مهمان تو پلن فعلی‌ت نیست.{" "}
                   <Link href={paths.seller.subscription} className="text-brand underline-offset-2 hover:underline">
                     ارتقای پلن
                   </Link>

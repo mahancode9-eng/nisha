@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from decimal import ROUND_HALF_UP, Decimal
 
-from sqlalchemy import or_, select, update
+from sqlalchemy import func, or_, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -23,6 +23,10 @@ MAX_USES_MESSAGE = "ظرفیت استفاده از این کد تخفیف تمو
 MIN_ORDER_MESSAGE = "مبلغ سفارش به حداقل لازم برای این کد تخفیف نمی‌رسه."
 DUPLICATE_CODE_MESSAGE = "کد تخفیفی با همین نام داری؛ اسم دیگه‌ای انتخاب کن."
 NOT_FOUND_MESSAGE = "کد تخفیف پیدا نشد"
+ACTIVE_CAP_MESSAGE = (
+    "تو پلن رایگان فقط یک کد تخفیف فعال می‌تونی داشته باشی. "
+    "یکی رو غیرفعال کن یا پلن رو ارتقا بده."
+)
 
 
 def normalize_code(code: str) -> str:
@@ -61,17 +65,52 @@ def _validate_type_fields(discount_type: str, percent_off, amount_off) -> None:
         raise ServiceError("مبلغ تخفیف رو وارد کن.", status_code=422)
 
 
+def _count_active_discounts(db: Session, store_id: int, *, exclude_id: int | None = None) -> int:
+    query = select(func.count()).select_from(DiscountCode).where(
+        DiscountCode.store_id == store_id,
+        DiscountCode.is_active.is_(True),
+    )
+    if exclude_id is not None:
+        query = query.where(DiscountCode.id != exclude_id)
+    return int(db.scalar(query) or 0)
+
+
+def _enforce_active_discount_cap(
+    db: Session,
+    store_id: int,
+    *,
+    owner_id: int,
+    activating: bool,
+    exclude_id: int | None = None,
+) -> None:
+    entitlements = entitlement_service.require_entitlement(
+        db,
+        owner_id,
+        "discounts",
+        message="ساخت کد تخفیف تو پلن فعلی‌ت فعال نیست. پلن رو ارتقا بده.",
+    )
+    if not activating:
+        return
+    cap = entitlement_service.get_max_active_discount_codes(entitlements)
+    if cap is None:
+        return
+    active = _count_active_discounts(db, store_id, exclude_id=exclude_id)
+    if active >= cap:
+        raise ServiceError(ACTIVE_CAP_MESSAGE, status_code=403)
+
+
 def create_discount(db: Session, store_id: int, payload: DiscountCodeCreate) -> DiscountCode:
     from app.models.store import Store
 
     store = db.get(Store, store_id)
-    if store is not None:
-        entitlement_service.require_entitlement(
-            db,
-            store.owner_id,
-            "discounts",
-            message="ساخت کد تخفیف تو پلن فعلی‌ت فعال نیست. پلن رو ارتقا بده.",
-        )
+    if store is None:
+        raise ServiceError("فروشگاه پیدا نشد", status_code=404)
+    _enforce_active_discount_cap(
+        db,
+        store_id,
+        owner_id=store.owner_id,
+        activating=bool(payload.is_active),
+    )
     _validate_type_fields(payload.discount_type, payload.percent_off, payload.amount_off)
     discount = DiscountCode(
         store_id=store_id,
@@ -114,10 +153,26 @@ def update_discount(
     discount_id: int,
     payload: DiscountCodeUpdate,
 ) -> DiscountCode:
+    from app.models.store import Store
+
     discount = get_discount(db, store_id, discount_id)
     data = payload.model_dump(exclude_unset=True)
     if "code" in data and data["code"] is not None:
         data["code"] = normalize_code(data["code"])
+
+    turning_on = "is_active" in data and bool(data["is_active"]) and not discount.is_active
+    if turning_on:
+        store = db.get(Store, store_id)
+        if store is None:
+            raise ServiceError("فروشگاه پیدا نشد", status_code=404)
+        _enforce_active_discount_cap(
+            db,
+            store_id,
+            owner_id=store.owner_id,
+            activating=True,
+            exclude_id=discount.id,
+        )
+
     for field, value in data.items():
         setattr(discount, field, value)
     _validate_type_fields(discount.discount_type, discount.percent_off, discount.amount_off)

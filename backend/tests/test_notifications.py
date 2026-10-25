@@ -53,7 +53,11 @@ def test_enqueue_and_deliver_sms(db: Session) -> None:
         db,
         "+989121000000",
         "order_placed_buyer",
-        {"invoice_code": "INV-1001", "store_name": "Store A"},
+        {
+            "invoice_code": "INV-1001",
+            "store_name": "Store A",
+            "invoice_url": "http://localhost:3000/invoice/INV-1001",
+        },
     )
     db.commit()
     assert notification.status == STATUS_PENDING
@@ -112,7 +116,11 @@ def test_failed_delivery_retries_then_fails(db: Session) -> None:
         db,
         "+989121000001",
         "order_placed_buyer",
-        {"invoice_code": "INV-3003", "store_name": "Store C"},
+        {
+            "invoice_code": "INV-3003",
+            "store_name": "Store C",
+            "invoice_url": "http://localhost:3000/invoice/INV-3003",
+        },
     )
     db.commit()
 

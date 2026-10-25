@@ -38,6 +38,8 @@ logger = logging.getLogger(__name__)
 
 CHANNEL_SMS = "sms"
 CHANNEL_EMAIL = "email"
+CHANNEL_TELEGRAM = "telegram"
+CHANNEL_BALE = "bale"
 
 STATUS_PENDING = "pending"
 STATUS_SENT = "sent"
@@ -78,6 +80,18 @@ class NotificationTemplate:
 # str.format, so a missing key is treated as a delivery error (and retried
 # only until max attempts).
 TEMPLATES: dict[str, NotificationTemplate] = {
+    "seller_messenger_order": NotificationTemplate(
+        sms_text="سفارش جدید {order_url}",
+        email_subject="سفارش جدید",
+        email_body="سفارش جدید\n{order_url}",
+        html_style="simple",
+    ),
+    "seller_messenger_receipt": NotificationTemplate(
+        sms_text="رسید جدید {order_url}",
+        email_subject="رسید جدید",
+        email_body="رسید جدید\n{order_url}",
+        html_style="simple",
+    ),
     "order_placed_buyer": NotificationTemplate(
         sms_text=(
             "نیشا: سفارش {invoice_code} ثبت شد. برای پرداخت و آپلود رسید: {invoice_url}"
@@ -447,6 +461,21 @@ def enqueue_email(
     )
 
 
+def enqueue_messenger(
+    db: Session,
+    *,
+    channel: str,
+    chat_id: str,
+    template: str,
+    payload: Optional[dict] = None,
+) -> NotificationOutbox:
+    if channel not in {CHANNEL_TELEGRAM, CHANNEL_BALE}:
+        raise ValueError("Unknown messenger channel: " + channel)
+    return _enqueue(
+        db, channel=channel, recipient=chat_id, template=template, payload=payload
+    )
+
+
 def _build_email_html(
     template: NotificationTemplate, *, payload: dict, subject: str, body: str
 ) -> str | None:
@@ -617,6 +646,10 @@ def deliver_pending(
             payload = json.loads(row.payload_json or "{}")
             if row.channel == CHANNEL_SMS:
                 sms_provider.send(row.recipient, template.sms_text.format(**payload))
+            elif row.channel in {CHANNEL_TELEGRAM, CHANNEL_BALE}:
+                from app.services.messenger_service import send_messenger_message
+
+                send_messenger_message(row.channel, row.recipient, payload)  # type: ignore[arg-type]
             else:
                 raise RuntimeError("Unknown channel: " + row.channel)
         except PermanentEmailDeliveryError as exc:

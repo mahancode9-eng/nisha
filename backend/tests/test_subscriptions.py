@@ -34,7 +34,10 @@ def test_default_free_subscription_and_plans(client: TestClient, seller_headers:
     assert detail.status_code == 200
     body = detail.json()
     assert body["effective_plan"]["code"] == "free"
-    assert body["entitlements"]["discounts"] is False
+    assert body["entitlements"]["discounts"] is True
+    assert body["entitlements"]["max_active_discount_codes"] == 1
+    assert body["entitlements"]["guest_checkout"] is True
+    assert body["entitlements"]["messenger_receipt_actions"] is False
 
 
 def test_checkout_yearly_amount_and_card_provider(
@@ -179,7 +182,7 @@ def test_admin_reject_leaves_plan_unchanged(
     assert detail.json()["effective_plan"]["code"] == "free"
 
 
-def test_free_plan_cannot_create_discount(client: TestClient, seller_headers: dict[str, str]):
+def test_free_plan_can_create_one_active_discount(client: TestClient, seller_headers: dict[str, str]):
     response = client.post(
         "/api/v1/seller/discounts",
         headers=seller_headers,
@@ -190,7 +193,18 @@ def test_free_plan_cannot_create_discount(client: TestClient, seller_headers: di
             "is_active": True,
         },
     )
-    assert response.status_code == 403
+    assert response.status_code == 201
+    blocked = client.post(
+        "/api/v1/seller/discounts",
+        headers=seller_headers,
+        json={
+            "code": "SAVE11",
+            "discount_type": "PERCENT",
+            "percent_off": "5",
+            "is_active": True,
+        },
+    )
+    assert blocked.status_code == 403
 
 
 def test_product_cap_on_free_plan(client: TestClient, seller_headers: dict[str, str], db: Session):

@@ -26,11 +26,14 @@ import type { DiscountCode, DiscountType } from "@/types/seller/discount";
 export default function SellerDiscountsPage() {
   const toast = useToast();
   const { entitlements, isLoading: entitlementsLoading } = useSellerEntitlements();
-  const canManageDiscounts = entitlements.discounts;
-
   const [discounts, setDiscounts] = useState<DiscountCode[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const canManageDiscounts = entitlements.discounts;
+  const activeCount = discounts.filter((d) => d.is_active).length;
+  const maxActive = entitlements.max_active_discount_codes;
+  const atActiveCap = maxActive != null && activeCount >= maxActive;
 
   const [code, setCode] = useState("");
   const [discountType, setDiscountType] = useState<DiscountType>("PERCENT");
@@ -144,13 +147,23 @@ export default function SellerDiscountsPage() {
       {error && <ErrorAlert message={error} />}
 
       {!entitlementsLoading && !canManageDiscounts && (
-        <UpgradeGate description="کد تخفیف از پلن پایه به بالا فعاله." />
+        <UpgradeGate description="کد تخفیف تو پلن فعلی‌ت فعال نیست. پلن رو ارتقا بده." />
+      )}
+
+      {!entitlementsLoading && canManageDiscounts && atActiveCap && maxActive === 1 && (
+        <UpgradeGate description="تو پلن رایگان فقط یک کد تخفیف فعال می‌تونی داشته باشی. برای کدهای بیشتر پلن رو ارتقا بده." />
       )}
 
       {canManageDiscounts && (
       <Card>
         <CardHeader>
           <CardTitle>کد تخفیف جدید</CardTitle>
+          {maxActive != null && (
+            <p className="text-sm text-foreground-muted">
+              کد فعال: {activeCount} از {maxActive}
+              {atActiveCap ? " — برای ساخت فعال جدید، یکی رو غیرفعال کن یا پلن رو ارتقا بده." : ""}
+            </p>
+          )}
         </CardHeader>
         <CardContent>
           <form onSubmit={handleCreate} className="grid gap-4 md:grid-cols-2">

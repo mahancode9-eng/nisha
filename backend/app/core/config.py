@@ -70,6 +70,16 @@ class Settings(BaseSettings):
     # Client secret is unused for the GIS ID-token flow but kept for future server OAuth.
     GOOGLE_CLIENT_ID: str = ""
     GOOGLE_CLIENT_SECRET: str = ""
+    # Platform bots for seller order/receipt alerts (optional).
+    TELEGRAM_BOT_TOKEN: str = ""
+    TELEGRAM_BOT_USERNAME: str = ""
+    TELEGRAM_WEBHOOK_SECRET: str = ""
+    BALE_BOT_TOKEN: str = ""
+    BALE_BOT_USERNAME: str = ""
+    BALE_WEBHOOK_SECRET: str = ""
+    # Public base URL of this API (for Telegram to fetch private media). e.g. https://api.example.com
+    API_PUBLIC_BASE_URL: str = ""
+    MESSENGER_LINK_TOKEN_EXPIRE_MINUTES: int = 30
 
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod

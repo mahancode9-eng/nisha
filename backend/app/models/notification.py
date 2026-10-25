@@ -27,7 +27,7 @@ class NotificationOutbox(TimestampMixin, Base):
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    channel: Mapped[str] = mapped_column(String(10), nullable=False)  # sms | email
+    channel: Mapped[str] = mapped_column(String(20), nullable=False)  # sms | email | telegram | bale
     recipient: Mapped[str] = mapped_column(String(255), nullable=False)
     template: Mapped[str] = mapped_column(String(100), nullable=False)
     payload_json: Mapped[Optional[str]] = mapped_column(Text, nullable=True)

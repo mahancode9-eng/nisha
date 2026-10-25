@@ -23,7 +23,7 @@ from app.core.config import settings
 from app.models.enums import OrderStatus
 from app.models.order import Order
 from app.models.store import Store
-from app.services import notification_service
+from app.services import messenger_service, notification_service
 
 logger = logging.getLogger(__name__)
 
@@ -77,6 +77,9 @@ def notify_order_placed(db: Session, order: Order, store: Store) -> None:
             notification_service.enqueue_email(
                 db, owner.email, "order_placed_seller", payload
             )
+        messenger_service.enqueue_seller_messenger(
+            db, store=store, order=order, kind="order"
+        )
     except Exception:  # noqa: BLE001 - notifications must never break checkout
         logger.exception(
             "Failed to enqueue order-placed notifications for order %s", order.id
@@ -169,6 +172,9 @@ def notify_status_change(db: Session, order: Order, new_status: OrderStatus) -> 
                 notification_service.enqueue_email(
                     db, owner.email, "payment_uploaded_seller", payload
                 )
+            messenger_service.enqueue_seller_messenger(
+                db, store=store, order=order, kind="receipt"
+            )
     except Exception:  # noqa: BLE001 - notifications must never break the flow
         logger.exception(
             "Failed to enqueue status-change notifications for order %s", order.id
