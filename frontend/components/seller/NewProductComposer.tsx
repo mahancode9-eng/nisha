@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { MoneyInput } from "@/components/ui/MoneyInput";
 import { Select } from "@/components/ui/Select";
+import { Textarea } from "@/components/ui/Textarea";
 import { cn } from "@/lib/cn";
 import { resolveMediaUrl } from "@/lib/media";
 import { formatMoney } from "@/lib/format";
@@ -38,15 +39,22 @@ type NewProductComposerProps = {
 export function NewProductComposer({ onPublish }: NewProductComposerProps) {
   const { entitlements } = useSellerEntitlements();
   const maxImages = entitlements.max_product_images || FALLBACK_MAX_IMAGES;
-  const { data: categories } = useSellerFetch(() => categoriesApi.listCategories(), []);
+  const { data: categories, refetch: refetchCategories } = useSellerFetch(
+    () => categoriesApi.listCategories(),
+    [],
+  );
 
   const [step, setStep] = useState<Step>("photos");
   const [images, setImages] = useState<DraftImage[]>([]);
   const [skippedPhotos, setSkippedPhotos] = useState(false);
   const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [stock, setStock] = useState("1");
   const [categoryId, setCategoryId] = useState("");
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [creatingCategory, setCreatingCategory] = useState(false);
+  const [showNewCategory, setShowNewCategory] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -187,12 +195,34 @@ export function NewProductComposer({ onPublish }: NewProductComposerProps) {
 
     return {
       title: title.trim(),
+      description: description.trim() || null,
       price: moneyInputToNumber(price),
       stock_quantity: parseInt(stock, 10) || 0,
       is_active: true,
       category_id: categoryId ? parseInt(categoryId, 10) : null,
       images: payloadImages.length > 0 ? payloadImages : null,
     };
+  }
+
+  async function handleCreateCategory() {
+    const trimmed = newCategoryName.trim();
+    if (!trimmed) {
+      setError("نام دسته‌بندی رو بنویس.");
+      return;
+    }
+    setCreatingCategory(true);
+    setError(null);
+    try {
+      const created = await categoriesApi.createCategory({ name: trimmed, parent_id: null });
+      await refetchCategories();
+      setCategoryId(String(created.id));
+      setNewCategoryName("");
+      setShowNewCategory(false);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "دسته‌بندی ساخته نشد. دوباره امتحان کن.");
+    } finally {
+      setCreatingCategory(false);
+    }
   }
 
   async function publish(mode: "list" | "edit") {
@@ -392,7 +422,7 @@ export function NewProductComposer({ onPublish }: NewProductComposerProps) {
             <div className="space-y-4">
               <div>
                 <h2 className="text-base font-semibold text-foreground sm:text-lg">جزئیات کوتاه</h2>
-                <p className="mt-0.5 text-sm text-foreground-muted">عنوان، قیمت و موجودی.</p>
+                <p className="mt-0.5 text-sm text-foreground-muted">عنوان، توضیح، قیمت و موجودی.</p>
               </div>
 
               {coverSrc ? (
@@ -417,6 +447,15 @@ export function NewProductComposer({ onPublish }: NewProductComposerProps) {
                     required
                   />
                 </div>
+                <div className="sm:col-span-2">
+                  <Textarea
+                    label="توضیحات (اختیاری)"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    rows={3}
+                    placeholder="جنس، اندازه، رنگ یا هر چیزی که خریدار باید بدونه"
+                  />
+                </div>
                 <MoneyInput label="قیمت" value={price} onValueChange={setPrice} required />
                 <Input
                   label="موجودی"
@@ -425,7 +464,7 @@ export function NewProductComposer({ onPublish }: NewProductComposerProps) {
                   value={stock}
                   onChange={(e) => setStock(e.target.value)}
                 />
-                <div className="sm:col-span-2">
+                <div className="sm:col-span-2 space-y-2">
                   <Select
                     label="دسته‌بندی (اختیاری)"
                     value={categoryId}
@@ -438,6 +477,46 @@ export function NewProductComposer({ onPublish }: NewProductComposerProps) {
                       </option>
                     ))}
                   </Select>
+                  {showNewCategory ? (
+                    <div className="flex flex-wrap items-end gap-2">
+                      <div className="min-w-[10rem] flex-1">
+                        <Input
+                          label="نام دسته جدید"
+                          value={newCategoryName}
+                          onChange={(e) => setNewCategoryName(e.target.value)}
+                          placeholder="مثلاً کیف"
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        size="sm"
+                        loading={creatingCategory}
+                        onClick={() => void handleCreateCategory()}
+                      >
+                        ثبت دسته
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        disabled={creatingCategory}
+                        onClick={() => {
+                          setShowNewCategory(false);
+                          setNewCategoryName("");
+                        }}
+                      >
+                        انصراف
+                      </Button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      className="text-sm text-brand hover:underline"
+                      onClick={() => setShowNewCategory(true)}
+                    >
+                      + دسته جدید بساز
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -468,6 +547,9 @@ export function NewProductComposer({ onPublish }: NewProductComposerProps) {
                       {parseMoneyInput(price) ? formatMoney(moneyInputToNumber(price)) : "—"}
                     </p>
                   </div>
+                  {description.trim() ? (
+                    <p className="text-sm text-foreground-muted whitespace-pre-wrap">{description.trim()}</p>
+                  ) : null}
                   <div className="grid grid-cols-2 gap-3 border-t border-border pt-3 text-sm">
                     <div>
                       <p className="text-xs text-foreground-muted">موجودی</p>

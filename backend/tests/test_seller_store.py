@@ -4,7 +4,7 @@ def test_get_store(client, seller_headers):
     assert response.status_code == 200
     data = response.json()
     assert data["slug"] == "seller-a"
-    assert data["name"] == "Seller A's Store"
+    assert data["name"] == "فروشگاه Seller A"
 
 
 def test_update_store(client, seller_headers):
@@ -34,7 +34,7 @@ def test_slug_uniqueness(client, seller_headers, other_seller_headers):
         json={"slug": "my-unique-shop"},
     )
     assert conflict.status_code == 409
-    assert conflict.json()["detail"] == "این آدرس فروشگاه قبلاً گرفته شده است؛ آدرس دیگری انتخاب کنید."
+    assert conflict.json()["detail"] == "این آدرس فروشگاه قبلاً گرفته شده؛ آدرس دیگه‌ای انتخاب کن."
 
     keep_own = client.put(
         "/api/v1/seller/store",

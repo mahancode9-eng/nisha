@@ -18,6 +18,7 @@ class StoreOnboardingEvent(BaseModel):
 
 class StoreOnboardingIdentityDraft(BaseModel):
     name: str | None = Field(default=None, max_length=255)
+    slug: str | None = Field(default=None, max_length=100)
     logo_url: str | None = Field(default=None, max_length=500)
     cover_image_url: str | None = Field(default=None, max_length=500)
 

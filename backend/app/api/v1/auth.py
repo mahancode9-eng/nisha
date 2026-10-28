@@ -12,6 +12,8 @@ from app.core.security import (
 from app.db.session import get_db
 from app.models.user import User
 from app.schemas.auth import (
+    ChangePasswordRequest,
+    ChangePasswordResponse,
     GoogleLoginRequest,
     LoginRequest,
     RefreshRequest,
@@ -23,7 +25,13 @@ from app.schemas.auth import (
     UserResponse,
 )
 from app.schemas.user_mapper import user_to_response
-from app.services.auth_service import AuthError, authenticate_user, register_seller, user_needs_email_verification
+from app.services.auth_service import (
+    AuthError,
+    authenticate_user,
+    change_user_password,
+    register_seller,
+    user_needs_email_verification,
+)
 from app.services.google_auth_service import authenticate_or_create_seller_with_google
 from app.services.user_recovery_service import (
     build_recovery_hint,
@@ -134,6 +142,27 @@ def refresh(
 @router.get("/me", response_model=UserResponse)
 def me(current_user: User = Depends(get_current_user)) -> UserResponse:
     return user_to_response(current_user)
+
+
+@router.post("/change-password", response_model=ChangePasswordResponse)
+@limiter.limit("5/minute")
+def change_password(
+    request: Request,
+    payload: ChangePasswordRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> ChangePasswordResponse:
+    del request  # rate limiter only
+    try:
+        change_user_password(
+            db,
+            current_user,
+            current_password=payload.current_password,
+            new_password=payload.new_password,
+        )
+    except AuthError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+    return ChangePasswordResponse(message="رمز عبور به‌روزرسانی شد")
 
 
 @router.post("/password-recovery/request", response_model=UserRecoveryStartResponse)

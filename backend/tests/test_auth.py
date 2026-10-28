@@ -141,3 +141,71 @@ def test_register_duplicate_verified_email_rejected(client, db):
     second = client.post("/api/v1/auth/register", json=payload)
     assert first.status_code == 201
     assert second.status_code == 409
+
+
+def test_change_password_success(client, db):
+    client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": "changepw@example.com",
+            "password": "securepass",
+            "full_name": "Change PW",
+        },
+    )
+    mark_user_email_verified(db, "changepw@example.com")
+    login = client.post(
+        "/api/v1/auth/login",
+        json={"email": "changepw@example.com", "password": "securepass"},
+    )
+    token = login.json()["access_token"]
+
+    me = client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {token}"})
+    assert me.status_code == 200
+    assert me.json()["has_password"] is True
+
+    changed = client.post(
+        "/api/v1/auth/change-password",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"current_password": "securepass", "new_password": "brandnewpass"},
+    )
+    assert changed.status_code == 200
+
+    old_login = client.post(
+        "/api/v1/auth/login",
+        json={"email": "changepw@example.com", "password": "securepass"},
+    )
+    assert old_login.status_code == 401
+
+    new_login = client.post(
+        "/api/v1/auth/login",
+        json={"email": "changepw@example.com", "password": "brandnewpass"},
+    )
+    assert new_login.status_code == 200
+
+
+def test_change_password_rejects_wrong_current(client, seller_headers):
+    response = client.post(
+        "/api/v1/auth/change-password",
+        headers=seller_headers,
+        json={"current_password": "wrong-password", "new_password": "brandnewpass"},
+    )
+    assert response.status_code == 400
+
+
+def test_register_default_store_name_is_persian(client, db):
+    from app.models.store import Store
+    from app.models.user import User
+
+    client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": "named@example.com",
+            "password": "securepass",
+            "full_name": "ماهان",
+        },
+    )
+    user = db.scalar(select(User).where(User.email == "named@example.com"))
+    assert user is not None
+    store = db.scalar(select(Store).where(Store.owner_id == user.id))
+    assert store is not None
+    assert store.name == "فروشگاه ماهان"
