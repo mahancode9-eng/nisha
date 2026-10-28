@@ -103,6 +103,7 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
       : [],
   );
   const [isActive, setIsActive] = useState(store.is_active);
+  const [isPublished, setIsPublished] = useState(store.is_published);
   const [guestCheckoutEnabled, setGuestCheckoutEnabled] = useState(
     Boolean(store.guest_checkout_enabled && entitlements.guest_checkout),
   );
@@ -197,6 +198,7 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
       }),
     );
     setIsActive(store.is_active);
+    setIsPublished(store.is_published);
     setGuestCheckoutEnabled(Boolean(store.guest_checkout_enabled && canGuestCheckout));
     setThemePreset(store.theme_preset ?? "default");
     setDesignStyle(store.design_style ?? "saas");
@@ -312,6 +314,7 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
           is_active: link.is_active,
         })),
         is_active: isActive,
+        is_published: isPublished,
         guest_checkout_enabled: canGuestCheckout ? guestCheckoutEnabled : false,
         ...(canTheme
           ? {
@@ -744,12 +747,27 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
               <label className="flex items-center gap-2 text-sm text-foreground">
                 <input
                   type="checkbox"
+                  checked={isPublished}
+                  onChange={(e) => setIsPublished(e.target.checked)}
+                  className="rounded border-border"
+                />
+                فروشگاه منتشر شده (عمومی)
+              </label>
+              <p className="text-xs text-foreground-muted">
+                تا وقتی منتشر نکنی، صفحه فروشگاه برای مشتری‌ها باز نمی‌شه و تو نقشه سایت نمیاد.
+              </p>
+              <label className="flex items-center gap-2 text-sm text-foreground">
+                <input
+                  type="checkbox"
                   checked={isActive}
                   onChange={(e) => setIsActive(e.target.checked)}
                   className="rounded border-border"
                 />
                 فروشگاه فعاله
               </label>
+              <p className="text-xs text-foreground-muted">
+                اگه خاموش باشه، فروشگاه موقتاً از دسترس خارج می‌شه (حتی اگر قبلاً منتشر شده باشه).
+              </p>
               <Button type="submit" loading={loading} className="w-full">
                 ذخیره تغییرات
               </Button>

@@ -21,6 +21,7 @@ export type Store = {
   website: string | null;
   support_contact: string | null;
   is_active: boolean;
+  is_published: boolean;
   guest_checkout_enabled: boolean;
   theme_preset: string | null;
   primary_color: string | null;
@@ -71,6 +72,7 @@ export type StoreUpdate = {
   website?: string | null;
   support_contact?: string | null;
   is_active?: boolean;
+  is_published?: boolean;
   guest_checkout_enabled?: boolean;
   theme_preset?: string | null;
   primary_color?: string | null;

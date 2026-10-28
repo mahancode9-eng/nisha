@@ -166,6 +166,7 @@ def authenticate_or_create_seller_with_google(db: Session, *, id_token_str: str)
             name=f"فروشگاه {user.full_name}",
             slug=generate_unique_store_slug(db, full_name or email.split("@")[0]),
             is_active=True,
+            is_published=False,
             guest_checkout_enabled=True,
         )
         db.add(store)

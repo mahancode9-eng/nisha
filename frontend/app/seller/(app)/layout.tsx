@@ -61,6 +61,17 @@ export default function SellerAppLayout({ children }: { children: React.ReactNod
           </div>
         }
       >
+        {store && !store.is_published ? (
+          <div className="mb-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-foreground">
+            <p className="font-medium">فروشگاه هنوز پیش‌نویس است</p>
+            <p className="mt-1 text-foreground-muted">
+              مشتری‌ها صفحه‌ت رو نمی‌بینن. وقتی آماده بودی، از تنظیمات فروشگاه «انتشار» رو روشن کن.{" "}
+              <Link href={paths.seller.store} className="text-brand underline-offset-2 hover:underline">
+                برو به تنظیمات
+              </Link>
+            </p>
+          </div>
+        ) : null}
         {children}
       </WorkspaceShell>
     </SellerAuthGuard>

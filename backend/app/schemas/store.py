@@ -52,6 +52,7 @@ class StoreResponse(BaseModel):
     support_contact: str | None
     trust_badges: list[str] = Field(default_factory=list, validation_alias="badge_labels")
     is_active: bool
+    is_published: bool = False
     guest_checkout_enabled: bool = False
     theme_preset: str | None = None
     primary_color: str | None = None
@@ -83,6 +84,7 @@ class StoreUpdate(BaseModel):
     support_contact: str | None = Field(default=None, max_length=255)
     social_links: list[StoreSocialLinkInput] | None = None
     is_active: bool | None = None
+    is_published: bool | None = None
     guest_checkout_enabled: bool | None = None
     theme_preset: str | None = Field(default=None, max_length=50)
     primary_color: str | None = Field(default=None, max_length=20)
