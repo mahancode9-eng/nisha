@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { uploadPublicImage } from "@/lib/api/public/uploads";
+import { ApiError } from "@/lib/api/errors";
 import * as onboardingApi from "@/lib/api/seller/onboarding";
 import * as paymentMethodsApi from "@/lib/api/seller/payment-methods";
 import * as productsApi from "@/lib/api/seller/products";
@@ -12,6 +13,7 @@ import { formatMoney } from "@/lib/format";
 import { formatMoneyInput, parseMoneyInput } from "@/lib/moneyInput";
 import { cn } from "@/lib/cn";
 import { resolveMediaUrl } from "@/lib/media";
+import { isValidStoreSlug, slugify } from "@/lib/slug";
 import { useToast } from "@/contexts/ToastContext";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
@@ -41,6 +43,7 @@ type EditableContactLink = {
 type DraftState = {
   storeIdentity: {
     name: string;
+    slug: string;
     logoUrl: string;
     coverImageUrl: string;
   };
@@ -154,6 +157,7 @@ function buildDrafts(data: SellerOnboardingResponse): DraftState {
   return {
     storeIdentity: {
       name: state.drafts.store_identity.name ?? store.name ?? "",
+      slug: state.drafts.store_identity.slug ?? store.slug ?? "",
       logoUrl: state.drafts.store_identity.logo_url ?? store.logo_url ?? "",
       coverImageUrl: state.drafts.store_identity.cover_image_url ?? store.cover_image_url ?? "",
     },
@@ -350,6 +354,7 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
               activeStep.key === "store_identity"
                 ? {
                     name: drafts.storeIdentity.name,
+                    slug: drafts.storeIdentity.slug || null,
                     logo_url: drafts.storeIdentity.logoUrl || null,
                     cover_image_url: drafts.storeIdentity.coverImageUrl || null,
                   }
@@ -438,6 +443,7 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
           ...base,
           store_identity: {
             name: drafts.storeIdentity.name.trim() || null,
+            slug: drafts.storeIdentity.slug.trim() || null,
             logo_url: drafts.storeIdentity.logoUrl || null,
             cover_image_url: drafts.storeIdentity.coverImageUrl || null,
           },
@@ -575,12 +581,21 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
     setLoading(true);
     setError(null);
     try {
-      if (!drafts.storeIdentity.name.trim()) {
+      const name = drafts.storeIdentity.name.trim();
+      const slug = drafts.storeIdentity.slug.trim().toLowerCase();
+      if (!name) {
         throw new Error("نام فروشگاه رو وارد کن.");
+      }
+      if (!slug) {
+        throw new Error("آدرس فروشگاه رو وارد کن.");
+      }
+      if (!isValidStoreSlug(slug)) {
+        throw new Error("آدرس فروشگاه فقط می‌تونه حروف کوچک انگلیسی، عدد و خط تیره (-) داشته باشه.");
       }
 
       await storeApi.updateStore({
-        name: drafts.storeIdentity.name.trim(),
+        name,
+        slug,
         logo_url: drafts.storeIdentity.logoUrl.trim() || null,
         cover_image_url: drafts.storeIdentity.coverImageUrl.trim() || null,
       });
@@ -588,14 +603,18 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
         current_step: "store_information",
         completed_steps: [...completedSteps, "store_identity"],
         store_identity: {
-          name: drafts.storeIdentity.name.trim(),
+          name,
+          slug,
           logo_url: drafts.storeIdentity.logoUrl.trim() || null,
           cover_image_url: drafts.storeIdentity.coverImageUrl.trim() || null,
         },
         status: "IN_PROGRESS",
       });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "نام و ظاهر فروشگاه ذخیره نشد. دوباره امتحان کن.";
+      const msg =
+        err instanceof ApiError || err instanceof Error
+          ? err.message
+          : "نام و ظاهر فروشگاه ذخیره نشد. دوباره امتحان کن.";
       setError(msg);
       toast.error(msg);
     } finally {
@@ -947,7 +966,12 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
 
   const currentChecklist = useMemo(
     () => [
-      { label: "نام فروشگاه ثبت شد", done: Boolean(drafts.storeIdentity.name.trim()) },
+      {
+        label: "نام و آدرس فروشگاه ثبت شد",
+        done:
+          Boolean(drafts.storeIdentity.name.trim()) &&
+          Boolean(drafts.storeIdentity.slug.trim()),
+      },
       {
         label: "معرفی فروشگاه کامل شد",
         done:
@@ -1012,12 +1036,43 @@ export function SellerOnboardingExperience({ data }: { data: SellerOnboardingRes
                 <Input
                   label="نام فروشگاه"
                   value={drafts.storeIdentity.name}
+                  onChange={(e) => {
+                    const nextName = e.target.value;
+                    markDraftChange((current) => {
+                      const suggested = slugify(nextName);
+                      const keepSlug =
+                        current.storeIdentity.slug &&
+                        current.storeIdentity.slug !== slugify(current.storeIdentity.name);
+                      return {
+                        ...current,
+                        storeIdentity: {
+                          ...current.storeIdentity,
+                          name: nextName,
+                          slug: keepSlug ? current.storeIdentity.slug : suggested === "store" ? "" : suggested,
+                        },
+                      };
+                    });
+                  }}
+                />
+                <Input
+                  label="آدرس فروشگاه"
+                  value={drafts.storeIdentity.slug}
                   onChange={(e) =>
                     markDraftChange((current) => ({
                       ...current,
-                      storeIdentity: { ...current.storeIdentity, name: e.target.value },
+                      storeIdentity: {
+                        ...current.storeIdentity,
+                        slug: e.target.value.toLowerCase().replace(/\s+/g, "-"),
+                      },
                     }))
                   }
+                  hint={
+                    drafts.storeIdentity.slug.trim()
+                      ? `لینک فروشگاه: ${paths.store(drafts.storeIdentity.slug.trim())}`
+                      : "فقط حروف انگلیسی کوچک، عدد و خط تیره؛ مثلاً my-shop"
+                  }
+                  dir="ltr"
+                  required
                 />
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-foreground">لوگو</label>

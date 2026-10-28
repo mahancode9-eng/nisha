@@ -23,6 +23,7 @@ export type SellerOnboardingEvent = {
 
 export type SellerOnboardingIdentityDraft = {
   name: string | null;
+  slug?: string | null;
   logo_url: string | null;
   cover_image_url: string | null;
 };

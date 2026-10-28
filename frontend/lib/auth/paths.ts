@@ -13,6 +13,7 @@ export const paths = {
     onboarding: "/seller/onboarding",
     dashboard: "/seller/dashboard",
     store: "/seller/store",
+    changePassword: "/seller/change-password",
     products: "/seller/products",
     productNew: "/seller/products/new",
     productEdit: (id: number | string) => `/seller/products/${id}/edit`,

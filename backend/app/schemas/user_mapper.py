@@ -11,4 +11,5 @@ def user_to_response(user: User) -> UserResponse:
         role=user.role,
         is_active=user.is_active,
         store_slug=store_slug,
+        has_password=bool(user.password_hash),
     )

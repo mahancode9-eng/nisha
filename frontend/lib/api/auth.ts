@@ -33,3 +33,10 @@ export function refresh(refreshToken: string): Promise<TokenResponse> {
     { auth: false },
   );
 }
+
+export function changePassword(payload: {
+  current_password?: string | null;
+  new_password: string;
+}): Promise<{ message: string }> {
+  return apiPost<{ message: string }>("/api/v1/auth/change-password", payload);
+}

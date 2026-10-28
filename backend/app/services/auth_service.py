@@ -72,7 +72,7 @@ def register_seller(db: Session, *, email: str, password: str, full_name: str) -
         slug_base = full_name.strip() or normalized_email.split("@")[0]
         store = Store(
             owner_id=user.id,
-            name=f"{user.full_name}'s Store",
+            name=f"فروشگاه {user.full_name}",
             slug=generate_unique_store_slug(db, slug_base),
             is_active=True,
             guest_checkout_enabled=False,
@@ -125,3 +125,26 @@ def authenticate_user(db: Session, *, email: str, password: str) -> User:
 
 def user_needs_email_verification(user: User) -> bool:
     return user.email_verified_at is None
+
+
+def change_user_password(
+    db: Session,
+    user: User,
+    *,
+    current_password: str | None,
+    new_password: str,
+) -> User:
+    if user.password_hash:
+        if not current_password or not verify_password(current_password, user.password_hash):
+            raise AuthError("رمز فعلی درست نیست.", status_code=400)
+    elif current_password:
+        raise AuthError("برای این حساب هنوز رمزی تنظیم نشده.", status_code=400)
+
+    cleaned = new_password.strip()
+    if len(cleaned) < 8:
+        raise AuthError("رمز جدید باید حداقل ۸ کاراکتر باشه.", status_code=422)
+
+    user.password_hash = hash_password(cleaned)
+    db.commit()
+    db.refresh(user)
+    return user

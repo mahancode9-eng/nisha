@@ -24,6 +24,7 @@ export default function SellerAppLayout({ children }: { children: React.ReactNod
     { href: paths.seller.conversations, label: "گفتگوها", primary: true, group: "ارتباط", icon: "chat" as const },
     { href: paths.seller.customers, label: "مشتری‌ها", primary: true, group: "ارتباط", icon: "users" as const },
     { href: paths.seller.store, label: "تنظیمات فروشگاه", group: "مدیریت", icon: "store" as const },
+    { href: paths.seller.changePassword, label: "رمز عبور", group: "مدیریت", icon: "settings" as const },
     { href: paths.seller.paymentMethods, label: "پرداخت‌ها", group: "مدیریت", icon: "payments" as const },
     { href: paths.seller.subscription, label: "اشتراک", group: "مدیریت", icon: "subscription" as const },
   ];

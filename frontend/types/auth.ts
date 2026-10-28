@@ -7,6 +7,7 @@ export type User = {
   role: UserRole;
   is_active: boolean;
   store_slug: string | null;
+  has_password?: boolean;
 };
 
 export type TokenResponse = {

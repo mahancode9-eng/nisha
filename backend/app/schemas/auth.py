@@ -29,6 +29,16 @@ class UserResponse(BaseModel):
     role: UserRole
     is_active: bool
     store_slug: str | None = None
+    has_password: bool = True
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str | None = Field(default=None, max_length=128)
+    new_password: str = Field(min_length=8, max_length=128)
+
+
+class ChangePasswordResponse(BaseModel):
+    message: str
 
 
 class TokenResponse(BaseModel):
