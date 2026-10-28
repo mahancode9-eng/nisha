@@ -62,6 +62,9 @@ class Settings(BaseSettings):
     PAYMENT_REVIEW_HOLD_MINUTES: int = 1440
     # Send unpaid-order SMS once when this many minutes remain before reservation expiry.
     PAYMENT_REMINDER_MINUTES_BEFORE_EXPIRY: int = 10
+    # Seller chase when a payment proof sits idle this many hours (email + messenger).
+    PAYMENT_PROOF_CHASE_HOURS: int = 6
+
     PRIVATE_UPLOAD_DIR: str = "./private_uploads"
     ALLOW_DEMO_SEED: bool = False
     RESERVATION_CLEANUP_ENABLED: bool = True

@@ -174,6 +174,19 @@ TEMPLATES: dict[str, NotificationTemplate] = {
         ),
         html_style="simple",
     ),
+    "payment_proof_chase_seller": NotificationTemplate(
+        sms_text=(
+            "نیشا: {order_count} رسید پرداخت تو فروشگاه {store_name} منتظر بررسی‌ته. "
+            "ببین: {orders_url}"
+        ),
+        email_subject="رسیدهای در انتظار بررسی تو {store_name}",
+        email_body=(
+            "تو فروشگاه {store_name}، {order_count} سفارش با رسید آپلود‌شده هنوز تایید یا رد نشدن:\n\n"
+            "{order_lines}\n\n"
+            "برای بررسی برو اینجا:\n{orders_url}"
+        ),
+        html_style="simple",
+    ),
     "test_message": NotificationTemplate(
         sms_text="نیشا: پیام آزمایشی {code}",
         email_subject="پیام آزمایشی {code}",

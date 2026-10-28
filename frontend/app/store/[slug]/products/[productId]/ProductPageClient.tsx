@@ -7,6 +7,7 @@ import * as storesApi from "@/lib/api/public/stores";
 import { useCart } from "@/contexts/CartContext";
 import { resolveMediaUrl } from "@/lib/media";
 import { MessageSellerButton } from "@/components/store/MessageSellerButton";
+import { ProductShareSheet } from "@/components/store/ProductShareSheet";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorAlert } from "@/components/ui/ErrorAlert";
@@ -37,7 +38,7 @@ export function ProductPageClient({ slug, productId }: ProductPageClientProps) {
   const [selectedVariantId, setSelectedVariantId] = useState<number | null>(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [descOpen, setDescOpen] = useState(false);
-  const [shareHint, setShareHint] = useState<string | null>(null);
+  const [shareOpen, setShareOpen] = useState(false);
   const touchStartX = useRef<number | null>(null);
 
   useEffect(() => {
@@ -148,24 +149,8 @@ export function ProductPageClient({ slug, productId }: ProductPageClientProps) {
     );
   }
 
-  async function handleShare() {
-    const url =
-      typeof window !== "undefined"
-        ? window.location.href
-        : `${paths.store(slug)}/products/${productId}`;
-    const shareText = `${product.title} — ${formatMoney(effectivePrice)}`;
-    try {
-      if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
-        await navigator.share({ title: product.title, text: shareText, url });
-        return;
-      }
-      await navigator.clipboard.writeText(url);
-      setShareHint("لینک کپی شد");
-      toast.success("لینک محصول کپی شد");
-      window.setTimeout(() => setShareHint(null), 2500);
-    } catch {
-      /* user cancelled share sheet */
-    }
+  function handleShare() {
+    setShareOpen(true);
   }
 
   return (
@@ -273,17 +258,12 @@ export function ProductPageClient({ slug, productId }: ProductPageClientProps) {
               </h1>
               <button
                 type="button"
-                onClick={() => void handleShare()}
+                onClick={handleShare}
                 className="shrink-0 rounded-xl border border-border px-3 py-1.5 text-sm text-foreground-muted transition hover:border-brand/40 hover:text-foreground"
               >
                 اشتراک‌گذاری
               </button>
             </div>
-            {shareHint ? (
-              <p className="text-xs text-brand" role="status">
-                {shareHint}
-              </p>
-            ) : null}
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <p className="text-2xl font-semibold text-foreground">{formatMoney(effectivePrice)}</p>
               <p
@@ -496,6 +476,24 @@ export function ProductPageClient({ slug, productId }: ProductPageClientProps) {
           </button>
         </div>
       ) : null}
+
+      <ProductShareSheet
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        title={product.title}
+        price={effectivePrice}
+        storeName={store.name}
+        imageUrl={
+          activeMedia?.kind === "image"
+            ? activeMedia.previewUrl
+            : mediaItems.find((item) => item.kind === "image")?.previewUrl ?? null
+        }
+        shareUrl={
+          typeof window !== "undefined"
+            ? window.location.href
+            : `${paths.store(slug)}/products/${productId}`
+        }
+      />
     </div>
   );
 }
