@@ -34,7 +34,7 @@ def test_slug_uniqueness(client, seller_headers, other_seller_headers):
         json={"slug": "my-unique-shop"},
     )
     assert conflict.status_code == 409
-    assert conflict.json()["detail"] == "این آدرس فروشگاه قبلاً گرفته شده است؛ آدرس دیگری انتخاب کنید."
+    assert conflict.json()["detail"] == "این آدرس فروشگاه قبلاً گرفته شده؛ آدرس دیگه‌ای انتخاب کن."
 
     keep_own = client.put(
         "/api/v1/seller/store",
