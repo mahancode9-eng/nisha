@@ -27,7 +27,7 @@ def get_active_store_by_slug(db: Session, slug: str) -> Store:
         )
         .where(Store.slug == slug)
     )
-    if store is None or not store.is_active:
+    if store is None or not store.is_active or not store.is_published:
         raise ServiceError("Store not found", status_code=404)
     return store
 

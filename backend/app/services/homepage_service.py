@@ -78,7 +78,7 @@ def _store_rows(db: Session, *, query: str | None = None, limit: int = 6):
         )
         .outerjoin(product_counts, Store.id == product_counts.c.store_id)
         .outerjoin(review_counts, Store.id == review_counts.c.store_id)
-        .where(Store.is_active.is_(True))
+        .where(Store.is_active.is_(True), Store.is_published.is_(True))
     )
     if query:
         stmt = stmt.where(or_(Store.name.ilike(f"%{query}%"), Store.description.ilike(f"%{query}%")))
@@ -101,7 +101,11 @@ def _product_rows(db: Session, *, query: str | None = None, limit: int = 8):
             selectinload(Product.store),
         )
         .join(Store, Product.store_id == Store.id)
-        .where(Product.is_active.is_(True), Store.is_active.is_(True))
+        .where(
+            Product.is_active.is_(True),
+            Store.is_active.is_(True),
+            Store.is_published.is_(True),
+        )
     )
     if query:
         stmt = stmt.where(_search_filter(query))
@@ -136,6 +140,7 @@ def _category_count(db: Session, category: StoreCategoryOption) -> int:
             .where(
                 Product.is_active.is_(True),
                 Store.is_active.is_(True),
+                Store.is_published.is_(True),
                 or_(*[Product.title.ilike(pattern) for pattern in patterns], *[Product.description.ilike(pattern) for pattern in patterns]),
             )
         )
@@ -207,7 +212,11 @@ def get_homepage_discovery(db: Session, query: str | None = None) -> PublicHomep
             select(func.count())
             .select_from(Product)
             .join(Store, Product.store_id == Store.id)
-            .where(Product.is_active.is_(True), Store.is_active.is_(True))
+            .where(
+            Product.is_active.is_(True),
+            Store.is_active.is_(True),
+            Store.is_published.is_(True),
+        )
         )
         or 0
     )

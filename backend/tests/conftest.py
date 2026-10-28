@@ -157,7 +157,7 @@ def public_store(client: TestClient, seller_headers: dict[str, str], db: Session
     enable_guest = client.put(
         "/api/v1/seller/store",
         headers=seller_headers,
-        json={"guest_checkout_enabled": True},
+        json={"guest_checkout_enabled": True, "is_published": True},
     )
     assert enable_guest.status_code == 200
 

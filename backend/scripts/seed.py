@@ -210,6 +210,7 @@ def get_or_create_seller_and_store(
             phone=phone,
             support_contact=f"support@{store_slug}.example.com",
             is_active=True,
+            is_published=True,
         )
         db.add(store)
         db.flush()
@@ -221,6 +222,7 @@ def get_or_create_seller_and_store(
         store.support_contact = f"support@{store_slug}.example.com"
         store.guest_checkout_enabled = True
         store.is_active = True
+        store.is_published = True
         print(f"Store already exists, refreshed demo contacts: {store_slug}")
 
     return user, store

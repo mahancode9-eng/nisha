@@ -22,12 +22,18 @@ def get_sitemap_data(db: Session = Depends(get_db)) -> PublicSitemapResponse:
     their active products.
     """
     store_rows = db.execute(
-        select(Store.slug).where(Store.is_active.is_(True)).order_by(Store.id)
+        select(Store.slug)
+        .where(Store.is_active.is_(True), Store.is_published.is_(True))
+        .order_by(Store.id)
     ).all()
     product_rows = db.execute(
         select(Product.id, Store.slug)
         .join(Store, Product.store_id == Store.id)
-        .where(Store.is_active.is_(True), Product.is_active.is_(True))
+        .where(
+            Store.is_active.is_(True),
+            Store.is_published.is_(True),
+            Product.is_active.is_(True),
+        )
         .order_by(Product.id)
     ).all()
     return PublicSitemapResponse(
