@@ -28,6 +28,9 @@ export const paths = {
     analytics: "/seller/analytics",
     reports: "/seller/reports",
     subscription: "/seller/subscription",
+    team: "/seller/team",
+    teamAccept: "/seller/team/accept",
+    domain: "/seller/domain",
   },
   admin: {
     login: "/admin/login",

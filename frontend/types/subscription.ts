@@ -29,6 +29,9 @@ export type PlanEntitlements = {
   customer_tags: boolean;
   customer_export: boolean;
   remove_nisha_watermark: boolean;
+  team_members: boolean;
+  max_team_members: number | null;
+  custom_domain: boolean;
   [key: string]: unknown;
 };
 

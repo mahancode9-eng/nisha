@@ -5,17 +5,37 @@ import { SellerAuthGuard } from "@/components/auth/SellerAuthGuard";
 import { WorkspaceShell } from "@/components/layout/WorkspaceShell";
 import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 import { useAuth } from "@/contexts/AuthContext";
+import { SellerStoreProvider, useSellerStore } from "@/contexts/SellerStoreContext";
+import { RoleForbidden } from "@/components/seller/RoleForbidden";
+import { StoreSwitcher } from "@/components/seller/StoreSwitcher";
+import { LoadingState } from "@/components/ui/LoadingState";
 import { useSellerFetch } from "@/hooks/useSellerFetch";
 import * as storeApi from "@/lib/api/seller/store";
 import { paths } from "@/lib/auth/paths";
+import { areaForPath } from "@/lib/seller/areas";
 import { resolveMediaUrl } from "@/lib/media";
 import { Button } from "@/components/ui/Button";
 
 export default function SellerAppLayout({ children }: { children: React.ReactNode }) {
-  const { user, logout } = useAuth();
-  const { data: store } = useSellerFetch(() => storeApi.getStore(), []);
+  return (
+    <SellerAuthGuard>
+      <SellerStoreProvider>
+        <SellerShell>{children}</SellerShell>
+      </SellerStoreProvider>
+    </SellerAuthGuard>
+  );
+}
 
-  const navItems = [
+function SellerShell({ children }: { children: React.ReactNode }) {
+  const { user, logout } = useAuth();
+  const { activeStore, isReady, can, forbidden } = useSellerStore();
+  const canStore = can("store");
+  const { data: store } = useSellerFetch(
+    () => (isReady && canStore ? storeApi.getStore() : Promise.resolve(null)),
+    [isReady, canStore, activeStore?.store_id],
+  );
+
+  const allNavItems = [
     { href: paths.seller.dashboard, label: "داشبورد", primary: true, group: "فروش", icon: "dashboard" as const },
     { href: paths.seller.analytics, label: "آمار فروش", group: "فروش", icon: "analytics" as const },
     { href: paths.seller.reports, label: "گزارش فروش", group: "فروش", icon: "analytics" as const },
@@ -28,10 +48,15 @@ export default function SellerAppLayout({ children }: { children: React.ReactNod
     { href: paths.seller.changePassword, label: "رمز عبور", group: "مدیریت", icon: "settings" as const },
     { href: paths.seller.paymentMethods, label: "پرداخت‌ها", group: "مدیریت", icon: "payments" as const },
     { href: paths.seller.subscription, label: "اشتراک", group: "مدیریت", icon: "subscription" as const },
+    { href: paths.seller.team, label: "تیم", group: "مدیریت", icon: "users" as const },
+    { href: paths.seller.domain, label: "دامنه اختصاصی", group: "مدیریت", icon: "store" as const },
   ];
+  const navItems = allNavItems.filter((item) => {
+    const area = areaForPath(item.href);
+    return area === null || can(area);
+  });
 
   return (
-    <SellerAuthGuard>
       <WorkspaceShell
         variant="tabs"
         brandLabel="Nisha"
@@ -39,18 +64,19 @@ export default function SellerAppLayout({ children }: { children: React.ReactNod
         title="مدیریت فروشگاه"
         userName={user?.full_name ?? null}
         userMeta={user?.email ?? user?.store_slug ?? null}
-        identityName={store?.name ?? user?.store_slug ?? null}
+        identityName={activeStore?.name ?? store?.name ?? user?.store_slug ?? null}
         identityImageUrl={store?.logo_url ? resolveMediaUrl(store.logo_url) : null}
-        identityHref={store?.slug ? paths.store(store.slug) : null}
+        identityHref={activeStore?.slug ?? store?.slug ? paths.store((activeStore?.slug ?? store?.slug) as string) : null}
         identityOpenInNewTab
         navItems={navItems}
         onLogout={logout}
         topActions={
           <div className="flex flex-wrap items-center gap-2">
             <ThemeSwitcher variant="design" />
-            {user?.store_slug ? (
+            <StoreSwitcher />
+            {(activeStore?.slug ?? user?.store_slug) ? (
               <Link
-                href={paths.store(user.store_slug)}
+                href={paths.store((activeStore?.slug ?? user?.store_slug) as string)}
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -73,8 +99,7 @@ export default function SellerAppLayout({ children }: { children: React.ReactNod
             </p>
           </div>
         ) : null}
-        {children}
+        {!isReady ? <LoadingState /> : forbidden ? <RoleForbidden /> : children}
       </WorkspaceShell>
-    </SellerAuthGuard>
   );
 }

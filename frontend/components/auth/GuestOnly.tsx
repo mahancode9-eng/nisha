@@ -10,9 +10,11 @@ import type { UserRole } from "@/types/auth";
 type GuestOnlyProps = {
   children: React.ReactNode;
   role: UserRole;
+  /** Where a signed-in user goes instead of the role's dashboard. */
+  redirectTo?: string | null;
 };
 
-export function GuestOnly({ children, role }: GuestOnlyProps) {
+export function GuestOnly({ children, role, redirectTo }: GuestOnlyProps) {
   const { user, isLoading } = useAuth();
   const router = useRouter();
 
@@ -20,10 +22,10 @@ export function GuestOnly({ children, role }: GuestOnlyProps) {
     if (isLoading) return;
     if (user?.role === role) {
       const dest =
-        role === "SELLER" ? paths.seller.dashboard : paths.admin.dashboard;
+        redirectTo ?? (role === "SELLER" ? paths.seller.dashboard : paths.admin.dashboard);
       router.replace(dest);
     }
-  }, [user, isLoading, role, router]);
+  }, [user, isLoading, role, redirectTo, router]);
 
   if (isLoading) {
     return <LoadingState message="داریم نشست رو چک می‌کنیم…" />;

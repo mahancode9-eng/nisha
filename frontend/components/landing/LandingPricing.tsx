@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { PlanPricingGrid } from "@/components/pricing/PlanPricingGrid";
+import { PlanComparison } from "@/components/pricing/PlanComparison";
 import { PricingPeriodToggle } from "@/components/pricing/PricingPeriodToggle";
 import { SellerPrimaryCta } from "@/components/landing/SellerPrimaryCta";
 import { Reveal } from "@/components/landing/Reveal";
@@ -10,7 +11,13 @@ import { paths } from "@/lib/auth/paths";
 import { cn } from "@/lib/cn";
 import type { BillingPeriod } from "@/types/subscription";
 
-export function LandingPricing({ className }: { className?: string }) {
+export function LandingPricing({
+  className,
+  showComparison = false,
+}: {
+  className?: string;
+  showComparison?: boolean;
+}) {
   const [period, setPeriod] = useState<BillingPeriod>("MONTHLY");
 
   return (
@@ -45,6 +52,15 @@ export function LandingPricing({ className }: { className?: string }) {
           />
         )}
       />
+
+      {showComparison && (
+        <div className="space-y-4">
+          <h2 className="landing-display text-center text-2xl text-white sm:text-3xl">
+            مقایسه کامل پلن‌ها
+          </h2>
+          <PlanComparison />
+        </div>
+      )}
     </section>
   );
 }

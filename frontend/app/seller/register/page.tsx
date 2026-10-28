@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { AuthPageFrame } from "@/components/auth/AuthPageFrame";
 import { GuestOnly } from "@/components/auth/GuestOnly";
 import { RegisterForm } from "@/components/auth/RegisterForm";
@@ -9,9 +10,21 @@ import { EmailVerificationPending } from "@/components/auth/EmailVerificationPen
 import { useAuth } from "@/contexts/AuthContext";
 import { ApiError } from "@/lib/api/errors";
 import { paths } from "@/lib/auth/paths";
+import { safeSellerNext } from "@/lib/auth/safe-next";
 
 export default function SellerRegisterPage() {
+  return (
+    <Suspense>
+      <SellerRegisterContent />
+    </Suspense>
+  );
+}
+
+function SellerRegisterContent() {
   const { register, loginWithGoogle, logout } = useAuth();
+  const next = safeSellerNext(useSearchParams().get("next"));
+  const afterSignUp = next ?? paths.seller.onboarding;
+  const loginHref = next ? `${paths.seller.login}?next=${encodeURIComponent(next)}` : paths.seller.login;
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
 
   async function handleRegister(data: {
@@ -24,7 +37,7 @@ export default function SellerRegisterPage() {
       setPendingEmail(result.email);
       return;
     }
-    window.location.href = paths.seller.onboarding;
+    window.location.href = afterSignUp;
   }
 
   async function handleGoogle(idToken: string) {
@@ -36,17 +49,17 @@ export default function SellerRegisterPage() {
         "این صفحه ثبت‌نام فروشنده‌هاست. از صفحه مربوط به نقش خودت استفاده کن.",
       );
     }
-    window.location.href = paths.seller.onboarding;
+    window.location.href = afterSignUp;
   }
 
   if (pendingEmail) {
     return (
-      <GuestOnly role="SELLER">
+      <GuestOnly role="SELLER" redirectTo={next}>
         <AuthPageFrame>
           <EmailVerificationPending
             email={pendingEmail}
             kind="seller"
-            loginHref={paths.seller.login}
+            loginHref={loginHref}
           />
         </AuthPageFrame>
       </GuestOnly>
@@ -54,16 +67,16 @@ export default function SellerRegisterPage() {
   }
 
   return (
-    <GuestOnly role="SELLER">
+    <GuestOnly role="SELLER" redirectTo={next}>
       <AuthPageFrame>
         <RegisterForm
           onSubmit={handleRegister}
           onGoogleCredential={handleGoogle}
-          loginHref={paths.seller.login}
+          loginHref={loginHref}
           footer={
             <>
               حساب داری؟{" "}
-              <Link href={paths.seller.login} className="font-medium text-brand hover:underline">
+              <Link href={loginHref} className="font-medium text-brand hover:underline">
                 وارد شو
               </Link>
             </>

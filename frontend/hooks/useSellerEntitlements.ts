@@ -27,6 +27,9 @@ const DEFAULT_ENTITLEMENTS: PlanEntitlements = {
   customer_tags: false,
   customer_export: false,
   remove_nisha_watermark: false,
+  team_members: false,
+  max_team_members: 0,
+  custom_domain: false,
 };
 
 export function useSellerEntitlements() {

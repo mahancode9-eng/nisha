@@ -8,6 +8,24 @@ import {
 } from "@/lib/auth/token";
 import { getCustomerToken } from "@/lib/auth/customer-token";
 import { ApiError } from "@/lib/api/errors";
+import { getActiveStoreId } from "@/lib/auth/active-store";
+
+/** Fired when the API says the seller's role can't use an area (see the seller layout). */
+export const ROLE_FORBIDDEN_EVENT = "nisha:role-forbidden";
+
+function notifyIfRoleForbidden(err: ApiError): ApiError {
+  if (err.status === 403 && err.code === "ROLE_FORBIDDEN" && typeof window !== "undefined") {
+    window.dispatchEvent(new Event(ROLE_FORBIDDEN_EVENT));
+  }
+  return err;
+}
+
+/** Seller requests act on the store the seller picked; customer requests never carry it. */
+function setStoreHeader(headers: Headers, token: string | null): void {
+  if (!token || token !== getToken()) return;
+  const storeId = getActiveStoreId();
+  if (storeId) headers.set("X-Store-Id", String(storeId));
+}
 
 export type ApiRequestOptions = RequestInit & {
   auth?: boolean;
@@ -77,6 +95,7 @@ export async function apiRequest<T>(
       : (getToken() ?? getCustomerToken());
     if (token) {
       headers.set("Authorization", `Bearer ${token}`);
+      setStoreHeader(headers, token);
     }
   }
 
@@ -115,7 +134,7 @@ export async function apiRequest<T>(
   }
 
   if (!res.ok) {
-    throw await ApiError.fromResponse(res);
+    throw notifyIfRoleForbidden(await ApiError.fromResponse(res));
   }
 
   const contentType = res.headers.get("content-type");
@@ -164,6 +183,7 @@ export async function apiDownload(path: string, options?: ApiRequestOptions): Pr
     const token = getToken();
     if (token) {
       headers.set("Authorization", `Bearer ${token}`);
+      setStoreHeader(headers, token);
     }
   }
   const res = await fetch(`${getApiUrl()}${path}`, {
@@ -172,7 +192,7 @@ export async function apiDownload(path: string, options?: ApiRequestOptions): Pr
     headers,
   });
   if (!res.ok) {
-    throw await ApiError.fromResponse(res);
+    throw notifyIfRoleForbidden(await ApiError.fromResponse(res));
   }
   return res.blob();
 }

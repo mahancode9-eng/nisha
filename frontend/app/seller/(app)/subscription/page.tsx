@@ -6,6 +6,7 @@ import { ApiError } from "@/lib/api/errors";
 import { formatToman } from "@/lib/pricing/planCatalog";
 import { useToast } from "@/contexts/ToastContext";
 import { PlanPricingGrid } from "@/components/pricing/PlanPricingGrid";
+import { PlanComparison } from "@/components/pricing/PlanComparison";
 import { PricingPeriodToggle } from "@/components/pricing/PricingPeriodToggle";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
@@ -49,6 +50,7 @@ export default function SellerSubscriptionPage() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [busyCode, setBusyCode] = useState<string | null>(null);
+  const [showCompare, setShowCompare] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -190,6 +192,18 @@ export default function SellerSubscriptionPage() {
               if (!openInvoice) void handleCheckout(code);
             }}
           />
+
+          <div className="space-y-3">
+            <Button
+              type="button"
+              variant="secondary"
+              aria-expanded={showCompare}
+              onClick={() => setShowCompare((v) => !v)}
+            >
+              {showCompare ? "بستن مقایسه" : "مقایسه همه امکانات"}
+            </Button>
+            {showCompare && <PlanComparison />}
+          </div>
 
           {pendingProof && openInvoice && (
             <Card className="border-amber-300 bg-amber-50 dark:border-amber-500/40 dark:bg-amber-500/10">

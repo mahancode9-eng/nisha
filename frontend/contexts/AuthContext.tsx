@@ -19,6 +19,7 @@ import {
   setStoredUser,
   setToken,
 } from "@/lib/auth/token";
+import { clearActiveStoreId } from "@/lib/auth/active-store";
 import { ApiError } from "@/lib/api/errors";
 import type { LoginRequest, RegisterRequest, RegisterResult, User } from "@/types/auth";
 
@@ -125,6 +126,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => {
     clearToken();
+    clearActiveStoreId();
     setUser(null);
   }, []);
 

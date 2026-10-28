@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { AuthPageFrame } from "@/components/auth/AuthPageFrame";
 import { GuestOnly } from "@/components/auth/GuestOnly";
 import { LoginForm } from "@/components/auth/LoginForm";
@@ -9,11 +10,22 @@ import { useAuth } from "@/contexts/AuthContext";
 import { ApiError } from "@/lib/api/errors";
 import * as onboardingApi from "@/lib/api/seller/onboarding";
 import { paths } from "@/lib/auth/paths";
+import { safeSellerNext } from "@/lib/auth/safe-next";
 import type { User } from "@/types/auth";
 
 export default function SellerLoginPage() {
+  return (
+    <Suspense>
+      <SellerLoginContent />
+    </Suspense>
+  );
+}
+
+function SellerLoginContent() {
   const { login, loginWithGoogle, logout } = useAuth();
   const router = useRouter();
+  const next = safeSellerNext(useSearchParams().get("next"));
+  const registerHref = next ? `${paths.seller.register}?next=${encodeURIComponent(next)}` : paths.seller.register;
 
   async function finishSellerLogin(user: User) {
     if (user.role !== "SELLER") {
@@ -22,6 +34,11 @@ export default function SellerLoginPage() {
         403,
         "این صفحه ورود فروشنده‌هاست. مدیرها از صفحه ورود مدیر وارد شن.",
       );
+    }
+
+    if (next) {
+      router.replace(next);
+      return;
     }
 
     try {
@@ -49,7 +66,7 @@ export default function SellerLoginPage() {
   }
 
   return (
-    <GuestOnly role="SELLER">
+    <GuestOnly role="SELLER" redirectTo={next}>
       <AuthPageFrame>
         <LoginForm
           title="ورود فروشنده"
@@ -60,7 +77,7 @@ export default function SellerLoginPage() {
           footer={
             <>
               حساب نداری؟{" "}
-              <Link href={paths.seller.register} className="font-medium text-brand-deep hover:underline">
+              <Link href={registerHref} className="font-medium text-brand-deep hover:underline">
                 ثبت‌نام
               </Link>
             </>

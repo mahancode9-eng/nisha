@@ -4,13 +4,13 @@ import { LandingPricing } from "@/components/landing/LandingPricing";
 export const metadata: Metadata = {
   title: "قیمت‌ها",
   description:
-    "پلن‌های نیشا: شروع رایگان و بدون کارمزد روی سفارش‌ها. فقط برای ابزارهای بیشتر هزینه می‌دی.",
+    "پلن‌های نیشا: شروع رایگان و بدون کارمزد روی سفارش‌ها. فقط برای ابزارهای بیشتر هزینه می‌دی. مقایسه کامل امکانات: محصول، گزارش، تیم و دامنه اختصاصی.",
 };
 
 export default function PricingPage() {
   return (
     <div className="py-6 sm:py-10">
-      <LandingPricing />
+      <LandingPricing showComparison />
     </div>
   );
 }
