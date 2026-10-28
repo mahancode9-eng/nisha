@@ -25,6 +25,7 @@ import app.models.analytics  # noqa: F401
 import app.models.conversation  # noqa: F401
 import app.models.customer_account  # noqa: F401
 import app.models.customer_portal  # noqa: F401
+import app.models.customer_tag  # noqa: F401
 import app.models.message  # noqa: F401
 import app.models.email_verification  # noqa: F401
 import app.models.notification  # noqa: F401

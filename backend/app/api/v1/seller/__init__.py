@@ -3,6 +3,7 @@ from fastapi import APIRouter
 from app.api.v1.seller.analytics import router as analytics_router
 from app.api.v1.seller.categories import router as categories_router
 from app.api.v1.seller.conversations import router as conversations_router
+from app.api.v1.seller.customer_tags import router as customer_tags_router
 from app.api.v1.seller.customers import router as customers_router
 from app.api.v1.seller.dashboard import router as dashboard_router
 from app.api.v1.seller.discounts import router as discounts_router
@@ -12,6 +13,7 @@ from app.api.v1.seller.orders import router as orders_router
 from app.api.v1.seller.onboarding import router as onboarding_router
 from app.api.v1.seller.payment_methods import router as payment_methods_router
 from app.api.v1.seller.products import router as products_router
+from app.api.v1.seller.reports import router as reports_router
 from app.api.v1.seller.shipping_methods import router as shipping_methods_router
 from app.api.v1.seller.store import router as store_router
 from app.api.v1.seller.subscription import router as subscription_router
@@ -26,9 +28,11 @@ router.include_router(orders_router)
 router.include_router(dashboard_router)
 router.include_router(onboarding_router)
 router.include_router(conversations_router)
+router.include_router(customer_tags_router)
 router.include_router(customers_router)
 router.include_router(discounts_router)
 router.include_router(analytics_router)
+router.include_router(reports_router)
 router.include_router(subscription_router)
 router.include_router(exports_router)
 router.include_router(messenger_router)

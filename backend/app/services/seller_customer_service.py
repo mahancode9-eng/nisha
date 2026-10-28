@@ -1,20 +1,31 @@
 from __future__ import annotations
 
+from decimal import Decimal
 from urllib.parse import unquote
 
-from sqlalchemy import func, select
+from sqlalchemy import case, func, select
 from sqlalchemy.orm import Session
 
 from app.models.conversation import Conversation
 from app.models.customer_account import CustomerAccount
 from app.models.order import Order
 from app.models.store import Store
+from app.schemas.customer_tag import CustomerTagResponse
 from app.schemas.seller_customer import (
     SellerCustomerDetail,
     SellerCustomerListItem,
     SellerCustomerOrderItem,
 )
+from app.services import customer_tag_service
 from app.services.exceptions import ServiceError
+from app.models.enums import OrderStatus
+
+_SPEND_STATUSES = {
+    OrderStatus.PAYMENT_CONFIRMED,
+    OrderStatus.PREPARING,
+    OrderStatus.SHIPPED,
+    OrderStatus.DELIVERED,
+}
 
 ACCOUNT_PREFIX = "c:"
 GUEST_PREFIX = "g:"
@@ -57,6 +68,7 @@ def list_customers_paginated(
     page: int,
     page_size: int,
     search: str | None = None,
+    tag_id: int | None = None,
 ) -> tuple[list[SellerCustomerListItem], int]:
     store_id = store.id
     conversation_by_customer = _conversation_map(db, store_id)
@@ -68,6 +80,15 @@ def list_customers_paginated(
             func.max(Order.created_at),
             func.max(Order.buyer_name),
             func.max(Order.buyer_phone),
+            func.coalesce(
+                func.sum(
+                    case(
+                        (Order.status.in_(_SPEND_STATUSES), Order.total_amount),
+                        else_=0,
+                    )
+                ),
+                0,
+            ),
         )
         .where(Order.store_id == store_id, Order.customer_id.is_not(None))
         .group_by(Order.customer_id)
@@ -91,8 +112,9 @@ def list_customers_paginated(
             "last_order_at": last_order_at,
             "buyer_name": buyer_name,
             "buyer_phone": buyer_phone,
+            "total_spent": str(total_spent or 0),
         }
-        for customer_id, order_count, last_order_at, buyer_name, buyer_phone in account_stats
+        for customer_id, order_count, last_order_at, buyer_name, buyer_phone, total_spent in account_stats
         if customer_id is not None
     }
 
@@ -109,6 +131,7 @@ def list_customers_paginated(
         )
         phone = (account.phone if account else None) or stats.get("buyer_phone")
         email = account.email if account else None
+        order_count = int(stats.get("order_count") or 0)
         items.append(
             SellerCustomerListItem(
                 key=_account_key(customer_id),
@@ -117,7 +140,9 @@ def list_customers_paginated(
                 full_name=full_name,
                 phone=phone,
                 email=email,
-                order_count=int(stats.get("order_count") or 0),
+                order_count=order_count,
+                total_spent=str(stats.get("total_spent") or "0"),
+                is_repeat=order_count >= 2,
                 last_order_at=stats.get("last_order_at"),
                 has_conversation=conversation_id is not None,
                 conversation_id=conversation_id,
@@ -130,14 +155,24 @@ def list_customers_paginated(
             func.max(Order.buyer_name),
             func.count(Order.id),
             func.max(Order.created_at),
+            func.coalesce(
+                func.sum(
+                    case(
+                        (Order.status.in_(_SPEND_STATUSES), Order.total_amount),
+                        else_=0,
+                    )
+                ),
+                0,
+            ),
         )
         .where(Order.store_id == store_id, Order.customer_id.is_(None))
         .group_by(Order.buyer_phone)
     ).all()
 
-    for phone, buyer_name, order_count, last_order_at in guest_rows:
+    for phone, buyer_name, order_count, last_order_at, total_spent in guest_rows:
         if not phone:
             continue
+        count = int(order_count or 0)
         items.append(
             SellerCustomerListItem(
                 key=_guest_key(str(phone)),
@@ -146,7 +181,9 @@ def list_customers_paginated(
                 full_name=buyer_name or "خریدار مهمان",
                 phone=str(phone),
                 email=None,
-                order_count=int(order_count or 0),
+                order_count=count,
+                total_spent=str(total_spent or 0),
+                is_repeat=count >= 2,
                 last_order_at=last_order_at,
                 has_conversation=False,
                 conversation_id=None,
@@ -161,6 +198,19 @@ def list_customers_paginated(
             if term in (item.full_name or "").lower()
             or term in (item.phone or "").lower()
             or term in (item.email or "").lower()
+        ]
+
+    if tag_id is not None:
+        allowed = customer_tag_service.keys_for_tag(db, store_id, tag_id)
+        items = [item for item in items if item.key in allowed]
+
+    tags_by_key = customer_tag_service.tags_for_keys(
+        db, store_id, [item.key for item in items]
+    )
+    for item in items:
+        item.tags = [
+            CustomerTagResponse.model_validate(tag)
+            for tag in tags_by_key.get(item.key, [])
         ]
 
     def sort_key(item: SellerCustomerListItem) -> tuple[float, str]:
@@ -205,8 +255,14 @@ def get_customer_detail(db: Session, store: Store, key: str) -> SellerCustomerDe
         )
         phone = (account.phone if account else None) or (latest.buyer_phone if latest else None)
         email = account.email if account else None
+        key = _account_key(customer_id)
+        spent = sum(
+            (Decimal(order.total_amount) for order in orders if order.status in _SPEND_STATUSES),
+            Decimal("0"),
+        )
+        tags = customer_tag_service.tags_for_keys(db, store_id, [key]).get(key, [])
         return SellerCustomerDetail(
-            key=_account_key(customer_id),
+            key=key,
             kind="account",
             customer_id=customer_id,
             full_name=full_name,
@@ -215,9 +271,12 @@ def get_customer_detail(db: Session, store: Store, key: str) -> SellerCustomerDe
             postal_code=account.postal_code if account else None,
             last_address=latest.buyer_address if latest else None,
             order_count=len(orders),
+            total_spent=str(spent or 0),
+            is_repeat=len(orders) >= 2,
             last_order_at=latest.created_at if latest else None,
             has_conversation=conversation_id is not None,
             conversation_id=conversation_id,
+            tags=[CustomerTagResponse.model_validate(tag) for tag in tags],
             orders=[
                 SellerCustomerOrderItem(
                     id=order.id,
@@ -250,8 +309,14 @@ def get_customer_detail(db: Session, store: Store, key: str) -> SellerCustomerDe
         raise ServiceError("Customer not found", status_code=404)
 
     latest = orders[0]
+    key = _guest_key(phone)
+    spent = sum(
+        (Decimal(order.total_amount) for order in orders if order.status in _SPEND_STATUSES),
+        Decimal("0"),
+    )
+    tags = customer_tag_service.tags_for_keys(db, store_id, [key]).get(key, [])
     return SellerCustomerDetail(
-        key=_guest_key(phone),
+        key=key,
         kind="guest",
         customer_id=None,
         full_name=latest.buyer_name or "خریدار مهمان",
@@ -260,9 +325,12 @@ def get_customer_detail(db: Session, store: Store, key: str) -> SellerCustomerDe
         postal_code=None,
         last_address=latest.buyer_address,
         order_count=len(orders),
+        total_spent=str(spent),
+        is_repeat=len(orders) >= 2,
         last_order_at=latest.created_at,
         has_conversation=False,
         conversation_id=None,
+        tags=[CustomerTagResponse.model_validate(tag) for tag in tags],
         orders=[
             SellerCustomerOrderItem(
                 id=order.id,

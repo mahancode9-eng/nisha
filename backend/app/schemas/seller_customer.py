@@ -4,6 +4,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.enums import OrderStatus
+from app.schemas.customer_tag import CustomerTagResponse
 
 
 class SellerCustomerOrderItem(BaseModel):
@@ -25,9 +26,12 @@ class SellerCustomerListItem(BaseModel):
     phone: str | None = None
     email: str | None = None
     order_count: int = 0
+    total_spent: str = "0"
+    is_repeat: bool = False
     last_order_at: datetime | None = None
     has_conversation: bool = False
     conversation_id: int | None = None
+    tags: list[CustomerTagResponse] = Field(default_factory=list)
 
 
 class SellerCustomerDetail(SellerCustomerListItem):

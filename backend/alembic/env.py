@@ -10,6 +10,7 @@ import app.models.conversation  # noqa: F401
 import app.models.admin_audit  # noqa: F401
 import app.models.customer_account  # noqa: F401
 import app.models.customer_portal  # noqa: F401
+import app.models.customer_tag  # noqa: F401
 import app.models.message  # noqa: F401
 import app.models.order  # noqa: F401
 import app.models.payment_method  # noqa: F401

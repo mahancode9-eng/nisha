@@ -40,6 +40,8 @@ DEFAULT_ENTITLEMENTS: dict[str, Any] = {
     "configurable_receipt_reminder": False,
     "sms_monthly_quota": 0,
     "named_shipping_methods": False,
+    "sales_report": False,
+    "customer_tags": False,
 }
 
 _PAID_DISCOUNT_ENTITLEMENTS: dict[str, Any] = {
@@ -84,6 +86,7 @@ PLAN_SEEDS: list[dict[str, Any]] = [
             "configurable_receipt_reminder": True,
             "sms_monthly_quota": 50,
             "named_shipping_methods": True,
+            "sales_report": True,
         },
     },
     {
@@ -113,6 +116,8 @@ PLAN_SEEDS: list[dict[str, Any]] = [
             "configurable_receipt_reminder": True,
             "sms_monthly_quota": 300,
             "named_shipping_methods": True,
+            "sales_report": True,
+            "customer_tags": True,
         },
     },
     {
@@ -144,6 +149,8 @@ PLAN_SEEDS: list[dict[str, Any]] = [
             "configurable_receipt_reminder": True,
             "sms_monthly_quota": None,
             "named_shipping_methods": True,
+            "sales_report": True,
+            "customer_tags": True,
         },
     },
 ]

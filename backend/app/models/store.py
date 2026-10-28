@@ -26,6 +26,7 @@ from app.models.mixins import TimestampMixin
 if TYPE_CHECKING:
     from app.models.conversation import Conversation
     from app.models.order import Order
+    from app.models.customer_tag import CustomerTag
     from app.models.payment_method import PaymentMethod
     from app.models.product import Product
     from app.models.product_category import ProductCategory
@@ -213,6 +214,12 @@ class Store(TimestampMixin, Base):
         back_populates="store",
         cascade="all, delete-orphan",
         order_by="ProductCategory.sort_order, ProductCategory.id",
+    )
+    customer_tags: Mapped[list["CustomerTag"]] = relationship(
+        "CustomerTag",
+        back_populates="store",
+        cascade="all, delete-orphan",
+        order_by="CustomerTag.name",
     )
 
     @property
