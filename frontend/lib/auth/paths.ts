@@ -65,4 +65,5 @@ export const paths = {
     storeProduct: (slug: string, productId: number | string) => `/store/${slug}/products/${productId}`,
   },
   store: (slug: string) => `/store/${slug}`,
+  storeLinks: (slug: string) => `/store/${slug}/links`,
 } as const;

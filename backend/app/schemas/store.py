@@ -1,8 +1,8 @@
 from datetime import datetime
-
 from decimal import Decimal
+from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class StoreSocialLinkInput(BaseModel):
@@ -62,8 +62,24 @@ class StoreResponse(BaseModel):
     default_shipping_cost: Decimal = Decimal("0")
     free_shipping_min_subtotal: Decimal | None = None
     social_links: list[StoreSocialLinkResponse] = Field(default_factory=list)
+    dm_reply_templates: list[dict[str, Any]] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime
+
+    @model_validator(mode="before")
+    @classmethod
+    def _parse_dm_templates(cls, data: Any) -> Any:
+        if hasattr(data, "__table__"):
+            raw = getattr(data, "dm_reply_templates_json", None)
+            payload = {c.name: getattr(data, c.name) for c in data.__table__.columns}
+            payload["badge_labels"] = list(getattr(data, "badge_labels", []) or [])
+            payload["social_links"] = list(getattr(data, "social_links", []) or [])
+            payload["dm_reply_templates"] = _decode_templates(raw)
+            return payload
+        if isinstance(data, dict) and "dm_reply_templates_json" in data:
+            data = dict(data)
+            data["dm_reply_templates"] = _decode_templates(data.get("dm_reply_templates_json"))
+        return data
 
 
 class StoreUpdate(BaseModel):
@@ -93,9 +109,48 @@ class StoreUpdate(BaseModel):
     shipping_policy_text: str | None = None
     default_shipping_cost: Decimal | None = Field(default=None, ge=0)
     free_shipping_min_subtotal: Decimal | None = Field(default=None, ge=0)
+    dm_reply_templates: list[dict[str, Any]] | None = None
+
+    @field_validator("dm_reply_templates")
+    @classmethod
+    def _validate_templates(cls, value: list[dict[str, Any]] | None) -> list[dict[str, Any]] | None:
+        if value is None:
+            return value
+        if len(value) > 20:
+            raise ValueError("حداکثر ۲۰ قالب پاسخ می‌تونی داشته باشی")
+        cleaned: list[dict[str, Any]] = []
+        for item in value:
+            title = str(item.get("title") or "").strip()[:80]
+            body = str(item.get("body") or "").strip()[:1000]
+            if not title or not body:
+                continue
+            cleaned.append({"title": title, "body": body})
+        return cleaned
 
     @model_validator(mode="after")
     def require_at_least_one_field(self) -> "StoreUpdate":
         if not self.model_fields_set:
             raise ValueError("At least one field must be provided")
         return self
+
+
+def _decode_templates(raw: Any) -> list[dict[str, Any]]:
+    if not raw:
+        return []
+    import json
+
+    try:
+        data = json.loads(raw) if isinstance(raw, str) else raw
+    except json.JSONDecodeError:
+        return []
+    if not isinstance(data, list):
+        return []
+    out: list[dict[str, Any]] = []
+    for item in data:
+        if not isinstance(item, dict):
+            continue
+        title = str(item.get("title") or "").strip()
+        body = str(item.get("body") or "").strip()
+        if title and body:
+            out.append({"title": title, "body": body})
+    return out

@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { use, useCallback } from "react";
 import * as conversationsApi from "@/lib/api/seller/conversations";
+import * as storeApi from "@/lib/api/seller/store";
 import { paths } from "@/lib/auth/paths";
 import { ChatThread } from "@/components/chat/ChatThread";
 import { useChatPolling } from "@/hooks/useChatPolling";
+import { useSellerFetch } from "@/hooks/useSellerFetch";
 import { useToast } from "@/contexts/ToastContext";
 
 type PageProps = {
@@ -16,6 +18,7 @@ export default function SellerConversationPage({ params }: PageProps) {
   const { id } = use(params);
   const conversationId = parseInt(id, 10);
   const toast = useToast();
+  const { data: store } = useSellerFetch(() => storeApi.getStore(), []);
 
   const fetchConversation = useCallback(
     () => conversationsApi.getConversation(conversationId),
@@ -45,6 +48,7 @@ export default function SellerConversationPage({ params }: PageProps) {
             toast.error("پیام ارسال نشد. دوباره امتحان کن.");
           }
         }}
+        replyTemplates={store?.dm_reply_templates ?? []}
         header={
           data ? (
             <div>

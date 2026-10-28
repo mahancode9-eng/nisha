@@ -232,6 +232,29 @@ export function ProductShareSheet({
           <Button variant="secondary" onClick={() => void downloadQr()}>
             دانلود QR
           </Button>
+          {allowPostTemplate ? (
+            <Button
+              variant="secondary"
+              onClick={async () => {
+                const post = [
+                  storeName,
+                  "",
+                  title,
+                  formatMoney(price),
+                  "",
+                  `سفارش: ${linkToShare}`,
+                ].join("\n");
+                try {
+                  await navigator.clipboard.writeText(post);
+                  setHint("متن پست کانال تلگرام کپی شد");
+                } catch {
+                  setHint("کپی متن کانال نشد");
+                }
+              }}
+            >
+              کپی پست کانال تلگرام
+            </Button>
+          ) : null}
         </div>
         {hint ? <p className="mt-3 text-center text-sm text-foreground-muted">{hint}</p> : null}
       </div>
