@@ -22,6 +22,11 @@ import {
 import { UpgradeGate } from "@/components/seller/UpgradeGate";
 import { useSellerEntitlements } from "@/hooks/useSellerEntitlements";
 import { paths } from "@/lib/auth/paths";
+import {
+  DISCOUNT_TEMPLATES,
+  expiresAtFromDays,
+  type DiscountTemplate,
+} from "@/lib/seller/discountTemplates";
 import type { DiscountCode, DiscountType } from "@/types/seller/discount";
 import Link from "next/link";
 
@@ -74,6 +79,21 @@ export default function SellerDiscountsPage() {
     setMaxUses("");
     setExpiresAt("");
     setDescription("");
+  }
+
+  function applyTemplate(template: DiscountTemplate) {
+    setCode(template.code);
+    setDiscountType(template.discount_type);
+    setPercentOff(template.percent_off ?? "");
+    setAmountOff(template.amount_off ?? "");
+    setMinOrderAmount(template.min_order_amount ?? "");
+    setMaxUses(template.max_uses ?? "");
+    setDescription(template.description);
+    if (canTimedDiscounts && template.expires_in_days) {
+      setExpiresAt(expiresAtFromDays(template.expires_in_days));
+    } else {
+      setExpiresAt("");
+    }
   }
 
   async function handleCreate(e: FormEvent) {
@@ -172,7 +192,28 @@ export default function SellerDiscountsPage() {
             </p>
           )}
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-foreground">قالب آماده</p>
+            <div className="flex flex-wrap gap-2">
+              {DISCOUNT_TEMPLATES.map((template) => (
+                <button
+                  key={template.id}
+                  type="button"
+                  onClick={() => applyTemplate(template)}
+                  className="rounded-xl border border-border bg-surface-muted/40 px-3 py-2 text-start text-sm transition hover:border-brand/40"
+                >
+                  <span className="block font-medium text-foreground">{template.label}</span>
+                  <span className="block text-xs text-foreground-muted">{template.description}</span>
+                </button>
+              ))}
+            </div>
+            {!canTimedDiscounts ? (
+              <p className="text-xs text-foreground-muted">
+                تاریخ انقضای قالب‌ها فقط تو پلن پایه به بالاست.
+              </p>
+            ) : null}
+          </div>
           <form onSubmit={handleCreate} className="grid gap-4 md:grid-cols-2">
             <Input
               label="کد"
