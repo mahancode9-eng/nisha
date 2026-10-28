@@ -9,7 +9,10 @@ from sqlalchemy.orm import Session, selectinload
 from app.models.order import Order
 from app.models.product import Product
 from app.models.store import Store
-from app.services import entitlement_service
+from app.services import entitlement_service, seller_customer_service
+
+# Excel only reads UTF-8 CSV (Persian text) when the file starts with a BOM.
+BOM = "\ufeff"
 
 
 def _require_export(db: Session, store: Store) -> None:
@@ -39,6 +42,7 @@ def export_products_csv(db: Session, store: Store) -> str:
     ).all()
     buffer = io.StringIO()
     writer = csv.writer(buffer)
+    buffer.write(BOM)
     writer.writerow(["id", "title", "price", "stock_quantity", "is_active", "created_at"])
     for product in products:
         writer.writerow(
@@ -63,6 +67,7 @@ def export_orders_csv(db: Session, store: Store) -> str:
         .order_by(Order.id.desc())
     ).all()
     buffer = io.StringIO()
+    buffer.write(BOM)
     writer = csv.writer(buffer)
     writer.writerow(
         [
@@ -74,6 +79,7 @@ def export_orders_csv(db: Session, store: Store) -> str:
             "total_amount",
             "item_count",
             "created_at",
+            "is_manual",
         ]
     )
     for order in orders:
@@ -87,6 +93,45 @@ def export_orders_csv(db: Session, store: Store) -> str:
                 str(order.total_amount),
                 len(order.items or []),
                 order.created_at.isoformat() if order.created_at else "",
+                order.is_manual,
+            ]
+        )
+    return buffer.getvalue()
+
+
+def export_customers_csv(db: Session, store: Store) -> str:
+    """Pro: every buyer with their totals and tags."""
+    customers = seller_customer_service.all_customers_for_export(db, store)
+    buffer = io.StringIO()
+    buffer.write(BOM)
+    writer = csv.writer(buffer)
+    writer.writerow(
+        [
+            "name",
+            "phone",
+            "email",
+            "kind",
+            "order_count",
+            "paid_order_count",
+            "total_spent",
+            "repeat_buyer",
+            "last_order_at",
+            "tags",
+        ]
+    )
+    for c in customers:
+        writer.writerow(
+            [
+                _sanitize_csv_cell(c.full_name),
+                _sanitize_csv_cell(c.phone or ""),
+                _sanitize_csv_cell(c.email or ""),
+                c.kind,
+                c.order_count,
+                c.paid_order_count,
+                str(c.total_spent),
+                c.is_repeat,
+                c.last_order_at.isoformat() if c.last_order_at else "",
+                _sanitize_csv_cell("، ".join(c.tags)),
             ]
         )
     return buffer.getvalue()

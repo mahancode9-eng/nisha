@@ -40,6 +40,11 @@ DEFAULT_ENTITLEMENTS: dict[str, Any] = {
     "configurable_receipt_reminder": False,
     "sms_monthly_quota": 0,
     "named_shipping_methods": False,
+    # Phase 6: reports and Pro tools.
+    "sales_report": False,
+    "customer_list": False,
+    "customer_tags": False,
+    "customer_export": False,
 }
 
 _PAID_DISCOUNT_ENTITLEMENTS: dict[str, Any] = {
@@ -84,6 +89,8 @@ PLAN_SEEDS: list[dict[str, Any]] = [
             "configurable_receipt_reminder": True,
             "sms_monthly_quota": 50,
             "named_shipping_methods": True,
+            "sales_report": True,
+            "customer_list": True,
         },
     },
     {
@@ -113,6 +120,10 @@ PLAN_SEEDS: list[dict[str, Any]] = [
             "configurable_receipt_reminder": True,
             "sms_monthly_quota": 300,
             "named_shipping_methods": True,
+            "sales_report": True,
+            "customer_list": True,
+            "customer_tags": True,
+            "customer_export": True,
         },
     },
     {
@@ -144,6 +155,10 @@ PLAN_SEEDS: list[dict[str, Any]] = [
             "configurable_receipt_reminder": True,
             "sms_monthly_quota": None,
             "named_shipping_methods": True,
+            "sales_report": True,
+            "customer_list": True,
+            "customer_tags": True,
+            "customer_export": True,
         },
     },
 ]
@@ -167,6 +182,12 @@ def _sync_plan_entitlements(plan: SubscriptionPlan, seed_entitlements: dict[str,
         "timed_discounts",
         "messenger_receipt_actions",
         "excel_export",
+        # Phase 6 gating.
+        "sales_report",
+        "customer_list",
+        "customer_tags",
+        "customer_export",
+        "remove_nisha_watermark",
     )
     for key in policy_keys:
         if key not in seed_entitlements:

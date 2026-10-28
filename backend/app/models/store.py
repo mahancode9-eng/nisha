@@ -144,6 +144,8 @@ class Store(TimestampMixin, Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_published: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     guest_checkout_enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    # Pro: hide "hosted on Nisha" and the Nisha mark on the storefront, bio page and cards.
+    hide_nisha_branding: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     theme_preset: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     primary_color: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
     design_style: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
@@ -233,3 +235,21 @@ class Store(TimestampMixin, Base):
 
     def set_onboarding_state(self, value: dict[str, Any]) -> None:
         self.onboarding_state_json = json.dumps(value, ensure_ascii=False)
+
+
+class StoreCustomerTag(TimestampMixin, Base):
+    """A seller's label on one of their buyers (Pro), keyed like the customer list ("c:12", "g:0912...")."""
+
+    __tablename__ = "store_customer_tags"
+    __table_args__ = (
+        UniqueConstraint("store_id", "customer_key", "tag", name="uq_store_customer_tags"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    store_id: Mapped[int] = mapped_column(
+        ForeignKey("stores.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    customer_key: Mapped[str] = mapped_column(String(80), nullable=False, index=True)
+    tag: Mapped[str] = mapped_column(String(40), nullable=False)

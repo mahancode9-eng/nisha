@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_seller_store
@@ -13,6 +13,7 @@ from app.schemas.store import (
 )
 from app.services import store_service
 from app.services.exceptions import ServiceError
+from app.api.service_http import raise_service_error
 
 router = APIRouter(prefix="/store", tags=["seller-store"])
 
@@ -31,7 +32,7 @@ def update_my_store(
     try:
         return store_service.update_store(db, store, payload)
     except ServiceError as exc:
-        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+        raise_service_error(exc)
 
 
 @router.get("/social-links", response_model=list[StoreSocialLinkResponse])
@@ -51,7 +52,7 @@ def create_social_link(
     try:
         link = store_service.create_social_link(db, store, payload)
     except ServiceError as exc:
-        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+        raise_service_error(exc)
     return StoreSocialLinkResponse.model_validate(link)
 
 
@@ -65,7 +66,7 @@ def update_social_link(
     try:
         link = store_service.update_social_link(db, store, link_id, payload)
     except ServiceError as exc:
-        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+        raise_service_error(exc)
     return StoreSocialLinkResponse.model_validate(link)
 
 
@@ -78,7 +79,7 @@ def delete_social_link(
     try:
         store_service.delete_social_link(db, store, link_id)
     except ServiceError as exc:
-        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+        raise_service_error(exc)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
@@ -91,5 +92,5 @@ def reorder_social_links(
     try:
         links = store_service.reorder_social_links(db, store, payload.ordered_ids)
     except ServiceError as exc:
-        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+        raise_service_error(exc)
     return [StoreSocialLinkResponse.model_validate(link) for link in links]

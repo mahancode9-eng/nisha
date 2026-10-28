@@ -1,4 +1,5 @@
 from datetime import datetime
+from decimal import Decimal
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -28,6 +29,21 @@ class SellerCustomerListItem(BaseModel):
     last_order_at: datetime | None = None
     has_conversation: bool = False
     conversation_id: int | None = None
+    # Paid orders only (confirmed, preparing, shipped, delivered).
+    paid_order_count: int = 0
+    total_spent: Decimal = Decimal("0")
+    # Two or more paid orders.
+    is_repeat: bool = False
+    tags: list[str] = Field(default_factory=list)
+
+
+class CustomerTagsUpdate(BaseModel):
+    tags: list[str] = Field(default_factory=list, max_length=10)
+
+
+class CustomerTagsResponse(BaseModel):
+    key: str
+    tags: list[str]
 
 
 class SellerCustomerDetail(SellerCustomerListItem):

@@ -54,6 +54,7 @@ class StoreResponse(BaseModel):
     is_active: bool
     is_published: bool = False
     guest_checkout_enabled: bool = False
+    hide_nisha_branding: bool = False
     theme_preset: str | None = None
     primary_color: str | None = None
     design_style: str | None = None
@@ -105,6 +106,7 @@ class StoreUpdate(BaseModel):
     is_active: bool | None = None
     is_published: bool | None = None
     guest_checkout_enabled: bool | None = None
+    hide_nisha_branding: bool | None = None
     theme_preset: str | None = Field(default=None, max_length=50)
     primary_color: str | None = Field(default=None, max_length=20)
     design_style: str | None = Field(default=None, max_length=20, pattern="^(saas|classic|glass)$")

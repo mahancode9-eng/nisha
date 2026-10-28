@@ -34,3 +34,16 @@ def export_orders(
         media_type="text/csv; charset=utf-8",
         headers={"Content-Disposition": 'attachment; filename="orders.csv"'},
     )
+
+
+@router.get("/customers.csv")
+def export_customers(
+    store: Store = Depends(get_seller_store),
+    db: Session = Depends(get_db),
+) -> Response:
+    content = seller_export_service.export_customers_csv(db, store)
+    return Response(
+        content=content,
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": 'attachment; filename="customers.csv"'},
+    )

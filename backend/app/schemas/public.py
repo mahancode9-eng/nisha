@@ -51,6 +51,9 @@ class PublicStoreProfile(BaseModel):
     social_links: list[PublicStoreSocialLink] = Field(default_factory=list)
     share_card_templates: bool = False
     remove_nisha_watermark: bool = False
+    # The seller turned Nisha branding off and their plan allows it (Pro). Never read
+    # straight from the store row (the alias doesn't exist there); set by the plan check.
+    hide_nisha_branding: bool = Field(default=False, validation_alias="effective_hide_nisha_branding")
 
     @model_validator(mode="before")
     @classmethod

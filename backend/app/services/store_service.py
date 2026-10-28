@@ -106,6 +106,16 @@ def update_store(db: Session, store: Store, data: StoreUpdate) -> Store:
                 status_code=403,
             )
 
+    if update_data.get("hide_nisha_branding") is True:
+        entitlements = get_seller_entitlements(db, store.owner_id)
+        if not entitlements.get("remove_nisha_watermark"):
+            raise ServiceError(
+                "حذف نشان نیشا مخصوص پلن حرفه‌ایه.",
+                status_code=403,
+                code="ENTITLEMENT_REQUIRED",
+                meta={"entitlement": "remove_nisha_watermark", "upgrade_required": True},
+            )
+
     theme_fields = {"theme_preset", "primary_color", "design_style"}
     if theme_fields.intersection(update_data):
         entitlements = get_seller_entitlements(db, store.owner_id)

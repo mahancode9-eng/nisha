@@ -63,12 +63,16 @@ def _public_product(product) -> PublicProduct:
 
 def _public_store_profile(store, badges, db: Session) -> PublicStoreProfile:
     ents = entitlement_service.get_seller_entitlements(db, store.owner_id)
+    # Branding stays on unless the seller turned it off on a plan that allows it
+    # (a lapsed Pro plan brings it back without touching the setting).
+    hide_branding = bool(store.hide_nisha_branding) and bool(ents.get("remove_nisha_watermark"))
     return PublicStoreProfile.model_validate(store).model_copy(
         update={
             "trust_badges": [badge.badge_type.value for badge in badges],
             "guest_checkout_enabled": is_guest_checkout_enabled(db, store),
             "share_card_templates": bool(ents.get("share_card_templates")),
-            "remove_nisha_watermark": bool(ents.get("remove_nisha_watermark")),
+            "remove_nisha_watermark": hide_branding,
+            "hide_nisha_branding": hide_branding,
         }
     )
 

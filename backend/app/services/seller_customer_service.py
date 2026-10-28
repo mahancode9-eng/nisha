@@ -2,19 +2,26 @@ from __future__ import annotations
 
 from urllib.parse import unquote
 
-from sqlalchemy import func, select
+from decimal import Decimal
+
+from sqlalchemy import case, delete, func, select
 from sqlalchemy.orm import Session
 
 from app.models.conversation import Conversation
 from app.models.customer_account import CustomerAccount
 from app.models.order import Order
-from app.models.store import Store
+from app.models.store import Store, StoreCustomerTag
 from app.schemas.seller_customer import (
     SellerCustomerDetail,
     SellerCustomerListItem,
     SellerCustomerOrderItem,
 )
+from app.services import entitlement_service
 from app.services.exceptions import ServiceError
+from app.services.sales_report_service import PAID_STATUSES
+
+MAX_TAGS = 10
+MAX_TAG_LENGTH = 30
 
 ACCOUNT_PREFIX = "c:"
 GUEST_PREFIX = "g:"
@@ -50,15 +57,26 @@ def _conversation_map(db: Session, store_id: int) -> dict[int, int]:
     return {int(customer_id): int(conversation_id) for customer_id, conversation_id in rows if customer_id}
 
 
-def list_customers_paginated(
-    db: Session,
-    store: Store,
-    *,
-    page: int,
-    page_size: int,
-    search: str | None = None,
-) -> tuple[list[SellerCustomerListItem], int]:
+_paid = Order.status.in_(PAID_STATUSES)
+_paid_count = func.coalesce(func.sum(case((_paid, 1), else_=0)), 0)
+_paid_total = func.coalesce(func.sum(case((_paid, Order.total_amount), else_=0)), 0)
+
+
+def _tags_by_key(db: Session, store_id: int) -> dict[str, list[str]]:
+    out: dict[str, list[str]] = {}
+    for key, tag in db.execute(
+        select(StoreCustomerTag.customer_key, StoreCustomerTag.tag)
+        .where(StoreCustomerTag.store_id == store_id)
+        .order_by(StoreCustomerTag.id)
+    ).all():
+        out.setdefault(key, []).append(tag)
+    return out
+
+
+def _all_customers(db: Session, store: Store) -> list[SellerCustomerListItem]:
+    """Every buyer of [store] (accounts and guests by phone), newest order first."""
     store_id = store.id
+    tags_by_key = _tags_by_key(db, store_id)
     conversation_by_customer = _conversation_map(db, store_id)
 
     account_stats = db.execute(
@@ -68,6 +86,8 @@ def list_customers_paginated(
             func.max(Order.created_at),
             func.max(Order.buyer_name),
             func.max(Order.buyer_phone),
+            _paid_count,
+            _paid_total,
         )
         .where(Order.store_id == store_id, Order.customer_id.is_not(None))
         .group_by(Order.customer_id)
@@ -91,8 +111,10 @@ def list_customers_paginated(
             "last_order_at": last_order_at,
             "buyer_name": buyer_name,
             "buyer_phone": buyer_phone,
+            "paid_count": int(paid_count or 0),
+            "paid_total": Decimal(str(paid_total or 0)),
         }
-        for customer_id, order_count, last_order_at, buyer_name, buyer_phone in account_stats
+        for customer_id, order_count, last_order_at, buyer_name, buyer_phone, paid_count, paid_total in account_stats
         if customer_id is not None
     }
 
@@ -109,9 +131,11 @@ def list_customers_paginated(
         )
         phone = (account.phone if account else None) or stats.get("buyer_phone")
         email = account.email if account else None
+        key = _account_key(customer_id)
+        paid_count = int(stats.get("paid_count") or 0)
         items.append(
             SellerCustomerListItem(
-                key=_account_key(customer_id),
+                key=key,
                 kind="account",
                 customer_id=customer_id,
                 full_name=full_name,
@@ -121,6 +145,10 @@ def list_customers_paginated(
                 last_order_at=stats.get("last_order_at"),
                 has_conversation=conversation_id is not None,
                 conversation_id=conversation_id,
+                paid_order_count=paid_count,
+                total_spent=stats.get("paid_total") or Decimal("0"),
+                is_repeat=paid_count >= 2,
+                tags=tags_by_key.get(key, []),
             )
         )
 
@@ -130,17 +158,20 @@ def list_customers_paginated(
             func.max(Order.buyer_name),
             func.count(Order.id),
             func.max(Order.created_at),
+            _paid_count,
+            _paid_total,
         )
         .where(Order.store_id == store_id, Order.customer_id.is_(None))
         .group_by(Order.buyer_phone)
     ).all()
 
-    for phone, buyer_name, order_count, last_order_at in guest_rows:
+    for phone, buyer_name, order_count, last_order_at, paid_count, paid_total in guest_rows:
         if not phone:
             continue
+        key = _guest_key(str(phone))
         items.append(
             SellerCustomerListItem(
-                key=_guest_key(str(phone)),
+                key=key,
                 kind="guest",
                 customer_id=None,
                 full_name=buyer_name or "خریدار مهمان",
@@ -150,9 +181,43 @@ def list_customers_paginated(
                 last_order_at=last_order_at,
                 has_conversation=False,
                 conversation_id=None,
+                paid_order_count=int(paid_count or 0),
+                total_spent=Decimal(str(paid_total or 0)),
+                is_repeat=int(paid_count or 0) >= 2,
+                tags=tags_by_key.get(key, []),
             )
         )
 
+    def sort_key(item: SellerCustomerListItem) -> tuple[float, str]:
+        ts = item.last_order_at.timestamp() if item.last_order_at else 0.0
+        return (-ts, item.full_name.lower())
+
+    items.sort(key=sort_key)
+    return items
+
+
+def list_customers_paginated(
+    db: Session,
+    store: Store,
+    *,
+    page: int,
+    page_size: int,
+    search: str | None = None,
+    tag: str | None = None,
+    repeat_only: bool = False,
+) -> tuple[list[SellerCustomerListItem], int]:
+    entitlement_service.require_entitlement(
+        db,
+        store.owner_id,
+        "customer_list",
+        message="لیست مشتری‌ها تو پلن فعلی‌ت فعال نیست. با پلن پایه بازش کن.",
+    )
+    items = _all_customers(db, store)
+    if repeat_only:
+        items = [item for item in items if item.is_repeat]
+    if tag:
+        wanted = tag.strip()
+        items = [item for item in items if wanted in item.tags]
     if search:
         term = search.strip().lower()
         items = [
@@ -163,20 +228,27 @@ def list_customers_paginated(
             or term in (item.email or "").lower()
         ]
 
-    def sort_key(item: SellerCustomerListItem) -> tuple[float, str]:
-        ts = item.last_order_at.timestamp() if item.last_order_at else 0.0
-        return (-ts, item.full_name.lower())
-
-    items.sort(key=sort_key)
     total = len(items)
     offset = (page - 1) * page_size
     return items[offset : offset + page_size], total
+
+
+def _order_stats(orders: list[Order], tags: list[str]) -> dict:
+    paid = [o for o in orders if o.status in PAID_STATUSES]
+    return {
+        "paid_order_count": len(paid),
+        "total_spent": sum((Decimal(str(o.total_amount)) for o in paid), Decimal("0")),
+        "is_repeat": len(paid) >= 2,
+        "tags": tags,
+    }
 
 
 def get_customer_detail(db: Session, store: Store, key: str) -> SellerCustomerDetail:
     kind, value = parse_customer_key(key)
     store_id = store.id
     conversation_by_customer = _conversation_map(db, store_id)
+    tags_by_key = _tags_by_key(db, store_id)
+    key = _account_key(int(value)) if kind == "account" and value.isdigit() else _guest_key(value)
 
     if kind == "account":
         try:
@@ -218,6 +290,7 @@ def get_customer_detail(db: Session, store: Store, key: str) -> SellerCustomerDe
             last_order_at=latest.created_at if latest else None,
             has_conversation=conversation_id is not None,
             conversation_id=conversation_id,
+            **_order_stats(orders, tags_by_key.get(key, [])),
             orders=[
                 SellerCustomerOrderItem(
                     id=order.id,
@@ -263,6 +336,7 @@ def get_customer_detail(db: Session, store: Store, key: str) -> SellerCustomerDe
         last_order_at=latest.created_at,
         has_conversation=False,
         conversation_id=None,
+        **_order_stats(orders, tags_by_key.get(key, [])),
         orders=[
             SellerCustomerOrderItem(
                 id=order.id,
@@ -275,3 +349,81 @@ def get_customer_detail(db: Session, store: Store, key: str) -> SellerCustomerDe
             for order in orders
         ],
     )
+
+
+def _normalize_tags(tags: list[str]) -> list[str]:
+    out: list[str] = []
+    for raw in tags:
+        tag = " ".join(str(raw).split())[:MAX_TAG_LENGTH]
+        if tag and tag not in out:
+            out.append(tag)
+    if len(out) > MAX_TAGS:
+        raise ServiceError(f"هر مشتری حداکثر {MAX_TAGS} برچسب می‌تونه داشته باشه.", status_code=422)
+    return out
+
+
+def set_customer_tags(db: Session, store: Store, key: str, tags: list[str]) -> tuple[str, list[str]]:
+    """Replace a buyer's tags (Pro). Returns the canonical key and the saved tags."""
+    entitlement_service.require_entitlement(
+        db,
+        store.owner_id,
+        "customer_tags",
+        message="برچسب مشتری مخصوص پلن حرفه‌ایه.",
+    )
+    kind, value = parse_customer_key(key)
+    if kind == "account":
+        if not value.isdigit():
+            raise ServiceError("Customer not found", status_code=404)
+        canonical = _account_key(int(value))
+        known = db.scalar(
+            select(func.count(Order.id)).where(Order.store_id == store.id, Order.customer_id == int(value))
+        ) or (int(value) in _conversation_map(db, store.id))
+    else:
+        phone = value.strip()
+        canonical = _guest_key(phone)
+        known = db.scalar(
+            select(func.count(Order.id)).where(
+                Order.store_id == store.id,
+                Order.customer_id.is_(None),
+                Order.buyer_phone == phone,
+            )
+        )
+    if not known:
+        raise ServiceError("Customer not found", status_code=404)
+
+    clean = _normalize_tags(tags)
+    db.execute(
+        delete(StoreCustomerTag).where(
+            StoreCustomerTag.store_id == store.id,
+            StoreCustomerTag.customer_key == canonical,
+        )
+    )
+    for tag in clean:
+        db.add(StoreCustomerTag(store_id=store.id, customer_key=canonical, tag=tag))
+    db.commit()
+    return canonical, clean
+
+
+def list_tags(db: Session, store: Store) -> list[str]:
+    """Every tag the seller has used, most used first (Pro)."""
+    entitlement_service.require_entitlement(
+        db, store.owner_id, "customer_tags", message="برچسب مشتری مخصوص پلن حرفه‌ایه."
+    )
+    return list(
+        db.scalars(
+            select(StoreCustomerTag.tag)
+            .where(StoreCustomerTag.store_id == store.id)
+            .group_by(StoreCustomerTag.tag)
+            .order_by(func.count(StoreCustomerTag.id).desc(), StoreCustomerTag.tag)
+        ).all()
+    )
+
+
+def all_customers_for_export(db: Session, store: Store) -> list[SellerCustomerListItem]:
+    entitlement_service.require_entitlement(
+        db,
+        store.owner_id,
+        "customer_export",
+        message="خروجی اکسل مشتری‌ها مخصوص پلن حرفه‌ایه.",
+    )
+    return _all_customers(db, store)
