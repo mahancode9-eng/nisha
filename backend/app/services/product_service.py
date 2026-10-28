@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import re
+from decimal import Decimal
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import func, select
@@ -18,7 +20,7 @@ from app.schemas.product import (
     ProductUpdate,
     ProductVariantInput,
 )
-from app.services import entitlement_service, product_category_service, product_category_service
+from app.services import entitlement_service, product_category_service
 from app.services.exceptions import ServiceError
 
 MAX_IMAGES_MESSAGE = "تعداد عکس‌ها از سقف پلنت بیشتره. برای عکس بیشتر پلن رو ارتقا بده."
@@ -245,6 +247,55 @@ def get_product(db: Session, store: Store, product_id: int) -> Product:
     if product is None:
         raise ServiceError("Product not found", status_code=404)
     return product
+
+
+def import_instagram_product(
+    db: Session,
+    store: Store,
+    *,
+    caption: str,
+    image_url: str,
+    price: Decimal | None = None,
+    stock_quantity: int = 1,
+) -> Product:
+    """Create a draft product from an Instagram caption + image URL."""
+    entitlements = entitlement_service.get_seller_entitlements(db, store.owner_id)
+    limit = entitlements.get("instagram_import_limit", 5)
+    if limit is not None and int(store.instagram_import_count or 0) >= int(limit):
+        raise _entitlement_error(
+            "سقف ایمپورت اینستاگرام پلنت پر شده. برای ایمپورت بیشتر پلن رو ارتقا بده.",
+            entitlement="instagram_import_limit",
+            code="INSTAGRAM_IMPORT_LIMIT",
+        )
+
+    lines = [line.strip() for line in caption.strip().splitlines() if line.strip()]
+    title = (lines[0] if lines else "محصول اینستاگرام")[:255]
+    description = "\n".join(lines[1:]) if len(lines) > 1 else caption.strip()
+    parsed_price = price
+    if parsed_price is None:
+        match = re.search(r"(\d[\d,\.]{2,})", caption.replace("٬", ","))
+        if match:
+            raw = match.group(1).replace(",", "").replace("٬", "")
+            try:
+                parsed_price = Decimal(raw)
+            except Exception:  # noqa: BLE001
+                parsed_price = None
+    if parsed_price is None:
+        parsed_price = Decimal("0")
+
+    payload = ProductCreate(
+        title=title,
+        description=description or None,
+        price=parsed_price,
+        stock_quantity=stock_quantity,
+        is_active=False,
+        images=[ProductImageInput(image_url=image_url, sort_order=0)],
+    )
+    product = create_product(db, store, payload)
+    store.instagram_import_count = int(store.instagram_import_count or 0) + 1
+    db.commit()
+    db.refresh(store)
+    return get_product(db, store, product.id)
 
 
 def create_product(db: Session, store: Store, data: ProductCreate) -> Product:

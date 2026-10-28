@@ -9,6 +9,13 @@ from app.schemas.product_category import ProductCategorySummary
 MAX_PRODUCT_IMAGES = 8
 
 
+class InstagramImportRequest(BaseModel):
+    caption: str = Field(min_length=1, max_length=4000)
+    image_url: str = Field(min_length=1, max_length=500)
+    price: Decimal | None = Field(default=None, ge=0)
+    stock_quantity: int = Field(default=1, ge=0, le=100000)
+
+
 class ProductImageResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

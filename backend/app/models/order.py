@@ -94,6 +94,7 @@ class Order(TimestampMixin, Base):
         nullable=True,
     )
     tracking_code: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    is_manual: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     store: Mapped["Store"] = relationship("Store", back_populates="orders")
     customer: Mapped[Optional["CustomerAccount"]] = relationship(

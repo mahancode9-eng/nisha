@@ -24,6 +24,7 @@ class SellerOrderListItem(BaseModel):
     complaint_count: int = 0
     conversation_id: int | None = None
     payment_proof_count: int = 0
+    is_manual: bool = False
     created_at: datetime
 
 
@@ -63,6 +64,7 @@ class SellerOrderDetailResponse(BaseModel):
     payment_proof_count: int = 0
     stock_restored: bool
     tracking_code: str | None = None
+    is_manual: bool = False
     created_at: datetime
     updated_at: datetime
     items: list[SellerOrderItemResponse]
@@ -90,3 +92,26 @@ class SellerOrderActionResponse(BaseModel):
 
 class SellerOrderConversationResponse(BaseModel):
     conversation_id: int
+
+
+class ManualOrderItemInput(BaseModel):
+    product_id: int
+    quantity: int = Field(ge=1, le=100)
+
+
+class ManualOrderCreate(BaseModel):
+    buyer_name: str = Field(min_length=1, max_length=255)
+    buyer_phone: str = Field(min_length=1, max_length=50)
+    buyer_address: str = Field(min_length=1)
+    buyer_note: str | None = Field(default=None, max_length=1000)
+    payment_method_id: int
+    items: list[ManualOrderItemInput] = Field(min_length=1)
+    mark_paid: bool = False
+
+
+class ManualOrderCreateResponse(BaseModel):
+    order_id: int
+    invoice_code: str
+    invoice_edit_password: str
+    status: OrderStatus
+    is_manual: bool = True

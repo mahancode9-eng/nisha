@@ -12,6 +12,8 @@ from app.schemas.guest_order import OrderStatusHistoryResponse, PaymentProofResp
 from app.schemas.payment_method import PaymentMethodResponse
 from app.schemas.pagination import PaginatedResponse, build_paginated_response
 from app.schemas.seller_order import (
+    ManualOrderCreate,
+    ManualOrderCreateResponse,
     SellerOrderActionResponse,
     SellerOrderConversationResponse,
     SellerOrderDetailResponse,
@@ -41,6 +43,7 @@ def _list_item(order) -> SellerOrderListItem:
         complaint_count=len(order.complaints),
         conversation_id=seller_order_service.conversation_id_for_order(order),
         payment_proof_count=seller_order_service.payment_proof_count_for_order(order),
+        is_manual=bool(getattr(order, "is_manual", False)),
         created_at=order.created_at,
     )
 
@@ -70,6 +73,18 @@ def list_orders(
     )
     items = [_list_item(order) for order in orders]
     return build_paginated_response(items, total, page, page_size)
+
+
+@router.post("/manual", response_model=ManualOrderCreateResponse, status_code=201)
+def create_manual_order(
+    payload: ManualOrderCreate,
+    store: Store = Depends(get_seller_store),
+    db: Session = Depends(get_db),
+) -> ManualOrderCreateResponse:
+    try:
+        return seller_order_service.create_manual_order(db, store, payload)
+    except ServiceError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
 
 
 @router.get("/{order_id}", response_model=SellerOrderDetailResponse)
@@ -103,6 +118,7 @@ def get_order(
         payment_proof_count=seller_order_service.payment_proof_count_for_order(order),
         stock_restored=order.stock_restored,
         tracking_code=order.tracking_code,
+        is_manual=bool(getattr(order, "is_manual", False)),
         created_at=order.created_at,
         updated_at=order.updated_at,
         items=[seller_order_item_response(item) for item in order.items],

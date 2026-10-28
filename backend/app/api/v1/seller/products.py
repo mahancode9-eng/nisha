@@ -7,6 +7,7 @@ from app.db.session import get_db
 from app.models.store import Store
 from app.schemas.pagination import PaginatedResponse, build_paginated_response
 from app.schemas.product import (
+    InstagramImportRequest,
     ProductCreate,
     ProductFormFieldInput,
     ProductFormFieldReorderRequest,
@@ -45,6 +46,30 @@ def create_product(
 ) -> ProductResponse:
     try:
         product = product_service.create_product(db, store, payload)
+    except ServiceError as exc:
+        raise_service_error(exc)
+    return ProductResponse.model_validate(product)
+
+
+@router.post(
+    "/import-instagram",
+    response_model=ProductResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def import_instagram_product(
+    payload: InstagramImportRequest,
+    store: Store = Depends(get_seller_store),
+    db: Session = Depends(get_db),
+) -> ProductResponse:
+    try:
+        product = product_service.import_instagram_product(
+            db,
+            store,
+            caption=payload.caption,
+            image_url=payload.image_url,
+            price=payload.price,
+            stock_quantity=payload.stock_quantity,
+        )
     except ServiceError as exc:
         raise_service_error(exc)
     return ProductResponse.model_validate(product)
