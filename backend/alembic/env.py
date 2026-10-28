@@ -17,6 +17,7 @@ import app.models.product  # noqa: F401
 import app.models.shipping_method  # noqa: F401
 import app.models.store  # noqa: F401
 import app.models.team  # noqa: F401
+import app.models.domain  # noqa: F401
 import app.models.short_link  # noqa: F401
 import app.models.subscription  # noqa: F401
 import app.models.user  # noqa: F401

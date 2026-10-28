@@ -1,6 +1,7 @@
 import asyncio
 from contextlib import asynccontextmanager
 from pathlib import Path
+from urllib.parse import urlparse
 
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
@@ -30,6 +31,8 @@ from app.core.error_handlers import (
 from app.core.limiter import limiter, rate_limit_exceeded_handler
 from app.core.logging_config import RequestLoggingMiddleware, setup_logging
 from app.core.security_headers import SecurityHeadersMiddleware
+from app.db.session import SessionLocal
+from app.services import domain_service
 from app.services.exceptions import ServiceError
 
 if settings.SENTRY_DSN:
@@ -122,8 +125,20 @@ app.add_middleware(SlowAPIMiddleware)
 
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(RequestLoggingMiddleware)
+class StoreDomainCORSMiddleware(CORSMiddleware):
+    """The configured origins, plus storefronts on verified custom domains (Pro)."""
+
+    def is_allowed_origin(self, origin: str) -> bool:
+        if super().is_allowed_origin(origin):
+            return True
+        parsed = urlparse(origin)
+        if parsed.scheme != "https" or not parsed.hostname:
+            return False
+        return parsed.hostname in domain_service.active_hosts(SessionLocal)
+
+
 app.add_middleware(
-    CORSMiddleware,
+    StoreDomainCORSMiddleware,
     allow_origins=settings.cors_origins_list,
     allow_credentials=True,
     allow_methods=["*"],

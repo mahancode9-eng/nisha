@@ -7,6 +7,7 @@ from app.api.v1.seller.conversations import router as conversations_router
 from app.api.v1.seller.customers import router as customers_router
 from app.api.v1.seller.dashboard import router as dashboard_router
 from app.api.v1.seller.discounts import router as discounts_router
+from app.api.v1.seller.domain import router as domain_router
 from app.api.v1.seller.exports import router as exports_router
 from app.api.v1.seller.messenger import router as messenger_router
 from app.api.v1.seller.orders import router as orders_router
@@ -42,6 +43,7 @@ _AREAS = [
     (exports_router, "exports"),
     (messenger_router, "messenger"),
     (team_router, "team"),
+    (domain_router, "domain"),
 ]
 for sub_router, area in _AREAS:
     router.include_router(sub_router, dependencies=[Depends(require_area(area))])

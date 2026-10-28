@@ -82,6 +82,10 @@ class Settings(BaseSettings):
     BALE_WEBHOOK_SECRET: str = ""
     # Public base URL of this API (for Telegram to fetch private media). e.g. https://api.example.com
     API_PUBLIC_BASE_URL: str = ""
+    # Custom domains (Pro): where sellers point their domain, and hosts nobody may claim.
+    CUSTOM_DOMAIN_CNAME_TARGET: str = "stores.nisha.ir"
+    CUSTOM_DOMAIN_IPV4: str = ""  # comma-separated A records for apex domains
+    CUSTOM_DOMAIN_RESERVED: str = "nisha.ir"  # comma-separated; subdomains included
     MESSENGER_LINK_TOKEN_EXPIRE_MINUTES: int = 30
 
     @field_validator("CORS_ORIGINS", mode="before")

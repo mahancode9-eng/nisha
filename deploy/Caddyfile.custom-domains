@@ -1,0 +1,28 @@
+# Edge for sellers' own domains (Pro): HTTPS certificates are issued on the
+# first request to a domain, but only after the backend says yes
+# (GET /api/v1/public/domains/tls-check?domain=… → 200 for verified domains
+# whose store is on a plan with custom domains). See docs/custom-domains.md.
+{
+	on_demand_tls {
+		ask http://127.0.0.1:9000/api/v1/public/domains/tls-check
+	}
+	email ops@nisha.ir
+}
+
+# Any hostname that isn't Nisha's own: a seller's domain.
+https:// {
+	tls {
+		on_demand
+	}
+	encode zstd gzip
+	# Next.js maps the host to the store (frontend/middleware.ts).
+	reverse_proxy 127.0.0.1:3000 {
+		header_up Host {host}
+		header_up X-Forwarded-Proto https
+	}
+}
+
+# Plain HTTP on custom domains: redirect (and answer ACME HTTP challenges).
+http:// {
+	redir https://{host}{uri} permanent
+}
