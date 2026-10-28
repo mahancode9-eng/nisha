@@ -31,6 +31,7 @@ if TYPE_CHECKING:
     from app.models.product import Product
     from app.models.product_category import ProductCategory
     from app.models.shipping_method import ShippingMethod
+    from app.models.store_member import StoreMember
     from app.models.user import User
 
 
@@ -163,6 +164,11 @@ class Store(TimestampMixin, Base):
     payment_reminder_minutes: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     sms_quota_month: Mapped[Optional[str]] = mapped_column(String(7), nullable=True)
     sms_sent_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    custom_domain: Mapped[Optional[str]] = mapped_column(String(255), nullable=True, unique=True)
+    custom_domain_verified_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
 
     owner: Mapped["User"] = relationship("User", back_populates="store")
     products: Mapped[list["Product"]] = relationship(
@@ -220,6 +226,12 @@ class Store(TimestampMixin, Base):
         back_populates="store",
         cascade="all, delete-orphan",
         order_by="CustomerTag.name",
+    )
+    members: Mapped[list["StoreMember"]] = relationship(
+        "StoreMember",
+        back_populates="store",
+        cascade="all, delete-orphan",
+        order_by="StoreMember.id",
     )
 
     @property

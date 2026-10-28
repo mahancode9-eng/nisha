@@ -26,6 +26,7 @@ from app.schemas.public import (
 )
 from app.services import (
     checkout_service,
+    custom_domain_service,
     entitlement_service,
     product_search_service,
     public_store_service,
@@ -34,6 +35,60 @@ from app.services.exceptions import ServiceError
 from app.services.platform_setting_service import is_guest_checkout_enabled
 
 router = APIRouter(prefix="/stores", tags=["public-stores"])
+
+
+@router.get("/resolve-host", response_model=PublicStorePageResponse, response_model_exclude_none=True)
+def resolve_store_by_host(
+    request: Request,
+    host: str | None = Query(default=None, max_length=255),
+    db: Session = Depends(get_db),
+) -> PublicStorePageResponse:
+    """Resolve a verified custom domain to the public storefront payload."""
+    raw_host = host or request.headers.get("x-forwarded-host") or request.headers.get("host") or ""
+    store = custom_domain_service.get_store_by_custom_domain(db, raw_host)
+    if store is None:
+        raise HTTPException(status_code=404, detail="Store not found")
+    try:
+        (
+            store,
+            products,
+            categories,
+            social_links,
+            payment_methods,
+            shipping_methods,
+            reviews,
+            average_rating,
+            review_count,
+            badges,
+        ) = public_store_service.get_store_page(db, store.slug)
+    except ServiceError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+
+    return PublicStorePageResponse(
+        store=_public_store_profile(store, badges, db),
+        social_links=[PublicStoreSocialLink.model_validate(link) for link in social_links],
+        products=[_public_product(product) for product in products],
+        categories=[ProductCategorySummary.model_validate(category) for category in categories],
+        payment_methods=[PublicPaymentMethod.model_validate(m) for m in payment_methods],
+        shipping_methods=[PublicShippingMethod.model_validate(m) for m in shipping_methods],
+        review_summary=PublicStoreReviewSummary(
+            average_rating=average_rating,
+            review_count=review_count,
+            recent_reviews=[
+                PublicStoreReview(
+                    id=review.id,
+                    order_id=review.order_id,
+                    customer_name=review.customer.full_name if review.customer else "Customer",
+                    rating=review.rating,
+                    title=review.title,
+                    comment=review.comment,
+                    image_urls=[image.image_url for image in review.images],
+                    created_at=review.created_at,
+                )
+                for review in reviews
+            ],
+        ),
+    )
 
 
 def _public_product(product) -> PublicProduct:

@@ -38,6 +38,7 @@ import app.models.product_category  # noqa: F401
 import app.models.shipping_method  # noqa: F401
 import app.models.short_link  # noqa: F401
 import app.models.store  # noqa: F401
+import app.models.store_member  # noqa: F401
 import app.models.subscription  # noqa: F401
 import app.models.user  # noqa: F401
 import app.models.ws_ticket  # noqa: F401

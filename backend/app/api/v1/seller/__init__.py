@@ -17,9 +17,11 @@ from app.api.v1.seller.reports import router as reports_router
 from app.api.v1.seller.shipping_methods import router as shipping_methods_router
 from app.api.v1.seller.store import router as store_router
 from app.api.v1.seller.subscription import router as subscription_router
+from app.api.v1.seller.team import router as team_router
 
 router = APIRouter(prefix="/seller", tags=["seller"])
 router.include_router(store_router)
+router.include_router(team_router)
 router.include_router(categories_router)
 router.include_router(products_router)
 router.include_router(payment_methods_router)

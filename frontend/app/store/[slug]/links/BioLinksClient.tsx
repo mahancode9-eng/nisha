@@ -145,7 +145,9 @@ export function BioLinksClient({ slug }: { slug: string }) {
           </div>
         ) : null}
 
-        <p className="pt-4 text-center text-xs text-neutral-400">میزبانی‌شده روی نیشا</p>
+        {!data.store.remove_nisha_watermark ? (
+          <p className="pt-4 text-center text-xs text-neutral-400">میزبانی‌شده روی نیشا</p>
+        ) : null}
       </div>
     </div>
   );
