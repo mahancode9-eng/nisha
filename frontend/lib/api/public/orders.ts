@@ -17,14 +17,26 @@ export function trackOrder(body: OrderTrackRequest): Promise<OrderTrackResponse>
   return apiPost<OrderTrackResponse>("/api/v1/public/orders/track", body, { auth: false });
 }
 
+export type UploadPaymentProofOptions = {
+  payerCardLast4?: string | null;
+  transferTracking?: string | null;
+};
+
 export function uploadPaymentProof(
   invoiceCode: string,
   invoiceEditPassword: string,
   file: File,
+  options: UploadPaymentProofOptions = {},
 ): Promise<PaymentProofUploadResponse> {
   const formData = new FormData();
   formData.append("invoice_edit_password", invoiceEditPassword);
   formData.append("file", file);
+  if (options.payerCardLast4?.trim()) {
+    formData.append("payer_card_last4", options.payerCardLast4.trim());
+  }
+  if (options.transferTracking?.trim()) {
+    formData.append("transfer_tracking", options.transferTracking.trim());
+  }
   return apiPostForm<PaymentProofUploadResponse>(
     `/api/v1/public/orders/${encodeURIComponent(invoiceCode)}/upload-payment-proof`,
     formData,

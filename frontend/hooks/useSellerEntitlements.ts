@@ -22,6 +22,17 @@ const DEFAULT_ENTITLEMENTS: PlanEntitlements = {
   excel_export: false,
   store_pages: false,
   priority_support: false,
+  share_card_templates: false,
+  remove_nisha_watermark: false,
+  instagram_import_limit: 5,
+  duplicate_receipt_warn: false,
+  configurable_receipt_reminder: false,
+  sms_monthly_quota: 0,
+  named_shipping_methods: false,
+  sales_report: false,
+  customer_tags: false,
+  store_team: false,
+  custom_domain: false,
 };
 
 export function useSellerEntitlements() {

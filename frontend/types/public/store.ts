@@ -60,11 +60,19 @@ export type PublicProductVariant = {
   sort_order: number;
 };
 
+export type PublicShippingMethod = {
+  id: number;
+  name: string;
+  cost: string;
+  eta_label?: string | null;
+};
+
 export type PublicProduct = {
   id: number;
   title: string;
   description: string | null;
   price: string;
+  compare_at_price?: string | null;
   stock_quantity: number;
   video_url?: string | null;
   video_mime_type?: string | null;
@@ -121,6 +129,7 @@ export type PublicStorePageResponse = {
   categories: PublicProductCategory[];
   products: PublicProduct[];
   payment_methods: PublicPaymentMethod[];
+  shipping_methods?: PublicShippingMethod[];
   review_summary: PublicStoreReviewSummary;
 };
 

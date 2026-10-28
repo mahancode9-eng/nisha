@@ -13,6 +13,7 @@ export type SellerOrderListItem = {
   complaint_count: number;
   conversation_id?: number | null;
   payment_proof_count?: number;
+  is_manual?: boolean;
   created_at: string;
 };
 
@@ -31,6 +32,8 @@ export type SellerOrderItem = {
 export type PaymentProof = {
   id: number;
   image_url: string;
+  payer_card_last4?: string | null;
+  transfer_tracking?: string | null;
   uploaded_at: string;
 };
 
@@ -62,6 +65,7 @@ export type SellerOrderDetail = {
   payment_proof_count?: number;
   stock_restored: boolean;
   tracking_code?: string | null;
+  is_manual?: boolean;
   created_at: string;
   updated_at: string;
   items: SellerOrderItem[];

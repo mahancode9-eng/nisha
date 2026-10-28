@@ -93,6 +93,7 @@ export type Product = {
   title: string;
   description: string | null;
   price: string;
+  compare_at_price?: string | null;
   stock_quantity: number;
   is_active: boolean;
   video_url?: string | null;
@@ -111,6 +112,7 @@ export type ProductCreate = {
   title: string;
   description?: string | null;
   price: number | string;
+  compare_at_price?: number | string | null;
   stock_quantity?: number;
   is_active?: boolean;
   video_url?: string | null;
@@ -127,6 +129,7 @@ export type ProductUpdate = {
   title?: string;
   description?: string | null;
   price?: number | string;
+  compare_at_price?: number | string | null;
   stock_quantity?: number;
   is_active?: boolean;
   video_url?: string | null;
@@ -137,6 +140,13 @@ export type ProductUpdate = {
   variants?: ProductVariantInput[] | null;
   category_id?: number | null;
   shipping_cost?: number | string | null;
+};
+
+export type InstagramImportRequest = {
+  caption: string;
+  image_url: string;
+  price?: number | string | null;
+  stock_quantity?: number;
 };
 
 export type ProductImageReorderRequest = {

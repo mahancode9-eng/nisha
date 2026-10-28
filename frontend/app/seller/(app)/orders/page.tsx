@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as ordersApi from "@/lib/api/seller/orders";
 import * as exportsApi from "@/lib/api/seller/exports";
@@ -213,11 +214,18 @@ export default function SellerOrdersPage() {
       <PageHeader
         description="از رسید تا ارسال، کار بعدی هر سفارش رو همین‌جا ببین"
         action={
-          canExport ? (
-            <Button type="button" variant="secondary" loading={exporting} onClick={() => void handleExport()}>
-              خروجی Excel
-            </Button>
-          ) : undefined
+          <div className="flex flex-wrap gap-2">
+            <Link href={paths.seller.orderNew}>
+              <Button type="button" variant="secondary">
+                سفارش دستی
+              </Button>
+            </Link>
+            {canExport ? (
+              <Button type="button" variant="secondary" loading={exporting} onClick={() => void handleExport()}>
+                خروجی Excel
+              </Button>
+            ) : null}
+          </div>
         }
       />
 

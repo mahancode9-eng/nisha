@@ -22,6 +22,8 @@ export function PaymentProofUpload({
   const fileRef = useRef<HTMLInputElement>(null);
   const [password, setPassword] = useState(defaultPassword);
   const [file, setFile] = useState<File | null>(null);
+  const [cardLast4, setCardLast4] = useState("");
+  const [transferTracking, setTransferTracking] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,11 +38,30 @@ export function PaymentProofUpload({
       setError("رمز فاکتور رو وارد کن.");
       return;
     }
+    const last4 = cardLast4.trim();
+    if (last4 && !/^\d{4}$/.test(last4)) {
+      setError("چهار رقم آخر کارت رو درست بنویس.");
+      return;
+    }
     setLoading(true);
     try {
-      await ordersApi.uploadPaymentProof(invoiceCode, password.trim(), file);
-      toast.success("رسیدت ثبت شد. فروشنده بعد از بررسی، پرداخت رو تایید می‌کنه.");
+      const result = await ordersApi.uploadPaymentProof(invoiceCode, password.trim(), file, {
+        payerCardLast4: last4 || null,
+        transferTracking: transferTracking.trim() || null,
+      });
+      if (result.duplicate_warning) {
+        const codes = result.duplicate_invoice_codes?.join("، ") ?? "";
+        toast.error(
+          codes
+            ? `این رسید شبیه سفارش‌های دیگه است: ${codes}. فروشنده بررسی می‌کنه.`
+            : "این رسید شبیه یه رسید دیگه است. فروشنده بررسی می‌کنه.",
+        );
+      } else {
+        toast.success("رسیدت ثبت شد. فروشنده بعد از بررسی، پرداخت رو تایید می‌کنه.");
+      }
       setFile(null);
+      setCardLast4("");
+      setTransferTracking("");
       if (fileRef.current) fileRef.current.value = "";
       onSuccess?.();
     } catch (err) {
@@ -70,6 +91,22 @@ export function PaymentProofUpload({
         onChange={(e) => setPassword(e.target.value)}
         required
       />
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Input
+          label="چهار رقم آخر کارت (اختیاری)"
+          value={cardLast4}
+          onChange={(e) => setCardLast4(e.target.value.replace(/\D/g, "").slice(0, 4))}
+          dir="ltr"
+          inputMode="numeric"
+          maxLength={4}
+        />
+        <Input
+          label="کد پیگیری واریز (اختیاری)"
+          value={transferTracking}
+          onChange={(e) => setTransferTracking(e.target.value)}
+          dir="ltr"
+        />
+      </div>
       <div className="space-y-1.5">
         <label className="block text-sm font-medium text-foreground">عکس رسید</label>
         <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-surface-muted px-4 py-2 text-sm text-foreground hover:bg-surface">

@@ -37,13 +37,18 @@ export function BioLinksClient({ slug }: { slug: string }) {
       </div>
     );
   }
-  if (!data) return <LoadingState label="داره لود می‌شه…" />;
+  if (!data) return <LoadingState message="داره لود می‌شه…" />;
 
   const { store, products, social_links } = data;
   const brand = store.primary_color || "#3d2a1f";
   const topProducts = (products || []).slice(0, 6);
   const contacts = [
-    store.phone ? { label: "تماس", href: resolveContactHref("phone", store.phone) } : null,
+    store.phone
+      ? {
+          label: "تماس",
+          href: `tel:${store.phone.replace(/\s+/g, "")}`,
+        }
+      : null,
     store.instagram
       ? { label: "اینستاگرام", href: resolveContactHref("instagram", store.instagram) }
       : null,

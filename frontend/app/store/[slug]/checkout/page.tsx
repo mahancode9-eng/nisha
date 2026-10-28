@@ -26,7 +26,13 @@ import { LoadingState } from "@/components/ui/LoadingState";
 import { Textarea } from "@/components/ui/Textarea";
 import { paths } from "@/lib/auth/paths";
 import type { CheckoutResponse, DiscountPreviewResponse, OrderItemFieldValueInput } from "@/types/public/checkout";
-import type { PublicPaymentMethod, PublicProduct, PublicProductFormField, PublicStoreProfile } from "@/types/public/store";
+import type {
+  PublicPaymentMethod,
+  PublicProduct,
+  PublicProductFormField,
+  PublicShippingMethod,
+  PublicStoreProfile,
+} from "@/types/public/store";
 import type { CustomerAddress } from "@/types/customer/profile";
 
 type PageProps = {
@@ -111,6 +117,8 @@ export default function CheckoutPage({ params }: PageProps) {
   const [loading, setLoading] = useState(true);
   const [storeProfile, setStoreProfile] = useState<PublicStoreProfile | null>(null);
   const [paymentMethods, setPaymentMethods] = useState<PublicPaymentMethod[]>([]);
+  const [shippingMethods, setShippingMethods] = useState<PublicShippingMethod[]>([]);
+  const [shippingMethodId, setShippingMethodId] = useState<number | null>(null);
   const [storeProducts, setStoreProducts] = useState<PublicProduct[]>([]);
   const [fieldState, setFieldState] = useState<CheckoutFieldStateMap>({});
   const [submitting, setSubmitting] = useState(false);
@@ -161,6 +169,11 @@ export default function CheckoutPage({ params }: PageProps) {
   }, [items]);
 
   const discountAmount = appliedDiscount ? parseFloat(appliedDiscount.discount_amount) : 0;
+  const selectedShippingMethod = useMemo(
+    () => shippingMethods.find((method) => method.id === shippingMethodId) ?? null,
+    [shippingMethods, shippingMethodId],
+  );
+
   const shippingAmount = useMemo(() => {
     if (!storeProfile) return 0;
     return computeShippingAmount(
@@ -177,8 +190,9 @@ export default function CheckoutPage({ params }: PageProps) {
           shippingCost: product?.shipping_cost,
         };
       }),
+      selectedShippingMethod?.cost,
     );
-  }, [storeProfile, subtotal, items, productsById]);
+  }, [storeProfile, subtotal, items, productsById, selectedShippingMethod]);
   const payableTotal = Math.max(subtotal - discountAmount + shippingAmount, 0);
 
   useEffect(() => {
@@ -193,9 +207,15 @@ export default function CheckoutPage({ params }: PageProps) {
         setStoreProducts(store.products);
         setStoreProfile(store.store);
         setPaymentMethods(store.payment_methods);
+        setShippingMethods(store.shipping_methods ?? []);
         setGuestCheckoutEnabled(store.store.guest_checkout_enabled);
         if (store.payment_methods.length > 0) {
           setPaymentMethodId(store.payment_methods[0].id);
+        }
+        if ((store.shipping_methods ?? []).length > 0) {
+          setShippingMethodId(store.shipping_methods![0]!.id);
+        } else {
+          setShippingMethodId(null);
         }
       } catch {
         if (!cancelled) setError("فروشگاه باز نشد. صفحه رو دوباره باز کن.");
@@ -415,6 +435,7 @@ export default function CheckoutPage({ params }: PageProps) {
         buyer_address: buyerAddress.trim(),
         buyer_note: buyerNote.trim() || null,
         payment_method_id: paymentMethodId,
+        shipping_method_id: shippingMethodId,
         discount_code: appliedDiscount ? appliedDiscount.code : null,
         company_website: honeypotRef.current?.value ?? "",
         items: items.map((item) => ({
@@ -870,6 +891,39 @@ export default function CheckoutPage({ params }: PageProps) {
             />
           </CardContent>
         </Card>
+
+        {shippingMethods.length > 0 ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>روش ارسال</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {shippingMethods.map((method) => {
+                const active = method.id === shippingMethodId;
+                return (
+                  <button
+                    key={method.id}
+                    type="button"
+                    onClick={() => setShippingMethodId(method.id)}
+                    className={
+                      active
+                        ? "flex w-full items-center justify-between rounded-xl border border-brand bg-brand/10 px-3 py-3 text-start"
+                        : "flex w-full items-center justify-between rounded-xl border border-border px-3 py-3 text-start hover:border-brand/40"
+                    }
+                  >
+                    <span>
+                      <span className="block font-medium text-foreground">{method.name}</span>
+                      {method.eta_label ? (
+                        <span className="text-xs text-foreground-muted">{method.eta_label}</span>
+                      ) : null}
+                    </span>
+                    <span className="text-sm font-medium">{formatMoney(method.cost)}</span>
+                  </button>
+                );
+              })}
+            </CardContent>
+          </Card>
+        ) : null}
 
         <Card>
           <CardHeader>

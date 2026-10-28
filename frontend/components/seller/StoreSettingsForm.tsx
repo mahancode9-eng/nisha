@@ -72,6 +72,7 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
   const canGuestCheckout = entitlements.guest_checkout;
   const canTheme = entitlements.store_theme;
   const canPages = entitlements.store_pages;
+  const canReceiptReminder = Boolean(entitlements.configurable_receipt_reminder);
   const [messenger, setMessenger] = useState<MessengerStatus | null>(null);
   const [messengerBusy, setMessengerBusy] = useState<"telegram" | "bale" | null>(null);
   const [name, setName] = useState(store.name);
@@ -120,6 +121,9 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
   );
   const [freeShippingMinSubtotal, setFreeShippingMinSubtotal] = useState(() =>
     store.free_shipping_min_subtotal ? formatMoneyInput(store.free_shipping_min_subtotal) : "",
+  );
+  const [paymentReminderMinutes, setPaymentReminderMinutes] = useState(
+    store.payment_reminder_minutes != null ? String(store.payment_reminder_minutes) : "",
   );
   const [logoPreview, setLogoPreview] = useState<string | null>(store.logo_url ? resolveMediaUrl(store.logo_url) : null);
   const [coverPreview, setCoverPreview] = useState<string | null>(
@@ -212,6 +216,9 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
     setDefaultShippingCost(formatMoneyInput(store.default_shipping_cost ?? "0"));
     setFreeShippingMinSubtotal(
       store.free_shipping_min_subtotal ? formatMoneyInput(store.free_shipping_min_subtotal) : "",
+    );
+    setPaymentReminderMinutes(
+      store.payment_reminder_minutes != null ? String(store.payment_reminder_minutes) : "",
     );
     setLogoPreview(store.logo_url ? resolveMediaUrl(store.logo_url) : null);
     setCoverPreview(store.cover_image_url ? resolveMediaUrl(store.cover_image_url) : null);
@@ -340,6 +347,13 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
         free_shipping_min_subtotal: parseMoneyInput(freeShippingMinSubtotal)
           ? moneyInputToNumber(freeShippingMinSubtotal)
           : null,
+        ...(canReceiptReminder
+          ? {
+              payment_reminder_minutes: paymentReminderMinutes.trim()
+                ? parseInt(paymentReminderMinutes, 10)
+                : null,
+            }
+          : {}),
       });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "تنظیمات ذخیره نشد. دوباره امتحان کن.");
@@ -639,6 +653,30 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
                 hint="سفارش‌های بالای این مبلغ، ارسال رایگان دارن. خالی بمونه یعنی ارسال رایگان نداریم."
               />
             </div>
+          </FormSection>
+
+          <FormSection
+            title="یادآوری رسید پرداخت"
+            description="اگر مشتری بعد از سفارش رسید نفرستاد، بعد از چند دقیقه بهش یادآوری می‌شه."
+          >
+            {canReceiptReminder ? (
+              <Input
+                label="دقیقه تا یادآوری"
+                type="number"
+                min="1"
+                max="1440"
+                value={paymentReminderMinutes}
+                onChange={(e) => setPaymentReminderMinutes(e.target.value)}
+                hint="خالی یعنی یادآوری خودکار خاموشه. مثلاً ۳۰ یعنی نیم ساعت بعد."
+              />
+            ) : (
+              <p className="text-sm text-foreground-muted">
+                تنظیم زمان یادآوری از پلن پایه به بالا فعاله.{" "}
+                <Link href={paths.seller.subscription} className="text-brand underline-offset-2 hover:underline">
+                  ارتقای پلن
+                </Link>
+              </p>
+            )}
           </FormSection>
 
           <FormSection

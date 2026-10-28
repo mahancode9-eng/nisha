@@ -30,6 +30,11 @@ export type Store = {
   shipping_policy_text: string | null;
   default_shipping_cost: string;
   free_shipping_min_subtotal: string | null;
+  payment_reminder_minutes?: number | null;
+  sms_quota_month?: string | null;
+  sms_sent_count?: number;
+  custom_domain?: string | null;
+  custom_domain_verified_at?: string | null;
   social_links: StoreSocialLink[];
   dm_reply_templates?: { title: string; body: string }[];
   created_at: string;
@@ -82,6 +87,7 @@ export type StoreUpdate = {
   shipping_policy_text?: string | null;
   default_shipping_cost?: number | string | null;
   free_shipping_min_subtotal?: number | string | null;
+  payment_reminder_minutes?: number | null;
   dm_reply_templates?: { title: string; body: string }[];
   social_links?: StoreSocialLinkInput[];
 };

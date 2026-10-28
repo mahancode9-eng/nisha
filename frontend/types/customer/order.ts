@@ -126,6 +126,8 @@ export type CustomerCheckoutCreate = {
   buyer_address: string;
   buyer_note?: string | null;
   payment_method_id: number;
+  shipping_method_id?: number | null;
+  discount_code?: string | null;
   items: OrderItemInput[];
   save_address?: boolean;
   address_label?: string | null;

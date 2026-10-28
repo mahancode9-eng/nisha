@@ -71,3 +71,30 @@ export function openOrderConversation(
 export function downloadInvoice(orderId: number): Promise<Blob> {
   return apiDownload(`/api/v1/seller/orders/${orderId}/invoice`);
 }
+
+export type ManualOrderItemInput = {
+  product_id: number;
+  quantity: number;
+};
+
+export type ManualOrderCreate = {
+  buyer_name: string;
+  buyer_phone: string;
+  buyer_address: string;
+  buyer_note?: string | null;
+  payment_method_id: number;
+  items: ManualOrderItemInput[];
+  mark_paid?: boolean;
+};
+
+export type ManualOrderCreateResponse = {
+  order_id: number;
+  invoice_code: string;
+  invoice_edit_password: string;
+  status: string;
+  is_manual: boolean;
+};
+
+export function createManualOrder(body: ManualOrderCreate): Promise<ManualOrderCreateResponse> {
+  return apiPost<ManualOrderCreateResponse>("/api/v1/seller/orders/manual", body);
+}

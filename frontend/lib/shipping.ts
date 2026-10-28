@@ -20,6 +20,7 @@ export function computeShippingAmount(
   subtotal: number,
   store: ShippingStoreConfig,
   lines: ShippingLine[],
+  shippingMethodCost?: string | number | null,
 ): number {
   const productLines = lines.filter((line) => line.shippingCost !== null && line.shippingCost !== undefined && line.shippingCost !== "");
   if (productLines.length > 0) {
@@ -32,6 +33,9 @@ export function computeShippingAmount(
   const threshold = store.free_shipping_min_subtotal;
   if (threshold !== null && threshold !== undefined && subtotal >= toNumber(threshold)) {
     return 0;
+  }
+  if (shippingMethodCost !== null && shippingMethodCost !== undefined && shippingMethodCost !== "") {
+    return toNumber(shippingMethodCost);
   }
   return toNumber(store.default_shipping_cost);
 }
