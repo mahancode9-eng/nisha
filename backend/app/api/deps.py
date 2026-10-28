@@ -9,6 +9,10 @@ from app.models.customer_account import CustomerAccount
 from app.models.enums import UserRole
 from app.models.store import Store
 from app.models.user import User
+from app.api.service_http import raise_service_error
+from app.services import team_service
+from app.services.exceptions import ServiceError
+from app.services.team_service import SellerContext
 
 CUSTOMER_ROLE = "CUSTOMER"
 
@@ -59,13 +63,42 @@ def require_seller(current_user: User = Depends(get_current_user)) -> User:
     return current_user
 
 
-def get_seller_store(current_user: User = Depends(require_seller)) -> Store:
-    if current_user.store is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="فروشگاه پیدا نشد",
-        )
-    return current_user.store
+STORE_HEADER = "X-Store-Id"
+
+
+def get_seller_context(
+    request: Request,
+    current_user: User = Depends(require_seller),
+    db: Session = Depends(get_db),
+) -> SellerContext:
+    """The store this request works on: the seller's own, or one they're staff in
+    (chosen with the X-Store-Id header)."""
+    raw = request.headers.get(STORE_HEADER, "").strip()
+    store_id = int(raw) if raw.isdigit() else None
+    try:
+        return team_service.resolve_context(db, current_user, store_id)
+    except ServiceError as exc:
+        raise_service_error(exc)
+
+
+def require_area(area: str):
+    """Router dependency: the current role may use this part of the panel."""
+
+    def dependency(
+        request: Request,
+        ctx: SellerContext = Depends(get_seller_context),
+    ) -> SellerContext:
+        try:
+            team_service.check_area(ctx, area, request.url.path)
+        except ServiceError as exc:
+            raise_service_error(exc)
+        return ctx
+
+    return dependency
+
+
+def get_seller_store(ctx: SellerContext = Depends(get_seller_context)) -> Store:
+    return ctx.store
 
 
 def require_admin(current_user: User = Depends(get_current_user)) -> User:

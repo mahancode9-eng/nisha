@@ -45,6 +45,10 @@ DEFAULT_ENTITLEMENTS: dict[str, Any] = {
     "customer_list": False,
     "customer_tags": False,
     "customer_export": False,
+    # Phase 6b: staff accounts and custom domain.
+    "team_members": False,
+    "max_team_members": 0,
+    "custom_domain": False,
 }
 
 _PAID_DISCOUNT_ENTITLEMENTS: dict[str, Any] = {
@@ -124,6 +128,9 @@ PLAN_SEEDS: list[dict[str, Any]] = [
             "customer_list": True,
             "customer_tags": True,
             "customer_export": True,
+            "team_members": True,
+            "max_team_members": 3,
+            "custom_domain": True,
         },
     },
     {
@@ -159,6 +166,9 @@ PLAN_SEEDS: list[dict[str, Any]] = [
             "customer_list": True,
             "customer_tags": True,
             "customer_export": True,
+            "team_members": True,
+            "max_team_members": None,
+            "custom_domain": True,
         },
     },
 ]
@@ -188,6 +198,9 @@ def _sync_plan_entitlements(plan: SubscriptionPlan, seed_entitlements: dict[str,
         "customer_tags",
         "customer_export",
         "remove_nisha_watermark",
+        "team_members",
+        "max_team_members",
+        "custom_domain",
     )
     for key in policy_keys:
         if key not in seed_entitlements:
@@ -362,3 +375,11 @@ def get_sms_monthly_quota(entitlements: dict[str, Any]) -> int | None:
     if value is None:
         return None
     return int(value)
+
+
+def get_max_team_members(entitlements: dict[str, Any]) -> int | None:
+    """Staff seats besides the owner. None = unlimited, 0 = no staff."""
+    if not entitlements.get("team_members"):
+        return 0
+    value = entitlements.get("max_team_members", 0)
+    return None if value is None else int(value)

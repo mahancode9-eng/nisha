@@ -12,6 +12,7 @@ from app.db.session import get_db
 from app.models.enums import UserRole
 from app.models.order import Order, PaymentProof
 from app.models.store import Store
+from app.services import team_service
 from app.models.subscription import SubscriptionInvoice, SubscriptionPaymentProof
 from app.models.user import User
 from app.services.private_media_service import (
@@ -70,7 +71,7 @@ def _user_may_access_key(db: Session, user: User, key: str) -> bool:
         if order is None:
             continue
         store = db.get(Store, order.store_id)
-        if store is not None and store.owner_id == user.id:
+        if store is not None and team_service.can_view_store_orders(db, user, store):
             return True
 
     sub_proofs = (

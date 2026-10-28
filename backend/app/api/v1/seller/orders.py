@@ -3,7 +3,7 @@ from datetime import date
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_seller_store, require_seller
+from app.api.deps import get_seller_context, get_seller_store, require_seller
 from app.db.session import get_db
 from app.models.enums import OrderStatus
 from app.models.store import Store
@@ -22,7 +22,8 @@ from app.schemas.seller_order import (
     SellerOrderStatusUpdate,
     SellerOrderTrackingUpdate,
 )
-from app.services import seller_order_service
+from app.services import seller_order_service, team_service
+from app.services.team_service import SellerContext
 from app.services.exceptions import ServiceError
 from app.services.invoice_service import build_invoice_download
 from app.services.order_item_serializers import seller_order_item_response
@@ -169,12 +170,14 @@ def confirm_payment(
     order_id: int,
     store: Store = Depends(get_seller_store),
     seller: User = Depends(require_seller),
+    ctx: SellerContext = Depends(get_seller_context),
     db: Session = Depends(get_db),
 ) -> SellerOrderActionResponse:
     try:
         order = seller_order_service.confirm_payment(db, store, order_id, seller)
     except ServiceError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+    team_service.record(db, ctx, store, "order.confirm_payment", order=order)
     return SellerOrderActionResponse(
         message="پرداخت تایید شد",
         order_id=order.id,
@@ -188,12 +191,14 @@ def reject_payment(
     order_id: int,
     store: Store = Depends(get_seller_store),
     seller: User = Depends(require_seller),
+    ctx: SellerContext = Depends(get_seller_context),
     db: Session = Depends(get_db),
 ) -> SellerOrderActionResponse:
     try:
         order = seller_order_service.reject_payment(db, store, order_id, seller)
     except ServiceError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+    team_service.record(db, ctx, store, "order.reject_payment", order=order)
     return SellerOrderActionResponse(
         message="پرداخت رد شد",
         order_id=order.id,
@@ -208,6 +213,7 @@ def update_order_status(
     payload: SellerOrderStatusUpdate,
     store: Store = Depends(get_seller_store),
     seller: User = Depends(require_seller),
+    ctx: SellerContext = Depends(get_seller_context),
     db: Session = Depends(get_db),
 ) -> SellerOrderActionResponse:
     try:
@@ -222,6 +228,15 @@ def update_order_status(
         )
     except ServiceError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+    cancelled = order.status == OrderStatus.CANCELLED
+    team_service.record(
+        db,
+        ctx,
+        store,
+        "order.cancel" if cancelled else "order.status",
+        order=order,
+        details=payload.note if cancelled else order.status.value,
+    )
     return SellerOrderActionResponse(
         message="وضعیت سفارش به‌روزرسانی شد",
         order_id=order.id,

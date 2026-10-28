@@ -21,13 +21,13 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from starlette.concurrency import run_in_threadpool
 
-from app.api.deps import get_current_customer, require_seller
+from app.api.deps import get_current_customer, require_area
+from app.services.team_service import SellerContext
 from app.db.session import get_db
 from app.models.conversation import Conversation
 from app.models.customer_account import CustomerAccount
 from app.models.order import Order
 from app.models.store import Store
-from app.models.user import User
 from app.services import chat_service, order_access_service
 from app.services.chat_realtime import manager
 from app.services.exceptions import ServiceError
@@ -50,11 +50,10 @@ class OrderWsTicketRequest(BaseModel):
 
 @router.post("/tickets/seller", response_model=WsTicketResponse)
 def issue_seller_ws_ticket(
-    seller: User = Depends(require_seller),
+    ctx: SellerContext = Depends(require_area("conversations")),
 ) -> WsTicketResponse:
-    if seller.store is None:
-        raise HTTPException(status_code=404, detail="فروشگاه پیدا نشد")
-    ticket = create_ws_ticket({"purpose": "seller", "store_id": seller.store.id})
+    # The store chosen with X-Store-Id: staff who handle chats get that store's.
+    ticket = create_ws_ticket({"purpose": "seller", "store_id": ctx.store.id})
     return WsTicketResponse(ticket=ticket)
 
 

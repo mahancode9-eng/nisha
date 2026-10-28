@@ -148,6 +148,17 @@ TEMPLATES: dict[str, NotificationTemplate] = {
         ),
         html_style="simple",
     ),
+    "team_invite": NotificationTemplate(
+        sms_text="نیشا: {inviter_name} دعوتت کرده تو فروشگاه {store_name} همکار باشی: {accept_url}",
+        email_subject="دعوت به تیم فروشگاه {store_name}",
+        email_body=(
+            "{inviter_name} دعوتت کرده تو فروشگاه {store_name} به‌عنوان «{role_label}» همکار باشی.\n\n"
+            "برای قبول دعوت، با همین ایمیل وارد نیشا شو (یا ثبت‌نام کن) و این لینک رو باز کن:\n"
+            "{accept_url}\n\n"
+            "این لینک تا {days} روز معتبره."
+        ),
+        html_style="simple",
+    ),
     "low_stock_seller": NotificationTemplate(
         sms_text=(
             "نیشا: {product_count} محصول تو فروشگاه {store_name} موجودی کم داره. "

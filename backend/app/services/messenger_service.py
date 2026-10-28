@@ -26,7 +26,7 @@ from app.core.config import settings
 from app.models.order import Order, PaymentProof
 from app.models.store import Store
 from app.models.user import User
-from app.services import entitlement_service, notification_service, private_media_service
+from app.services import entitlement_service, notification_service, private_media_service, team_service
 from app.services.exceptions import ServiceError
 
 logger = logging.getLogger(__name__)
@@ -348,12 +348,15 @@ def handle_bot_update(db: Session, channel: Channel, update: dict[str, Any]) -> 
             answer_callback(channel, cq_id, "فروشنده پیدا نشد")
             return {"status": "error"}
         try:
+            via = "تلگرام" if channel == "telegram" else "بله"
             if action == "confirm":
-                seller_order_service.confirm_payment(db, store, order_id, seller)
+                order = seller_order_service.confirm_payment(db, store, order_id, seller)
+                team_service.record(db, seller, store, "order.confirm_payment", order=order, details=f"از {via}")
                 answer_callback(channel, cq_id, "پرداخت تایید شد")
                 return {"status": "confirmed"}
             if action == "reject":
-                seller_order_service.reject_payment(db, store, order_id, seller)
+                order = seller_order_service.reject_payment(db, store, order_id, seller)
+                team_service.record(db, seller, store, "order.reject_payment", order=order, details=f"از {via}")
                 answer_callback(channel, cq_id, "رسید رد شد")
                 return {"status": "rejected"}
         except ServiceError as exc:
