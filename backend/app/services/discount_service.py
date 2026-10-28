@@ -100,7 +100,12 @@ def _enforce_active_discount_cap(
         return entitlements
     active = _count_active_discounts(db, store_id, exclude_id=exclude_id)
     if active >= cap:
-        raise ServiceError(ACTIVE_CAP_MESSAGE, status_code=403)
+        raise ServiceError(
+            ACTIVE_CAP_MESSAGE,
+            status_code=403,
+            code="DISCOUNT_ACTIVE_CAP",
+            meta={"entitlement": "max_active_discount_codes", "upgrade_required": True},
+        )
     return entitlements
 
 
@@ -112,7 +117,12 @@ def _enforce_timed_discount(
     if expires_at is None:
         return
     if not entitlement_service.can_use_timed_discounts(entitlements):
-        raise ServiceError(TIMED_DISCOUNT_MESSAGE, status_code=403)
+        raise ServiceError(
+            TIMED_DISCOUNT_MESSAGE,
+            status_code=403,
+            code="TIMED_DISCOUNT_LOCKED",
+            meta={"entitlement": "timed_discounts", "upgrade_required": True},
+        )
 
 
 def create_discount(db: Session, store_id: int, payload: DiscountCodeCreate) -> DiscountCode:

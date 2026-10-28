@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from fastapi import APIRouter, Depends, Query, Response, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_seller_store
+from app.api.service_http import raise_service_error
 from app.db.session import get_db
 from app.models.store import Store
 from app.schemas.pagination import PaginatedResponse, build_paginated_response
@@ -45,7 +46,7 @@ def create_product(
     try:
         product = product_service.create_product(db, store, payload)
     except ServiceError as exc:
-        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+        raise_service_error(exc)
     return ProductResponse.model_validate(product)
 
 
@@ -58,7 +59,7 @@ def get_product(
     try:
         product = product_service.get_product(db, store, product_id)
     except ServiceError as exc:
-        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+        raise_service_error(exc)
     return ProductResponse.model_validate(product)
 
 
@@ -72,7 +73,7 @@ def update_product(
     try:
         product = product_service.update_product(db, store, product_id, payload)
     except ServiceError as exc:
-        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+        raise_service_error(exc)
     return ProductResponse.model_validate(product)
 
 
@@ -85,7 +86,7 @@ def delete_product(
     try:
         product_service.delete_product(db, store, product_id)
     except ServiceError as exc:
-        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+        raise_service_error(exc)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
@@ -99,7 +100,7 @@ def create_product_image(
     try:
         image = product_service.create_product_image(db, store, product_id, payload)
     except ServiceError as exc:
-        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+        raise_service_error(exc)
     return ProductImageResponse.model_validate(image)
 
 
@@ -114,7 +115,7 @@ def update_product_image(
     try:
         image = product_service.update_product_image(db, store, product_id, image_id, payload)
     except ServiceError as exc:
-        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+        raise_service_error(exc)
     return ProductImageResponse.model_validate(image)
 
 
@@ -128,7 +129,7 @@ def delete_product_image(
     try:
         product_service.delete_product_image(db, store, product_id, image_id)
     except ServiceError as exc:
-        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+        raise_service_error(exc)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
@@ -142,7 +143,7 @@ def reorder_product_images(
     try:
         images = product_service.reorder_product_images(db, store, product_id, payload)
     except ServiceError as exc:
-        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+        raise_service_error(exc)
     return [ProductImageResponse.model_validate(image) for image in images]
 
 
@@ -160,7 +161,7 @@ def create_product_form_field(
     try:
         field = product_service.create_product_form_field(db, store, product_id, payload)
     except ServiceError as exc:
-        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+        raise_service_error(exc)
     return ProductFormFieldResponse.model_validate(field)
 
 
@@ -175,7 +176,7 @@ def update_product_form_field(
     try:
         field = product_service.update_product_form_field(db, store, product_id, field_id, payload)
     except ServiceError as exc:
-        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+        raise_service_error(exc)
     return ProductFormFieldResponse.model_validate(field)
 
 
@@ -189,7 +190,7 @@ def delete_product_form_field(
     try:
         product_service.delete_product_form_field(db, store, product_id, field_id)
     except ServiceError as exc:
-        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+        raise_service_error(exc)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
@@ -203,5 +204,5 @@ def reorder_product_form_fields(
     try:
         fields = product_service.reorder_product_form_fields(db, store, product_id, payload)
     except ServiceError as exc:
-        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+        raise_service_error(exc)
     return [ProductFormFieldResponse.model_validate(field) for field in fields]

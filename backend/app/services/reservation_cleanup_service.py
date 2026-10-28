@@ -11,7 +11,9 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.models.enums import OrderStatus
 from app.models.order import Order, OrderStatusHistory
+from app.models.store import Store
 from app.services import stock_service
+from app.services.order_notification_service import notify_order_expired
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +32,10 @@ def expire_stale_reservations(db: Session, *, limit: int = 100) -> int:
     candidates = list(
         db.scalars(
             select(Order)
-            .options(selectinload(Order.items))
+            .options(
+                selectinload(Order.items),
+                selectinload(Order.store).selectinload(Store.owner),
+            )
             .where(
                 Order.status.in_(expireable),
                 Order.reservation_expires_at.is_not(None),
@@ -56,7 +61,10 @@ def expire_stale_reservations(db: Session, *, limit: int = 100) -> int:
         # Re-lock / re-check under the same session for race safety.
         locked = db.scalar(
             select(Order)
-            .options(selectinload(Order.items))
+            .options(
+                selectinload(Order.items),
+                selectinload(Order.store).selectinload(Store.owner),
+            )
             .where(Order.id == order.id)
             .with_for_update()
         )
@@ -83,6 +91,7 @@ def expire_stale_reservations(db: Session, *, limit: int = 100) -> int:
                 changed_by_user_id=None,
             )
         )
+        notify_order_expired(db, locked)
         expired_count += 1
 
     if expired_count:

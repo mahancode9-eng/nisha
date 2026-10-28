@@ -270,6 +270,8 @@ def require_entitlement(db: Session, seller_user_id: int, key: str, *, message: 
         raise ServiceError(
             message or "این قابلیت تو پلن فعلی‌ت فعال نیست. پلن رو ارتقا بده.",
             status_code=403,
+            code="ENTITLEMENT_REQUIRED",
+            meta={"entitlement": key, "upgrade_required": True},
         )
     return entitlements
 

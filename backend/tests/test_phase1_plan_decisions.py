@@ -97,7 +97,13 @@ def test_free_plan_one_active_discount_cap(client: TestClient, seller_headers: d
         },
     )
     assert second.status_code == 403
-    assert "یک کد" in second.json()["detail"] or "ارتقا" in second.json()["detail"]
+    second_detail = second.json()["detail"]
+    second_text = (
+        second_detail["message"] if isinstance(second_detail, dict) else second_detail
+    )
+    assert "یک کد" in second_text or "ارتقا" in second_text
+    if isinstance(second_detail, dict):
+        assert second_detail.get("code") == "DISCOUNT_ACTIVE_CAP"
 
     inactive = client.post(
         "/api/v1/seller/discounts",
@@ -132,7 +138,12 @@ def test_free_plan_cannot_set_discount_expiry(client: TestClient, seller_headers
         },
     )
     assert response.status_code == 403
-    assert "انقضا" in response.json()["detail"] or "ارتقا" in response.json()["detail"]
+    detail = response.json()["detail"]
+    detail_text = detail["message"] if isinstance(detail, dict) else detail
+    assert "انقضا" in detail_text or "ارتقا" in detail_text
+    if isinstance(detail, dict):
+        assert detail.get("code") == "TIMED_DISCOUNT_LOCKED"
+        assert detail.get("meta", {}).get("upgrade_required") is True
 
 
 def test_basic_plan_can_set_discount_expiry(

@@ -27,6 +27,15 @@ VIDEO_LOCKED_MESSAGE = "آپلود ویدیو تو پلن فعلی فعال نی
 FIELDS_LOCKED_MESSAGE = "فیلدهای سفارشی تو پلن فعلی فعال نیست. با ارتقا به پایه یا بالاتر فعال می‌شه."
 
 
+def _entitlement_error(message: str, *, entitlement: str, code: str = "ENTITLEMENT_REQUIRED") -> ServiceError:
+    return ServiceError(
+        message,
+        status_code=403,
+        code=code,
+        meta={"entitlement": entitlement, "upgrade_required": True},
+    )
+
+
 def _serialize_json(value) -> str | None:
     if value is None:
         return None
@@ -246,12 +255,16 @@ def create_product(db: Session, store: Store, data: ProductCreate) -> Product:
             select(func.count()).select_from(Product).where(Product.store_id == store.id)
         ) or 0
         if current_count >= max_products:
-            raise ServiceError(PRODUCT_LIMIT_MESSAGE, status_code=403)
+            raise _entitlement_error(
+                PRODUCT_LIMIT_MESSAGE,
+                entitlement="max_products",
+                code="PRODUCT_LIMIT",
+            )
 
     if data.video_url and not entitlements.get("product_video"):
-        raise ServiceError(VIDEO_LOCKED_MESSAGE, status_code=403)
+        raise _entitlement_error(VIDEO_LOCKED_MESSAGE, entitlement="product_video")
     if data.form_fields and not entitlements.get("custom_fields"):
-        raise ServiceError(FIELDS_LOCKED_MESSAGE, status_code=403)
+        raise _entitlement_error(FIELDS_LOCKED_MESSAGE, entitlement="custom_fields")
 
     max_images = entitlement_service.get_max_product_images(entitlements)
     product = Product(
@@ -297,7 +310,7 @@ def update_product(
     update_data = data.model_dump(exclude_unset=True)
 
     if update_data.get("video_url") and not entitlements.get("product_video"):
-        raise ServiceError(VIDEO_LOCKED_MESSAGE, status_code=403)
+        raise _entitlement_error(VIDEO_LOCKED_MESSAGE, entitlement="product_video")
 
     image_urls = update_data.pop("image_urls", None)
     images = update_data.pop("images", None)
@@ -318,7 +331,7 @@ def update_product(
 
     if form_fields is not None:
         if form_fields and not entitlements.get("custom_fields"):
-            raise ServiceError(FIELDS_LOCKED_MESSAGE, status_code=403)
+            raise _entitlement_error(FIELDS_LOCKED_MESSAGE, entitlement="custom_fields")
         _replace_form_fields(db, product, form_fields)
 
     if variants is not None:

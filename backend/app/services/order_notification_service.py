@@ -147,6 +147,26 @@ def send_due_payment_reminders(db: Session, *, limit: int = 50) -> int:
     return sent
 
 
+def notify_order_expired(db: Session, order: Order) -> None:
+    """SMS buyer once when an unpaid reservation expires (recovery link)."""
+    try:
+        if not order.buyer_phone:
+            return
+        store = order.store
+        payload = {
+            "invoice_code": order.invoice_code,
+            "store_name": store.name if store is not None else "",
+            "invoice_url": _invoice_url(order.invoice_code),
+        }
+        notification_service.enqueue_sms(
+            db, order.buyer_phone, "order_expired_buyer", payload
+        )
+    except Exception:  # noqa: BLE001
+        logger.exception(
+            "Failed to enqueue expiry recovery SMS for order %s", order.id
+        )
+
+
 def notify_status_change(db: Session, order: Order, new_status: OrderStatus) -> None:
     """Enqueue notifications for an order status change.
 

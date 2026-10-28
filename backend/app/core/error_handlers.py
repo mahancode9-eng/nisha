@@ -58,9 +58,14 @@ def _translate_validation_detail(detail: Any) -> Any:
 
 
 async def service_error_handler(_request: Request, exc: ServiceError) -> JSONResponse:
+    content: dict[str, Any] = {"detail": exc.message}
+    if exc.code:
+        content["code"] = exc.code
+    if exc.meta:
+        content["meta"] = exc.meta
     return JSONResponse(
         status_code=exc.status_code,
-        content={"detail": exc.message},
+        content=content,
     )
 
 

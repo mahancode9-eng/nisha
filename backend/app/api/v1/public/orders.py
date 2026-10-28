@@ -8,6 +8,7 @@ from app.schemas.customer_portal import CustomerReviewResponse
 from app.schemas.guest_order import (
     GuestOrderEdit,
     GuestOrderEditResponse,
+    OrderInvoicePreviewResponse,
     OrderTrackRequest,
     OrderTrackResponse,
     PaymentProofUploadResponse,
@@ -31,6 +32,19 @@ def track_order(payload: OrderTrackRequest, db: Session = Depends(get_db)) -> Or
             payload.invoice_code,
             payload.invoice_edit_password,
         )
+    except ServiceError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+
+
+@router.get("/{invoice_code}/preview", response_model=OrderInvoicePreviewResponse)
+@limiter.limit("30/minute")
+def preview_invoice(
+    request: Request,
+    invoice_code: str,
+    db: Session = Depends(get_db),
+) -> OrderInvoicePreviewResponse:
+    try:
+        return guest_order_service.preview_invoice(db, invoice_code)
     except ServiceError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
 

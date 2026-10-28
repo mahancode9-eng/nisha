@@ -13,6 +13,7 @@ const statusConfig: Record<
   SHIPPED: { label: "ارسال شد", variant: "info" },
   DELIVERED: { label: "تحویل شد", variant: "success" },
   CANCELLED: { label: "لغو شد", variant: "neutral" },
+  EXPIRED: { label: "مهلت پرداخت تموم شد", variant: "neutral" },
 };
 
 export function StatusBadge({ status }: { status: OrderStatus }) {

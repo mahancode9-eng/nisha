@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_seller_store
+from app.api.service_http import raise_service_error
 from app.db.session import get_db
 from app.models.store import Store
 from app.schemas.discount import (
@@ -33,7 +34,7 @@ def create_discount(
     try:
         discount = discount_service.create_discount(db, store.id, payload)
     except ServiceError as exc:
-        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+        raise_service_error(exc)
     return DiscountCodeResponse.model_validate(discount)
 
 
@@ -46,7 +47,7 @@ def get_discount(
     try:
         discount = discount_service.get_discount(db, store.id, discount_id)
     except ServiceError as exc:
-        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+        raise_service_error(exc)
     return DiscountCodeResponse.model_validate(discount)
 
 
@@ -60,7 +61,7 @@ def update_discount(
     try:
         discount = discount_service.update_discount(db, store.id, discount_id, payload)
     except ServiceError as exc:
-        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+        raise_service_error(exc)
     return DiscountCodeResponse.model_validate(discount)
 
 
@@ -73,5 +74,5 @@ def delete_discount(
     try:
         discount_service.delete_discount(db, store.id, discount_id)
     except ServiceError as exc:
-        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+        raise_service_error(exc)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
