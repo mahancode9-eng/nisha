@@ -41,10 +41,11 @@ const ORDER_PROCESSING_STATUSES: OrderStatus[] = [
   "PREPARING",
   "SHIPPED",
   "DELIVERED",
-  "CANCELLED",
 ];
 
-type TabKey = "payment" | "processing";
+const CANCELLED_STATUSES: OrderStatus[] = ["CANCELLED"];
+
+type TabKey = "payment" | "processing" | "cancelled";
 
 export default function SellerOrdersPage() {
   const toast = useToast();
@@ -87,8 +88,17 @@ export default function SellerOrdersPage() {
     () => items.filter((order) => ORDER_PROCESSING_STATUSES.includes(order.status)),
     [items],
   );
+  const cancelledOrders = useMemo(
+    () => items.filter((order) => CANCELLED_STATUSES.includes(order.status)),
+    [items],
+  );
 
-  const visibleItems = activeTab === "payment" ? paymentOrders : processingOrders;
+  const visibleItems =
+    activeTab === "payment"
+      ? paymentOrders
+      : activeTab === "processing"
+        ? processingOrders
+        : cancelledOrders;
 
   async function handleDownload(orderId: number, invoiceCode: string) {
     setDownloadingId(orderId);
@@ -142,6 +152,7 @@ export default function SellerOrdersPage() {
         items={[
           { key: "payment", label: `بررسی پرداخت (${paymentOrders.length})` },
           { key: "processing", label: `آماده‌سازی و ارسال (${processingOrders.length})` },
+          { key: "cancelled", label: `لغو‌شده (${cancelledOrders.length})` },
         ]}
         activeKey={activeTab}
         onChange={(key) => setActiveTab(key as TabKey)}

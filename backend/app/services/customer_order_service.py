@@ -93,6 +93,7 @@ def _build_detail(order: Order) -> CustomerOrderDetailResponse:
         receipt_status=_receipt_status(order),
         complaint_count=_complaint_count(order),
         stock_restored=order.stock_restored,
+        tracking_code=order.tracking_code,
         created_at=order.created_at,
         updated_at=order.updated_at,
         items=[_build_order_item(item) for item in order.items],

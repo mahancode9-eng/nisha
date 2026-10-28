@@ -18,7 +18,6 @@ import type { OrderTrackResponse } from "@/types/public/order";
 import type { OrderStatus } from "@/types/order";
 
 const EDITABLE_STATUSES: OrderStatus[] = ["PENDING_PAYMENT", "PAYMENT_UPLOADED"];
-const UPLOAD_STATUSES: OrderStatus[] = ["PENDING_PAYMENT", "PAYMENT_UPLOADED"];
 
 type OrderTrackDetailsProps = {
   order: OrderTrackResponse;
@@ -43,7 +42,7 @@ export function OrderTrackDetails({ order, password, onUpdated }: OrderTrackDeta
   }, [order]);
 
   const canEdit = EDITABLE_STATUSES.includes(order.status);
-  const canUpload = UPLOAD_STATUSES.includes(order.status);
+  const canUpload = order.status === "PENDING_PAYMENT" && order.payment_proofs.length === 0;
 
   async function handleEdit(e: FormEvent) {
     e.preventDefault();
@@ -155,6 +154,22 @@ export function OrderTrackDetails({ order, password, onUpdated }: OrderTrackDeta
       </Card>
 
       <PaymentInstructions method={order.payment_method} />
+
+      {order.tracking_code && (
+        <Card>
+          <CardHeader>
+            <CardTitle>کد پیگیری پست</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="font-mono text-lg tracking-wide text-neutral-900" dir="ltr">
+              {order.tracking_code}
+            </p>
+            <p className="mt-1 text-sm text-foreground-muted">
+              با این کد می‌تونی مرسوله رو تو سایت پست پیگیری کنی.
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {order.payment_proofs.length > 0 && (
         <Card>

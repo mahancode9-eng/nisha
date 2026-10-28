@@ -35,6 +35,7 @@ export type OrderTrackResponse = {
   discount_amount?: string;
   shipping_amount?: string;
   total_amount: string;
+  tracking_code?: string | null;
   created_at: string;
   items: OrderTrackItem[];
   payment_proofs: PublicPaymentProof[];

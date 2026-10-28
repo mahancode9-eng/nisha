@@ -84,6 +84,7 @@ def track_order(db: Session, invoice_code: str, password: str) -> OrderTrackResp
         discount_amount=order.discount_amount,
         shipping_amount=order.shipping_amount,
         total_amount=order.total_amount,
+        tracking_code=order.tracking_code,
         created_at=order.created_at,
         items=[track_order_item_response(item) for item in order.items],
         payment_proofs=[PaymentProofResponse.model_validate(p) for p in order.payment_proofs],

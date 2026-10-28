@@ -37,6 +37,7 @@ export type CustomerOrderDetail = {
   receipt_status: CustomerReceiptStatus;
   complaint_count: number;
   stock_restored: boolean;
+  tracking_code?: string | null;
   created_at: string;
   updated_at: string;
   items: {
