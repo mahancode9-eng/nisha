@@ -21,6 +21,7 @@ type ChatThreadProps = {
   showComposer?: boolean;
   useGuestUpload?: boolean;
   preferCustomerUpload?: boolean;
+  replyTemplates?: { title: string; body: string }[];
 };
 
 export function ChatThread({
@@ -33,6 +34,7 @@ export function ChatThread({
   showComposer = true,
   useGuestUpload = false,
   preferCustomerUpload = false,
+  replyTemplates = [],
 }: ChatThreadProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -64,6 +66,7 @@ export function ChatThread({
           disabled={!conversation}
           useGuestUpload={useGuestUpload}
           preferCustomerUpload={preferCustomerUpload}
+          replyTemplates={replyTemplates}
         />
       )}
     </div>

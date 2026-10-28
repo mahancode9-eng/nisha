@@ -31,6 +31,7 @@ export type Store = {
   default_shipping_cost: string;
   free_shipping_min_subtotal: string | null;
   social_links: StoreSocialLink[];
+  dm_reply_templates?: { title: string; body: string }[];
   created_at: string;
   updated_at: string;
 };
@@ -81,5 +82,6 @@ export type StoreUpdate = {
   shipping_policy_text?: string | null;
   default_shipping_cost?: number | string | null;
   free_shipping_min_subtotal?: number | string | null;
+  dm_reply_templates?: { title: string; body: string }[];
   social_links?: StoreSocialLinkInput[];
 };

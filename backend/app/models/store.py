@@ -127,6 +127,7 @@ class Store(TimestampMixin, Base):
     website: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     support_contact: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     onboarding_state_json: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    dm_reply_templates_json: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_published: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     guest_checkout_enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)

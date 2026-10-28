@@ -5,6 +5,8 @@ import { uploadPublicImage, uploadGuestImage } from "@/lib/api/public/uploads";
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Textarea";
 
+type ReplyTemplate = { title: string; body: string };
+
 type ChatComposerProps = {
   onSend: (payload: {
     body: string;
@@ -14,6 +16,7 @@ type ChatComposerProps = {
   disabled?: boolean;
   useGuestUpload?: boolean;
   preferCustomerUpload?: boolean;
+  replyTemplates?: ReplyTemplate[];
 };
 
 export function ChatComposer({
@@ -21,6 +24,7 @@ export function ChatComposer({
   disabled,
   useGuestUpload = false,
   preferCustomerUpload = false,
+  replyTemplates = [],
 }: ChatComposerProps) {
   const [text, setText] = useState("");
   const [attachment, setAttachment] = useState<File | null>(null);
@@ -99,6 +103,21 @@ export function ChatComposer({
             <img src={attachmentPreview} alt="پیش‌نمایش پیوست" className="max-h-40 w-full object-cover" />
           </div>
         )}
+        {replyTemplates.length > 0 ? (
+          <div className="flex flex-wrap gap-2">
+            {replyTemplates.map((template) => (
+              <button
+                key={template.title}
+                type="button"
+                disabled={disabled || sending || uploading}
+                onClick={() => setText(template.body)}
+                className="rounded-full border border-border px-3 py-1 text-xs text-foreground-muted transition hover:border-brand/40 hover:text-foreground"
+              >
+                {template.title}
+              </button>
+            ))}
+          </div>
+        ) : null}
         <Textarea
           value={text}
           onChange={(e) => setText(e.target.value)}

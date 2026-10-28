@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -74,6 +76,11 @@ def _apply_category_update(store: Store, update_data: dict) -> None:
 def update_store(db: Session, store: Store, data: StoreUpdate) -> Store:
     update_data = data.model_dump(exclude_unset=True)
     social_links = update_data.pop("social_links", None)
+    dm_templates = update_data.pop("dm_reply_templates", None)
+    if dm_templates is not None:
+        update_data["dm_reply_templates_json"] = json.dumps(
+            dm_templates, ensure_ascii=False
+        )
 
     if "slug" in update_data:
         update_data["slug"] = slugify(update_data["slug"])

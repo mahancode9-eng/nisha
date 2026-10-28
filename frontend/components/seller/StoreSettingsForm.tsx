@@ -104,6 +104,9 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
   );
   const [isActive, setIsActive] = useState(store.is_active);
   const [isPublished, setIsPublished] = useState(store.is_published);
+  const [dmTemplates, setDmTemplates] = useState<{ title: string; body: string }[]>(
+    store.dm_reply_templates ?? [],
+  );
   const [guestCheckoutEnabled, setGuestCheckoutEnabled] = useState(
     Boolean(store.guest_checkout_enabled && entitlements.guest_checkout),
   );
@@ -199,6 +202,7 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
     );
     setIsActive(store.is_active);
     setIsPublished(store.is_published);
+    setDmTemplates(store.dm_reply_templates ?? []);
     setGuestCheckoutEnabled(Boolean(store.guest_checkout_enabled && canGuestCheckout));
     setThemePreset(store.theme_preset ?? "default");
     setDesignStyle(store.design_style ?? "saas");
@@ -315,6 +319,7 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
         })),
         is_active: isActive,
         is_published: isPublished,
+        dm_reply_templates: dmTemplates.filter((t) => t.title.trim() && t.body.trim()),
         guest_checkout_enabled: canGuestCheckout ? guestCheckoutEnabled : false,
         ...(canTheme
           ? {
@@ -744,6 +749,53 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
                   اگر خاموش باشه، مشتری برای خرید باید حساب بسازه.
                 </p>
               )}
+              <div className="space-y-2 rounded-xl border border-border p-3">
+                <p className="text-sm font-medium text-foreground">قالب پاسخ پیام</p>
+                <p className="text-xs text-foreground-muted">
+                  لینک بیو اینستاگرام:{" "}
+                  <span className="font-mono" dir="ltr">
+                    /store/{slug}/links
+                  </span>
+                </p>
+                {dmTemplates.map((template, index) => (
+                  <div key={index} className="space-y-2 rounded-lg bg-surface-muted/40 p-2">
+                    <Input
+                      label="عنوان"
+                      value={template.title}
+                      onChange={(e) => {
+                        const next = [...dmTemplates];
+                        next[index] = { ...next[index], title: e.target.value };
+                        setDmTemplates(next);
+                      }}
+                    />
+                    <Textarea
+                      label="متن"
+                      value={template.body}
+                      onChange={(e) => {
+                        const next = [...dmTemplates];
+                        next[index] = { ...next[index], body: e.target.value };
+                        setDmTemplates(next);
+                      }}
+                      rows={2}
+                    />
+                    <button
+                      type="button"
+                      className="text-xs text-red-600"
+                      onClick={() => setDmTemplates(dmTemplates.filter((_, i) => i !== index))}
+                    >
+                      حذف
+                    </button>
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setDmTemplates([...dmTemplates, { title: "", body: "" }])}
+                >
+                  قالب جدید
+                </Button>
+              </div>
               <label className="flex items-center gap-2 text-sm text-foreground">
                 <input
                   type="checkbox"
