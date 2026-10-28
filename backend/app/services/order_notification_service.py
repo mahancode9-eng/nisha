@@ -23,7 +23,8 @@ from app.core.config import settings
 from app.models.enums import OrderStatus
 from app.models.order import Order
 from app.models.store import Store
-from app.services import messenger_service, notification_service
+from app.services import messenger_service, notification_service, sms_quota_service
+from app.services.entitlement_service import get_seller_entitlements
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +36,36 @@ def _invoice_url(invoice_code: str) -> str:
 
 def _utcnow() -> datetime:
     return datetime.now(timezone.utc)
+
+
+def _enqueue_buyer_sms(
+    db: Session,
+    store: Store | None,
+    phone: str,
+    template: str,
+    payload: dict,
+) -> bool:
+    """Enqueue SMS only when the store still has monthly quota."""
+    if store is None:
+        return False
+    if not sms_quota_service.consume_store_sms(db, store):
+        return False
+    notification_service.enqueue_sms(db, phone, template, payload)
+    return True
+
+
+def _effective_reminder_minutes(db: Session, store: Store | None) -> int:
+    default = max(1, int(settings.PAYMENT_REMINDER_MINUTES_BEFORE_EXPIRY))
+    if store is None:
+        return default
+    entitlements = get_seller_entitlements(db, store.owner_id)
+    if not entitlements.get("configurable_receipt_reminder"):
+        return default
+    custom = store.payment_reminder_minutes
+    if custom is None:
+        return default
+    return max(1, min(int(custom), 1440))
+
 
 # Persian labels used in buyer-facing status change messages.
 STATUS_LABELS: dict[OrderStatus, str] = {
@@ -69,8 +100,8 @@ def notify_order_placed(db: Session, order: Order, store: Store) -> None:
             "invoice_url": _invoice_url(order.invoice_code),
         }
         if order.buyer_phone:
-            notification_service.enqueue_sms(
-                db, order.buyer_phone, "order_placed_buyer", payload
+            _enqueue_buyer_sms(
+                db, store, order.buyer_phone, "order_placed_buyer", payload
             )
         owner = store.owner
         if owner is not None and owner.email:
@@ -89,8 +120,9 @@ def notify_order_placed(db: Session, order: Order, store: Store) -> None:
 def send_due_payment_reminders(db: Session, *, limit: int = 50) -> int:
     """SMS buyers once when unpaid orders are close to reservation expiry."""
     now = _utcnow()
-    window = max(1, int(settings.PAYMENT_REMINDER_MINUTES_BEFORE_EXPIRY))
-    reminder_horizon = now + timedelta(minutes=window)
+    # Wide scan window; per-order effective minutes may be larger on Basic+.
+    scan_window = max(1, int(settings.PAYMENT_REMINDER_MINUTES_BEFORE_EXPIRY), 60)
+    reminder_horizon = now + timedelta(minutes=scan_window)
     candidates = list(
         db.scalars(
             select(Order)
@@ -120,10 +152,13 @@ def send_due_payment_reminders(db: Session, *, limit: int = 50) -> int:
         expires = locked.reservation_expires_at
         if expires.tzinfo is None:
             expires = expires.replace(tzinfo=timezone.utc)
-        if expires <= now or expires > reminder_horizon:
+        if expires <= now:
+            continue
+        store = locked.store
+        window = _effective_reminder_minutes(db, store)
+        if expires > now + timedelta(minutes=window):
             continue
         minutes_left = max(1, int((expires - now).total_seconds() // 60))
-        store = locked.store
         payload = {
             "invoice_code": locked.invoice_code,
             "store_name": store.name if store is not None else "",
@@ -132,9 +167,14 @@ def send_due_payment_reminders(db: Session, *, limit: int = 50) -> int:
         }
         try:
             if locked.buyer_phone:
-                notification_service.enqueue_sms(
-                    db, locked.buyer_phone, "payment_reminder_buyer", payload
-                )
+                if not _enqueue_buyer_sms(
+                    db,
+                    store,
+                    locked.buyer_phone,
+                    "payment_reminder_buyer",
+                    payload,
+                ):
+                    continue
             locked.payment_reminder_sent_at = now
             sent += 1
         except Exception:  # noqa: BLE001
@@ -158,9 +198,7 @@ def notify_order_expired(db: Session, order: Order) -> None:
             "store_name": store.name if store is not None else "",
             "invoice_url": _invoice_url(order.invoice_code),
         }
-        notification_service.enqueue_sms(
-            db, order.buyer_phone, "order_expired_buyer", payload
-        )
+        _enqueue_buyer_sms(db, store, order.buyer_phone, "order_expired_buyer", payload)
     except Exception:  # noqa: BLE001
         logger.exception(
             "Failed to enqueue expiry recovery SMS for order %s", order.id
@@ -182,8 +220,8 @@ def notify_status_change(db: Session, order: Order, new_status: OrderStatus) -> 
         }
 
         if new_status in BUYER_NOTIFY_STATUSES and order.buyer_phone:
-            notification_service.enqueue_sms(
-                db, order.buyer_phone, "order_status_changed", payload
+            _enqueue_buyer_sms(
+                db, store, order.buyer_phone, "order_status_changed", payload
             )
 
         if new_status == OrderStatus.PAYMENT_UPLOADED and store is not None:

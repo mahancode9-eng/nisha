@@ -59,6 +59,8 @@ async def upload_payment_proof(
     invoice_code: str,
     invoice_edit_password: str = Form(...),
     file: UploadFile = File(...),
+    payer_card_last4: str | None = Form(default=None),
+    transfer_tracking: str | None = Form(default=None),
     db: Session = Depends(get_db),
 ) -> PaymentProofUploadResponse:
     try:
@@ -67,6 +69,8 @@ async def upload_payment_proof(
             invoice_code,
             invoice_edit_password,
             file,
+            payer_card_last4=payer_card_last4,
+            transfer_tracking=transfer_tracking,
         )
     except ServiceError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc

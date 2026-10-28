@@ -45,6 +45,7 @@ def create_payment_method(
         type=data.type,
         display_name=data.display_name,
         card_number=data.card_number,
+        bank_name=data.bank_name,
         wallet_address=data.wallet_address,
         external_url=data.external_url,
         owner_name=data.owner_name,

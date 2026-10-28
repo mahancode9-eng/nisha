@@ -15,6 +15,7 @@ from app.schemas.public import (
     PublicProduct,
     PublicProductListResponse,
     PublicProductVariant,
+    PublicShippingMethod,
     PublicStorePageResponse,
     PublicStoreProfile,
     PublicProductReview,
@@ -75,9 +76,18 @@ def _public_store_profile(store, badges, db: Session) -> PublicStoreProfile:
 @router.get("/{slug}", response_model=PublicStorePageResponse, response_model_exclude_none=True)
 def get_public_store(slug: str, db: Session = Depends(get_db)) -> PublicStorePageResponse:
     try:
-        store, products, categories, social_links, payment_methods, reviews, average_rating, review_count, badges = (
-            public_store_service.get_store_page(db, slug)
-        )
+        (
+            store,
+            products,
+            categories,
+            social_links,
+            payment_methods,
+            shipping_methods,
+            reviews,
+            average_rating,
+            review_count,
+            badges,
+        ) = public_store_service.get_store_page(db, slug)
     except ServiceError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
 
@@ -89,6 +99,7 @@ def get_public_store(slug: str, db: Session = Depends(get_db)) -> PublicStorePag
         products=[_public_product(product) for product in products],
         categories=[ProductCategorySummary.model_validate(category) for category in categories],
         payment_methods=[PublicPaymentMethod.model_validate(m) for m in payment_methods],
+        shipping_methods=[PublicShippingMethod.model_validate(m) for m in shipping_methods],
         review_summary=PublicStoreReviewSummary(
             average_rating=average_rating,
             review_count=review_count,

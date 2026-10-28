@@ -12,6 +12,7 @@ from app.api.v1.seller.orders import router as orders_router
 from app.api.v1.seller.onboarding import router as onboarding_router
 from app.api.v1.seller.payment_methods import router as payment_methods_router
 from app.api.v1.seller.products import router as products_router
+from app.api.v1.seller.shipping_methods import router as shipping_methods_router
 from app.api.v1.seller.store import router as store_router
 from app.api.v1.seller.subscription import router as subscription_router
 
@@ -20,6 +21,7 @@ router.include_router(store_router)
 router.include_router(categories_router)
 router.include_router(products_router)
 router.include_router(payment_methods_router)
+router.include_router(shipping_methods_router)
 router.include_router(orders_router)
 router.include_router(dashboard_router)
 router.include_router(onboarding_router)

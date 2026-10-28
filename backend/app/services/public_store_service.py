@@ -7,7 +7,7 @@ from app.models.customer_portal import CustomerReview
 from app.models.order import Order
 from app.models.product import Product
 from app.models.store import Store, StoreTrustBadge
-from app.services import product_category_service
+from app.services import product_category_service, shipping_method_service
 from app.models.enums import ReviewStatus
 from app.services.review_service import get_review_summary, list_reviews_for_store
 from app.services.trust_service import list_active_badges
@@ -89,6 +89,7 @@ def get_store_page(db: Session, slug: str):
     categories = product_category_service.list_categories(db, store.id, active_only=True)
     social_links = list_active_social_links(db, store.id)
     payment_methods = list_active_payment_methods(db, store.id)
+    shipping_methods = shipping_method_service.list_active_shipping_methods(db, store.id)
     reviews, average_rating, review_count = list_public_reviews(db, store.id)
     badges = list_active_badges(db, store.id)
     return (
@@ -97,6 +98,7 @@ def get_store_page(db: Session, slug: str):
         categories,
         social_links,
         payment_methods,
+        shipping_methods,
         reviews,
         average_rating,
         review_count,

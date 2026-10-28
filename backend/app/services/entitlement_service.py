@@ -36,6 +36,10 @@ DEFAULT_ENTITLEMENTS: dict[str, Any] = {
     "share_card_templates": False,
     "remove_nisha_watermark": False,
     "instagram_import_limit": 5,
+    "duplicate_receipt_warn": False,
+    "configurable_receipt_reminder": False,
+    "sms_monthly_quota": 0,
+    "named_shipping_methods": False,
 }
 
 _PAID_DISCOUNT_ENTITLEMENTS: dict[str, Any] = {
@@ -76,6 +80,10 @@ PLAN_SEEDS: list[dict[str, Any]] = [
             "excel_export": True,
             "share_card_templates": True,
             "instagram_import_limit": None,
+            "duplicate_receipt_warn": True,
+            "configurable_receipt_reminder": True,
+            "sms_monthly_quota": 50,
+            "named_shipping_methods": True,
         },
     },
     {
@@ -101,6 +109,10 @@ PLAN_SEEDS: list[dict[str, Any]] = [
             "share_card_templates": True,
             "remove_nisha_watermark": True,
             "instagram_import_limit": None,
+            "duplicate_receipt_warn": True,
+            "configurable_receipt_reminder": True,
+            "sms_monthly_quota": 300,
+            "named_shipping_methods": True,
         },
     },
     {
@@ -128,6 +140,10 @@ PLAN_SEEDS: list[dict[str, Any]] = [
             "share_card_templates": True,
             "remove_nisha_watermark": True,
             "instagram_import_limit": None,
+            "duplicate_receipt_warn": True,
+            "configurable_receipt_reminder": True,
+            "sms_monthly_quota": None,
+            "named_shipping_methods": True,
         },
     },
 ]
@@ -315,3 +331,13 @@ def get_max_active_discount_codes(entitlements: dict[str, Any]) -> int | None:
 def can_use_timed_discounts(entitlements: dict[str, Any]) -> bool:
     """Basic+ can set expires_at; Free cannot."""
     return bool(entitlements.get("timed_discounts"))
+
+
+def get_sms_monthly_quota(entitlements: dict[str, Any]) -> int | None:
+    """None = unlimited. 0 = no store-attributed SMS."""
+    if "sms_monthly_quota" not in entitlements:
+        return 0
+    value = entitlements.get("sms_monthly_quota")
+    if value is None:
+        return None
+    return int(value)

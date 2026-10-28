@@ -45,6 +45,8 @@ class PaymentProofResponse(BaseModel):
 
     id: int
     image_url: str
+    payer_card_last4: str | None = None
+    transfer_tracking: str | None = None
     uploaded_at: datetime
 
     @field_validator("image_url", mode="after")
@@ -59,6 +61,8 @@ class PaymentProofUploadResponse(BaseModel):
     message: str
     order_status: OrderStatus
     proof: PaymentProofResponse
+    duplicate_warning: bool = False
+    duplicate_invoice_codes: list[str] = Field(default_factory=list)
 
 
 class OrderTrackItemResponse(BaseModel):

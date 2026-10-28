@@ -14,6 +14,9 @@ from app.services.order_notification_service import send_due_payment_reminders
 
 
 def _seed_pending_order(db, *, expires_in_minutes: int, reminder_sent: bool = False):
+    from app.models.enums import BillingPeriod
+    from app.services import entitlement_service, subscription_billing_service
+
     seller = User(
         email="seller-reminder@example.com",
         password_hash=hash_password("securepass"),
@@ -24,6 +27,14 @@ def _seed_pending_order(db, *, expires_in_minutes: int, reminder_sent: bool = Fa
     )
     db.add(seller)
     db.flush()
+    entitlement_service.ensure_plans_seeded(db)
+    subscription_billing_service.admin_assign_plan(
+        db,
+        seller.id,
+        plan_code="basic",
+        period=BillingPeriod.MONTHLY,
+        months=1,
+    )
     store = Store(
         owner_id=seller.id,
         name="Reminder Store",
