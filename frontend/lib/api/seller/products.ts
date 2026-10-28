@@ -1,6 +1,7 @@
 import { apiDelete, apiGet, apiPatch, apiPost, apiPut } from "@/lib/api/client";
 import type { PaginatedResponse, PaginationParams } from "@/types/api/pagination";
 import type {
+  InstagramImportRequest,
   Product,
   ProductCreate,
   ProductFormField,
@@ -30,6 +31,10 @@ export function getProduct(id: number): Promise<Product> {
 
 export function createProduct(body: ProductCreate): Promise<Product> {
   return apiPost<Product>("/api/v1/seller/products", body);
+}
+
+export function importInstagramProduct(body: InstagramImportRequest): Promise<Product> {
+  return apiPost<Product>("/api/v1/seller/products/import-instagram", body);
 }
 
 export function updateProduct(id: number, body: ProductUpdate): Promise<Product> {

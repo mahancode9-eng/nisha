@@ -20,6 +20,7 @@ export type GuestOrderCreate = {
   buyer_address: string;
   buyer_note?: string | null;
   payment_method_id: number;
+  shipping_method_id?: number | null;
   discount_code?: string | null;
   items: OrderItemInput[];
 };

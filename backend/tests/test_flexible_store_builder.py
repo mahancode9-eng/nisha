@@ -41,6 +41,13 @@ def test_store_social_links_public_filtering_and_order(client, seller_headers):
     assert reorder.status_code == 200
     assert reorder.json()[0]["label"] == "Instagram"
 
+    publish = client.put(
+        "/api/v1/seller/store",
+        headers=seller_headers,
+        json={"is_published": True},
+    )
+    assert publish.status_code == 200
+
     public_store = client.get("/api/v1/public/stores/seller-a")
     assert public_store.status_code == 200
     links = public_store.json()["social_links"]

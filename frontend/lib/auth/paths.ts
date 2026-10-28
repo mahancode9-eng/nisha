@@ -18,7 +18,9 @@ export const paths = {
     productNew: "/seller/products/new",
     productEdit: (id: number | string) => `/seller/products/${id}/edit`,
     paymentMethods: "/seller/payment-methods",
+    shippingMethods: "/seller/shipping-methods",
     orders: "/seller/orders",
+    orderNew: "/seller/orders/new",
     orderDetail: (id: number | string) => `/seller/orders/${id}`,
     conversations: "/seller/conversations",
     conversationDetail: (id: number | string) => `/seller/conversations/${id}`,
@@ -26,6 +28,8 @@ export const paths = {
     customerDetail: (key: string) => `/seller/customers/${encodeURIComponent(key)}`,
     discounts: "/seller/discounts",
     analytics: "/seller/analytics",
+    reports: "/seller/reports",
+    team: "/seller/team",
     subscription: "/seller/subscription",
   },
   admin: {

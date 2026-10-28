@@ -181,6 +181,9 @@ export function ProductForm({
   const [title, setTitle] = useState(initial?.title ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
   const [price, setPrice] = useState(() => formatMoneyInput(initial?.price ?? ""));
+  const [compareAtPrice, setCompareAtPrice] = useState(() =>
+    initial?.compare_at_price ? formatMoneyInput(initial.compare_at_price) : "",
+  );
   const [stock, setStock] = useState(String(initial?.stock_quantity ?? 0));
   const [categoryId, setCategoryId] = useState(initial?.category_id ? String(initial.category_id) : "");
   const [shippingCost, setShippingCost] = useState(() =>
@@ -213,6 +216,7 @@ export function ProductForm({
     setTitle(initial?.title ?? "");
     setDescription(initial?.description ?? "");
     setPrice(formatMoneyInput(initial?.price ?? ""));
+    setCompareAtPrice(initial?.compare_at_price ? formatMoneyInput(initial.compare_at_price) : "");
     setStock(String(initial?.stock_quantity ?? 0));
     setCategoryId(initial?.category_id ? String(initial.category_id) : "");
     setShippingCost(initial?.shipping_cost ? formatMoneyInput(initial.shipping_cost) : "");
@@ -372,6 +376,14 @@ export function ProductForm({
     setError(null);
     const priceNum = moneyInputToNumber(price);
     const stockNum = parseInt(stock, 10);
+    let compareAtNum: number | null = null;
+    if (parseMoneyInput(compareAtPrice)) {
+      compareAtNum = moneyInputToNumber(compareAtPrice);
+      if (Number.isNaN(compareAtNum) || compareAtNum <= 0) {
+        setError("قیمت قبل از تخفیف باید بیشتر از صفر باشه.");
+        return;
+      }
+    }
     if (!title.trim()) {
       setError("عنوان محصول رو بنویس.");
       return;
@@ -475,6 +487,7 @@ export function ProductForm({
         title: title.trim(),
         description: description.trim() || null,
         price: priceNum,
+        compare_at_price: compareAtNum,
         stock_quantity: stockNum,
         is_active: isActive,
         category_id: categoryId ? parseInt(categoryId, 10) : null,
@@ -524,6 +537,12 @@ export function ProductForm({
             />
           </div>
           <MoneyInput label="قیمت" value={price} onValueChange={setPrice} required />
+          <MoneyInput
+            label="قیمت قبل از تخفیف"
+            value={compareAtPrice}
+            onValueChange={setCompareAtPrice}
+            hint="اگه پر کنی، قیمت قبلی خط‌خورده نشون داده می‌شه."
+          />
           <Input
             label="موجودی"
             type="number"

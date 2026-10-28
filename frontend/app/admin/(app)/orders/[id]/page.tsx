@@ -30,6 +30,7 @@ const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   SHIPPED: "ارسال شد",
   DELIVERED: "تحویل شد",
   CANCELLED: "لغو شد",
+  EXPIRED: "مهلت پرداخت تموم شد",
 };
 
 const COMPLAINT_STATUS_LABELS: Record<string, string> = {

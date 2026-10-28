@@ -27,7 +27,7 @@ import {
 import type { ListAdminOrdersParams } from "@/types/admin/order";
 import type { OrderStatus } from "@/types/order";
 
-const ORDER_STATUS_LABELS: Record<Exclude<OrderStatus, never>, string> = {
+const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   PENDING_PAYMENT: "در انتظار پرداخت",
   PAYMENT_UPLOADED: "رسید پرداخت ثبت شد",
   PAYMENT_CONFIRMED: "پرداخت تایید شد",
@@ -36,6 +36,7 @@ const ORDER_STATUS_LABELS: Record<Exclude<OrderStatus, never>, string> = {
   SHIPPED: "ارسال شد",
   DELIVERED: "تحویل شد",
   CANCELLED: "لغو شد",
+  EXPIRED: "مهلت پرداخت تموم شد",
 };
 
 const ORDER_STATUSES: ("" | OrderStatus)[] = [
@@ -48,6 +49,7 @@ const ORDER_STATUSES: ("" | OrderStatus)[] = [
   "SHIPPED",
   "DELIVERED",
   "CANCELLED",
+  "EXPIRED",
 ];
 
 export default function AdminOrdersPage() {

@@ -5,11 +5,12 @@ from decimal import Decimal
 from unittest.mock import patch
 
 from app.core.security import hash_password
-from app.models.enums import OrderStatus, PaymentMethodType, UserRole
+from app.models.enums import BillingPeriod, OrderStatus, PaymentMethodType, UserRole
 from app.models.order import Order
 from app.models.payment_method import PaymentMethod
 from app.models.store import Store
 from app.models.user import User
+from app.services import subscription_billing_service
 from app.services.reservation_cleanup_service import expire_stale_reservations
 
 
@@ -24,11 +25,20 @@ def _seed_expiring_order(db, *, invoice_code="INV-EXP-1"):
     )
     db.add(seller)
     db.flush()
+    # Recovery SMS needs a plan with SMS quota (Free is 0).
+    subscription_billing_service.admin_assign_plan(
+        db,
+        seller.id,
+        plan_code="basic",
+        period=BillingPeriod.MONTHLY,
+        months=1,
+    )
     store = Store(
         owner_id=seller.id,
         name="Expire Store",
         slug="expire-store",
         is_active=True,
+        is_published=True,
     )
     db.add(store)
     db.flush()

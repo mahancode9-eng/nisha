@@ -20,7 +20,7 @@ export const PLAN_CATALOG = [
     yearly_price_toman: 2_990_000,
     is_recommended: false,
     blurb: "وقتی سفارش‌ها بیشتر شد",
-    highlights: ["کد تخفیف نامحدود", "تایید رسید از تلگرام", "تا ۲۰۰ محصول"],
+    highlights: ["گزارش فروش", "روش ارسال نام‌دار", "تا ۲۰۰ محصول"],
   },
   {
     code: "pro",
@@ -30,7 +30,7 @@ export const PLAN_CATALOG = [
     yearly_price_toman: 5_990_000,
     is_recommended: true,
     blurb: "برای فروشگاهی که داره بزرگ می‌شه",
-    highlights: ["آمار ۹۰ روزه", "تم و صفحات فروشگاه", "ویدیوی محصول"],
+    highlights: ["برچسب مشتری", "تم و صفحات فروشگاه", "ویدیوی محصول"],
   },
   {
     code: "enterprise",
@@ -40,7 +40,7 @@ export const PLAN_CATALOG = [
     yearly_price_toman: 12_900_000,
     is_recommended: false,
     blurb: "فروش زیاد، جواب سریع‌تر از پشتیبانی",
-    highlights: ["همه امکانات پلن حرفه‌ای", "پشتیبانی اولویت‌دار", "تعداد محصول نامحدود"],
+    highlights: ["تیم فروشگاه", "دامنه اختصاصی", "محصول نامحدود"],
   },
 ] as const;
 
@@ -89,6 +89,11 @@ export function highlightsForPlan(plan: SubscriptionPlan | CatalogPlan): string[
   items.push(`آمار تا ${e.analytics_max_days} روز`);
   if (e.product_video) items.push("ویدیوی محصول");
   if (e.store_theme || e.store_pages) items.push("تم و صفحات فروشگاه");
+  if (e.sales_report) items.push("گزارش فروش");
+  if (e.named_shipping_methods) items.push("روش ارسال نام‌دار");
+  if (e.customer_tags) items.push("برچسب مشتری");
+  if (e.store_team) items.push("تیم فروشگاه");
+  if (e.custom_domain) items.push("دامنه اختصاصی");
   if (e.priority_support) items.push("پشتیبانی اولویت‌دار");
   return items.slice(0, 6);
 }

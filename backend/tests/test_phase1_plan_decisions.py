@@ -33,7 +33,7 @@ def test_free_plan_allows_guest_checkout(client: TestClient, seller_headers: dic
     enable = client.put(
         "/api/v1/seller/store",
         headers=seller_headers,
-        json={"guest_checkout_enabled": True},
+        json={"guest_checkout_enabled": True, "is_published": True},
     )
     assert enable.status_code == 200
 

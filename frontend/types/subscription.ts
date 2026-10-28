@@ -24,6 +24,17 @@ export type PlanEntitlements = {
   excel_export: boolean;
   store_pages: boolean;
   priority_support: boolean;
+  share_card_templates?: boolean;
+  remove_nisha_watermark?: boolean;
+  instagram_import_limit?: number | null;
+  duplicate_receipt_warn?: boolean;
+  configurable_receipt_reminder?: boolean;
+  sms_monthly_quota?: number | null;
+  named_shipping_methods?: boolean;
+  sales_report?: boolean;
+  customer_tags?: boolean;
+  store_team?: boolean;
+  custom_domain?: boolean;
   [key: string]: unknown;
 };
 

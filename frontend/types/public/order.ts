@@ -19,6 +19,8 @@ export type OrderTrackItem = {
 export type PublicPaymentProof = {
   id: number;
   image_url: string;
+  payer_card_last4?: string | null;
+  transfer_tracking?: string | null;
   uploaded_at: string;
 };
 
@@ -78,6 +80,8 @@ export type PaymentProofUploadResponse = {
   message: string;
   order_status: OrderStatus;
   proof: PublicPaymentProof;
+  duplicate_warning?: boolean;
+  duplicate_invoice_codes?: string[];
 };
 
 export type PublicReviewCreateRequest = {

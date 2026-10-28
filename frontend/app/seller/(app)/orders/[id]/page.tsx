@@ -158,6 +158,7 @@ export default function SellerOrderDetailPage({ params }: PageProps) {
         <div className="mt-2 flex flex-wrap items-center gap-3">
           <h1 className="text-2xl font-bold text-neutral-900">{data.invoice_code}</h1>
           <StatusBadge status={data.status} />
+          {data.is_manual ? <Badge variant="info">سفارش دستی</Badge> : null}
           <Button variant="secondary" size="sm" loading={downloadLoading} onClick={() => void handleDownload()}>
             دانلود فاکتور
           </Button>
@@ -189,6 +190,14 @@ export default function SellerOrderDetailPage({ params }: PageProps) {
                   <p className="text-xs text-neutral-500">
                     بارگذاری شده در {formatDateTime(proof.uploaded_at)}
                   </p>
+                  {proof.payer_card_last4 ? (
+                    <p className="text-xs text-neutral-600" dir="ltr">
+                      کارت: ****{proof.payer_card_last4}
+                    </p>
+                  ) : null}
+                  {proof.transfer_tracking ? (
+                    <p className="text-xs text-neutral-600">پیگیری واریز: {proof.transfer_tracking}</p>
+                  ) : null}
                 </div>
               ))}
             </div>

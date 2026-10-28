@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import * as productsApi from "@/lib/api/seller/products";
 import * as exportsApi from "@/lib/api/seller/exports";
@@ -10,6 +11,7 @@ import { useToast } from "@/contexts/ToastContext";
 import { useSellerEntitlements } from "@/hooks/useSellerEntitlements";
 import { useSellerFetch } from "@/hooks/useSellerFetch";
 import { ConfirmModal } from "@/components/seller/ConfirmModal";
+import { InstagramImportModal } from "@/components/seller/InstagramImportModal";
 import { ProductCategoryManager } from "@/components/seller/ProductCategoryManager";
 import { UpgradeGate } from "@/components/seller/UpgradeGate";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -31,14 +33,18 @@ import {
 import { ApiError } from "@/lib/api/errors";
 
 export default function SellerProductsPage() {
+  const router = useRouter();
   const toast = useToast();
   const { entitlements } = useSellerEntitlements();
   const canExport = entitlements.excel_export;
   const maxProducts = entitlements.max_products;
+  const importLimit = entitlements.instagram_import_limit;
+  const canImport = importLimit === null || importLimit === undefined || importLimit > 0;
   const [page, setPage] = useState(1);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   const fetchProducts = useCallback(
     () => productsApi.listProducts({ page, page_size: 20 }),
@@ -90,6 +96,11 @@ export default function SellerProductsPage() {
                 خروجی Excel
               </Button>
             )}
+            {canImport && !atProductLimit ? (
+              <Button type="button" variant="secondary" size="sm" onClick={() => setImportOpen(true)}>
+                از اینستاگرام
+              </Button>
+            ) : null}
             {atProductLimit ? (
               <Link href={paths.seller.subscription} className={buttonClassName({ size: "sm", variant: "secondary" })}>
                 ارتقا برای محصول بیشتر
@@ -208,6 +219,15 @@ export default function SellerProductsPage() {
         loading={deleting}
         onConfirm={handleDelete}
         onClose={() => setDeleteId(null)}
+      />
+
+      <InstagramImportModal
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        onImported={(productId) => {
+          void refetch();
+          router.push(paths.seller.productEdit(productId));
+        }}
       />
     </div>
   );

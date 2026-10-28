@@ -1,4 +1,5 @@
 import type { OrderStatus } from "@/types/order";
+import type { CustomerTag } from "@/types/seller/customer-tag";
 
 export type SellerCustomerKind = "account" | "guest";
 
@@ -22,6 +23,7 @@ export type SellerCustomerListItem = {
   last_order_at: string | null;
   has_conversation: boolean;
   conversation_id: number | null;
+  tags?: CustomerTag[];
 };
 
 export type SellerCustomerDetail = SellerCustomerListItem & {

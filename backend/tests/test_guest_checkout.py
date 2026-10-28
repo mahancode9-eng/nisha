@@ -171,7 +171,7 @@ def test_guest_order_allowed_on_free_plan(client, seller_headers, db):
     enable = client.put(
         "/api/v1/seller/store",
         headers=seller_headers,
-        json={"guest_checkout_enabled": True},
+        json={"guest_checkout_enabled": True, "is_published": True},
     )
     assert enable.status_code == 200
 
