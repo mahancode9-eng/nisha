@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/Button";
+import { formatNumber } from "@/lib/format";
 
 type PaginationControlsProps = {
   page: number;
@@ -18,7 +19,7 @@ export function PaginationControls({
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
       <p className="text-sm text-foreground-muted">
-        صفحه {page} از {totalPages} ({total} مورد)
+        صفحه {formatNumber(page)} از {formatNumber(totalPages)} ({formatNumber(total)} مورد)
       </p>
       <div className="flex gap-2">
         <Button

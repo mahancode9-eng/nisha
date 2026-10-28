@@ -1,15 +1,25 @@
 from datetime import date, datetime, time, timezone
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import case, func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.models.enums import OrderStatus
 from app.models.order import Order, OrderItem
 from app.models.store import Store
 from app.models.user import User
-from app.services import order_access_service, stock_service
+from app.services import chat_service, order_access_service, stock_service
 from app.services.exceptions import ServiceError
 from app.utils import order_transitions
+
+
+def conversation_id_for_order(order: Order) -> int | None:
+    if not order.conversations:
+        return None
+    return order.conversations[0].id
+
+
+def payment_proof_count_for_order(order: Order) -> int:
+    return len(order.payment_proofs) if order.payment_proofs is not None else 0
 
 
 def get_order_for_store(db: Session, store: Store, order_id: int) -> Order:
@@ -23,6 +33,7 @@ def get_order_for_store(db: Session, store: Store, order_id: int) -> Order:
             selectinload(Order.receipt),
             selectinload(Order.complaints),
             selectinload(Order.customer),
+            selectinload(Order.conversations),
         )
         .where(Order.id == order_id, Order.store_id == store.id)
     )
@@ -36,6 +47,7 @@ def list_orders(
     store: Store,
     *,
     status: OrderStatus | None = None,
+    statuses: list[OrderStatus] | None = None,
     date_from: date | None = None,
     date_to: date | None = None,
     search: str | None = None,
@@ -43,10 +55,11 @@ def list_orders(
     query = _orders_filter_query(
         store,
         status=status,
+        statuses=statuses,
         date_from=date_from,
         date_to=date_to,
         search=search,
-    ).order_by(Order.created_at.desc())
+    ).order_by(*_orders_order_by(statuses=statuses, status=status))
     return list(db.scalars(query).all())
 
 
@@ -54,12 +67,16 @@ def _orders_filter_query(
     store: Store,
     *,
     status: OrderStatus | None = None,
+    statuses: list[OrderStatus] | None = None,
     date_from: date | None = None,
     date_to: date | None = None,
     search: str | None = None,
 ):
     query = select(Order).where(Order.store_id == store.id)
-    if status is not None:
+    status_list = [s for s in (statuses or []) if s is not None]
+    if status_list:
+        query = query.where(Order.status.in_(status_list))
+    elif status is not None:
         query = query.where(Order.status == status)
     if date_from is not None:
         start = datetime.combine(date_from, time.min, tzinfo=timezone.utc)
@@ -70,9 +87,35 @@ def _orders_filter_query(
     if search:
         term = f"%{search.strip()}%"
         query = query.where(
-            or_(Order.invoice_code.ilike(term), Order.buyer_phone.ilike(term))
+            or_(
+                Order.invoice_code.ilike(term),
+                Order.buyer_phone.ilike(term),
+                Order.buyer_name.ilike(term),
+            )
         )
-    return query.options(selectinload(Order.receipt), selectinload(Order.complaints))
+    return query.options(
+        selectinload(Order.receipt),
+        selectinload(Order.complaints),
+        selectinload(Order.payment_proofs),
+        selectinload(Order.conversations),
+    )
+
+
+def _orders_order_by(
+    *,
+    statuses: list[OrderStatus] | None = None,
+    status: OrderStatus | None = None,
+):
+    """Prefer PAYMENT_UPLOADED when listing the payment/proof inbox stage."""
+    status_list = [s for s in (statuses or []) if s is not None]
+    if status is not None:
+        status_list = [status]
+    if OrderStatus.PAYMENT_UPLOADED in status_list and len(status_list) > 1:
+        return (
+            case((Order.status == OrderStatus.PAYMENT_UPLOADED, 0), else_=1),
+            Order.created_at.desc(),
+        )
+    return (Order.created_at.desc(),)
 
 
 def list_orders_paginated(
@@ -82,6 +125,7 @@ def list_orders_paginated(
     page: int,
     page_size: int,
     status: OrderStatus | None = None,
+    statuses: list[OrderStatus] | None = None,
     date_from: date | None = None,
     date_to: date | None = None,
     search: str | None = None,
@@ -89,6 +133,7 @@ def list_orders_paginated(
     base = _orders_filter_query(
         store,
         status=status,
+        statuses=statuses,
         date_from=date_from,
         date_to=date_to,
         search=search,
@@ -97,10 +142,25 @@ def list_orders_paginated(
     offset = (page - 1) * page_size
     items = list(
         db.scalars(
-            base.order_by(Order.created_at.desc()).offset(offset).limit(page_size)
+            base.order_by(*_orders_order_by(statuses=statuses, status=status))
+            .offset(offset)
+            .limit(page_size)
         ).all()
     )
     return items, total
+
+
+def open_order_conversation(db: Session, store: Store, order_id: int):
+    order = get_order_for_store(db, store, order_id)
+    conversation = chat_service.get_or_create_conversation(
+        db,
+        store_id=store.id,
+        order_id=order.id,
+        customer_id=order.customer_id,
+    )
+    db.commit()
+    db.refresh(conversation)
+    return conversation
 
 
 def confirm_payment(db: Session, store: Store, order_id: int, seller: User) -> Order:

@@ -13,6 +13,7 @@ from app.schemas.payment_method import PaymentMethodResponse
 from app.schemas.pagination import PaginatedResponse, build_paginated_response
 from app.schemas.seller_order import (
     SellerOrderActionResponse,
+    SellerOrderConversationResponse,
     SellerOrderDetailResponse,
     SellerOrderItemResponse,
     SellerOrderListItem,
@@ -27,9 +28,27 @@ from app.services.order_item_serializers import seller_order_item_response
 router = APIRouter(prefix="/orders", tags=["seller-orders"])
 
 
+def _list_item(order) -> SellerOrderListItem:
+    return SellerOrderListItem(
+        id=order.id,
+        invoice_code=order.invoice_code,
+        status=order.status,
+        buyer_name=order.buyer_name,
+        buyer_phone=order.buyer_phone,
+        total_amount=order.total_amount,
+        customer_id=order.customer_id,
+        receipt_status=order.receipt.status if order.receipt else None,
+        complaint_count=len(order.complaints),
+        conversation_id=seller_order_service.conversation_id_for_order(order),
+        payment_proof_count=seller_order_service.payment_proof_count_for_order(order),
+        created_at=order.created_at,
+    )
+
+
 @router.get("", response_model=PaginatedResponse[SellerOrderListItem])
 def list_orders(
     status: OrderStatus | None = None,
+    statuses: list[OrderStatus] | None = Query(default=None),
     date_from: date | None = None,
     date_to: date | None = None,
     search: str | None = Query(default=None, max_length=100),
@@ -44,25 +63,12 @@ def list_orders(
         page=page,
         page_size=page_size,
         status=status,
+        statuses=statuses,
         date_from=date_from,
         date_to=date_to,
         search=search,
     )
-    items = [
-        SellerOrderListItem(
-            id=order.id,
-            invoice_code=order.invoice_code,
-            status=order.status,
-            buyer_name=order.buyer_name,
-            buyer_phone=order.buyer_phone,
-            total_amount=order.total_amount,
-            customer_id=order.customer_id,
-            receipt_status=order.receipt.status if order.receipt else None,
-            complaint_count=len(order.complaints),
-            created_at=order.created_at,
-        )
-        for order in orders
-    ]
+    items = [_list_item(order) for order in orders]
     return build_paginated_response(items, total, page, page_size)
 
 
@@ -93,6 +99,8 @@ def get_order(
         customer_id=order.customer_id,
         receipt_status=order.receipt.status if order.receipt else None,
         complaint_count=len(order.complaints),
+        conversation_id=seller_order_service.conversation_id_for_order(order),
+        payment_proof_count=seller_order_service.payment_proof_count_for_order(order),
         stock_restored=order.stock_restored,
         tracking_code=order.tracking_code,
         created_at=order.created_at,
@@ -102,6 +110,21 @@ def get_order(
         payment_proofs=[PaymentProofResponse.model_validate(p) for p in order.payment_proofs],
         status_history=[OrderStatusHistoryResponse.model_validate(h) for h in order.status_history],
     )
+
+
+@router.post("/{order_id}/conversation", response_model=SellerOrderConversationResponse)
+def open_order_conversation(
+    order_id: int,
+    store: Store = Depends(get_seller_store),
+    seller: User = Depends(require_seller),
+    db: Session = Depends(get_db),
+) -> SellerOrderConversationResponse:
+    del seller  # auth only
+    try:
+        conversation = seller_order_service.open_order_conversation(db, store, order_id)
+    except ServiceError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+    return SellerOrderConversationResponse(conversation_id=conversation.id)
 
 
 @router.get("/{order_id}/invoice")

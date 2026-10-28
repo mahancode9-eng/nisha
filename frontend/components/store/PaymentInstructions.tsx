@@ -1,3 +1,4 @@
+import { CopyableCardNumber } from "@/components/ui/CopyableCardNumber";
 import type { CheckoutPaymentInstructions } from "@/types/public/checkout";
 import type { PublicPaymentMethod } from "@/types/public/store";
 
@@ -11,7 +12,7 @@ export function PaymentInstructions({ method }: PaymentInstructionsProps) {
       <p className="font-semibold">راهنمای پرداخت: {method.display_name}</p>
       {method.type === "CARD_TO_CARD" && (
         <div className="mt-2 space-y-1">
-          {method.card_number && <p>کارت مقصد: {method.card_number}</p>}
+          {method.card_number ? <CopyableCardNumber value={method.card_number} /> : null}
           {method.owner_name && <p>نام حساب: {method.owner_name}</p>}
         </div>
       )}

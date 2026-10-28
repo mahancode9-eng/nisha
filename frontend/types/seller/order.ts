@@ -11,6 +11,8 @@ export type SellerOrderListItem = {
   customer_id: number | null;
   receipt_status: "RECEIVED" | "NOT_RECEIVED" | null;
   complaint_count: number;
+  conversation_id?: number | null;
+  payment_proof_count?: number;
   created_at: string;
 };
 
@@ -56,6 +58,8 @@ export type SellerOrderDetail = {
   customer_id: number | null;
   receipt_status: "RECEIVED" | "NOT_RECEIVED" | null;
   complaint_count: number;
+  conversation_id?: number | null;
+  payment_proof_count?: number;
   stock_restored: boolean;
   tracking_code?: string | null;
   created_at: string;
@@ -73,10 +77,15 @@ export type SellerOrderActionResponse = {
   tracking_code?: string | null;
 };
 
+export type SellerOrderConversationResponse = {
+  conversation_id: number;
+};
+
 export type OrderStatusPatch = "PREPARING" | "SHIPPED" | "DELIVERED" | "CANCELLED";
 
 export type ListOrdersParams = {
   status?: OrderStatus;
+  statuses?: OrderStatus[];
   search?: string;
   date_from?: string;
   date_to?: string;

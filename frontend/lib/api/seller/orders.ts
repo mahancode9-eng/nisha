@@ -4,6 +4,7 @@ import type {
   ListOrdersParams,
   OrderStatusPatch,
   SellerOrderActionResponse,
+  SellerOrderConversationResponse,
   SellerOrderDetail,
   SellerOrderListItem,
 } from "@/types/seller/order";
@@ -11,6 +12,9 @@ import type {
 function buildQuery(params: ListOrdersParams): string {
   const q = new URLSearchParams();
   if (params.status) q.set("status", params.status);
+  if (params.statuses) {
+    for (const status of params.statuses) q.append("statuses", status);
+  }
   if (params.search) q.set("search", params.search);
   if (params.date_from) q.set("date_from", params.date_from);
   if (params.date_to) q.set("date_to", params.date_to);
@@ -54,6 +58,14 @@ export function updateTrackingCode(
   return apiPatch<SellerOrderActionResponse>(`/api/v1/seller/orders/${id}/tracking`, {
     tracking_code,
   });
+}
+
+export function openOrderConversation(
+  orderId: number,
+): Promise<SellerOrderConversationResponse> {
+  return apiPost<SellerOrderConversationResponse>(
+    `/api/v1/seller/orders/${orderId}/conversation`,
+  );
 }
 
 export function downloadInvoice(orderId: number): Promise<Blob> {

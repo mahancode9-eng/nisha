@@ -22,6 +22,8 @@ class SellerOrderListItem(BaseModel):
     customer_id: int | None = None
     receipt_status: CustomerReceiptStatus | None = None
     complaint_count: int = 0
+    conversation_id: int | None = None
+    payment_proof_count: int = 0
     created_at: datetime
 
 
@@ -57,6 +59,8 @@ class SellerOrderDetailResponse(BaseModel):
     customer_id: int | None = None
     receipt_status: CustomerReceiptStatus | None = None
     complaint_count: int = 0
+    conversation_id: int | None = None
+    payment_proof_count: int = 0
     stock_restored: bool
     tracking_code: str | None = None
     created_at: datetime
@@ -82,3 +86,7 @@ class SellerOrderActionResponse(BaseModel):
     order_id: int
     status: OrderStatus
     tracking_code: str | None = None
+
+
+class SellerOrderConversationResponse(BaseModel):
+    conversation_id: int
