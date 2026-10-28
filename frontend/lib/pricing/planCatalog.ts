@@ -30,7 +30,7 @@ export const PLAN_CATALOG = [
     yearly_price_toman: 5_990_000,
     is_recommended: true,
     blurb: "برای فروشگاهی که داره بزرگ می‌شه",
-    highlights: ["آمار ۹۰ روزه", "تم و صفحات فروشگاه", "خروجی Excel و ویدیو"],
+    highlights: ["آمار ۹۰ روزه", "تم و صفحات فروشگاه", "ویدیوی محصول"],
   },
   {
     code: "enterprise",
@@ -88,7 +88,6 @@ export function highlightsForPlan(plan: SubscriptionPlan | CatalogPlan): string[
   items.push(`آمار تا ${e.analytics_max_days} روز`);
   if (e.product_video) items.push("ویدیوی محصول");
   if (e.store_theme || e.store_pages) items.push("تم و صفحات فروشگاه");
-  if (e.excel_export) items.push("خروجی Excel");
   if (e.priority_support) items.push("پشتیبانی اولویت‌دار");
   return items.slice(0, 6);
 }

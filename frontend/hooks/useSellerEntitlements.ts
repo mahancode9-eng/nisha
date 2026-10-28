@@ -12,6 +12,7 @@ const DEFAULT_ENTITLEMENTS: PlanEntitlements = {
   custom_fields: false,
   discounts: true,
   max_active_discount_codes: 1,
+  timed_discounts: false,
   analytics_max_days: 7,
   guest_checkout: true,
   messenger_receipt_actions: false,

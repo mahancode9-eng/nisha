@@ -21,7 +21,9 @@ import {
 } from "@/components/ui/Table";
 import { UpgradeGate } from "@/components/seller/UpgradeGate";
 import { useSellerEntitlements } from "@/hooks/useSellerEntitlements";
+import { paths } from "@/lib/auth/paths";
 import type { DiscountCode, DiscountType } from "@/types/seller/discount";
+import Link from "next/link";
 
 export default function SellerDiscountsPage() {
   const toast = useToast();
@@ -31,6 +33,7 @@ export default function SellerDiscountsPage() {
   const [error, setError] = useState<string | null>(null);
 
   const canManageDiscounts = entitlements.discounts;
+  const canTimedDiscounts = entitlements.timed_discounts;
   const activeCount = discounts.filter((d) => d.is_active).length;
   const maxActive = entitlements.max_active_discount_codes;
   const atActiveCap = maxActive != null && activeCount >= maxActive;
@@ -84,6 +87,10 @@ export default function SellerDiscountsPage() {
       toast.error("مبلغ تخفیف رو وارد کن");
       return;
     }
+    if (!canTimedDiscounts && expiresAt) {
+      toast.error("تاریخ انقضا فقط تو پلن پایه به بالاست. پلن رو ارتقا بده.");
+      return;
+    }
     setSubmitting(true);
     try {
       await discountsApi.createDiscount({
@@ -94,7 +101,7 @@ export default function SellerDiscountsPage() {
         amount_off: discountType === "FIXED" ? amountOff.trim() : null,
         min_order_amount: minOrderAmount.trim() || null,
         max_uses: maxUses.trim() ? Number(maxUses) : null,
-        expires_at: expiresAt ? new Date(expiresAt).toISOString() : null,
+        expires_at: canTimedDiscounts && expiresAt ? new Date(expiresAt).toISOString() : null,
         is_active: true,
       });
       toast.success("کد تخفیف ساخته شد");
@@ -219,12 +226,23 @@ export default function SellerDiscountsPage() {
               value={maxUses}
               onChange={(e) => setMaxUses(e.target.value)}
             />
-            <Input
-              label="تاریخ انقضا (اختیاری)"
-              type="datetime-local"
-              value={expiresAt}
-              onChange={(e) => setExpiresAt(e.target.value)}
-            />
+            <div className="space-y-1">
+              <Input
+                label="تاریخ انقضا (اختیاری)"
+                type="datetime-local"
+                value={expiresAt}
+                onChange={(e) => setExpiresAt(e.target.value)}
+                disabled={!canTimedDiscounts}
+              />
+              {!canTimedDiscounts && (
+                <p className="text-xs text-foreground-muted">
+                  تاریخ انقضا فقط تو پلن پایه به بالاست.{" "}
+                  <Link href={paths.seller.subscription} className="text-brand underline-offset-2 hover:underline">
+                    ارتقای پلن
+                  </Link>
+                </p>
+              )}
+            </div>
             <Input
               label="توضیح (اختیاری)"
               value={description}

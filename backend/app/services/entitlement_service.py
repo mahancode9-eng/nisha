@@ -23,6 +23,7 @@ DEFAULT_ENTITLEMENTS: dict[str, Any] = {
     "custom_fields": False,
     "discounts": True,
     "max_active_discount_codes": 1,
+    "timed_discounts": False,
     "analytics_max_days": 7,
     "guest_checkout": True,
     "messenger_receipt_actions": False,
@@ -37,6 +38,7 @@ DEFAULT_ENTITLEMENTS: dict[str, Any] = {
 _PAID_DISCOUNT_ENTITLEMENTS: dict[str, Any] = {
     "discounts": True,
     "max_active_discount_codes": None,
+    "timed_discounts": True,
     "messenger_receipt_actions": True,
 }
 
@@ -134,6 +136,7 @@ def _sync_plan_entitlements(plan: SubscriptionPlan, seed_entitlements: dict[str,
         "guest_checkout",
         "discounts",
         "max_active_discount_codes",
+        "timed_discounts",
         "messenger_receipt_actions",
     )
     for key in policy_keys:
@@ -292,3 +295,8 @@ def get_max_active_discount_codes(entitlements: dict[str, Any]) -> int | None:
     if value is None:
         return None
     return int(value)
+
+
+def can_use_timed_discounts(entitlements: dict[str, Any]) -> bool:
+    """Basic+ can set expires_at; Free cannot."""
+    return bool(entitlements.get("timed_discounts"))

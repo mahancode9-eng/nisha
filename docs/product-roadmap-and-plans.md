@@ -48,7 +48,7 @@ Current plan gates (from `entitlement_service.py`):
 14. **Trust & premium badges on storefront** (Pro/Enterprise — make them *visible* and desirable)
 15. **Custom store pages** (Pro) — About, Shipping, FAQ that buyers actually read
 16. **Theme packs** (Pro) — 3–5 polished skins, not infinite DIY
-17. **Excel export of orders/products** (Pro) — accountants care
+17. **Excel export of orders/products** — accountants care (planned on Basic+; still gated in code until that phase)
 18. **Review highlights on product page** — social proof without clutter
 19. **Seller quick-replies in chat** — “کد پیگیری”، «کارت به کارت»، «موجود شد»
 20. **Multi-staff / roles** — later Enterprise hook

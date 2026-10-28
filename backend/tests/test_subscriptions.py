@@ -36,6 +36,7 @@ def test_default_free_subscription_and_plans(client: TestClient, seller_headers:
     assert body["effective_plan"]["code"] == "free"
     assert body["entitlements"]["discounts"] is True
     assert body["entitlements"]["max_active_discount_codes"] == 1
+    assert body["entitlements"]["timed_discounts"] is False
     assert body["entitlements"]["guest_checkout"] is True
     assert body["entitlements"]["messenger_receipt_actions"] is False
 

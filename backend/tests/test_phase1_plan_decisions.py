@@ -119,6 +119,51 @@ def test_free_plan_one_active_discount_cap(client: TestClient, seller_headers: d
     assert activate.status_code == 403
 
 
+def test_free_plan_cannot_set_discount_expiry(client: TestClient, seller_headers: dict[str, str]):
+    response = client.post(
+        "/api/v1/seller/discounts",
+        headers=seller_headers,
+        json={
+            "code": "EXPIREME",
+            "discount_type": "PERCENT",
+            "percent_off": "10",
+            "is_active": True,
+            "expires_at": "2099-12-31T23:59:00Z",
+        },
+    )
+    assert response.status_code == 403
+    assert "انقضا" in response.json()["detail"] or "ارتقا" in response.json()["detail"]
+
+
+def test_basic_plan_can_set_discount_expiry(
+    client: TestClient,
+    seller_headers: dict[str, str],
+    db: Session,
+):
+    from app.services import subscription_billing_service
+
+    subscription_billing_service.admin_assign_plan(
+        db,
+        _seller_id(db),
+        plan_code="basic",
+        period=BillingPeriod.MONTHLY,
+        months=1,
+    )
+    response = client.post(
+        "/api/v1/seller/discounts",
+        headers=seller_headers,
+        json={
+            "code": "BASICEXP",
+            "discount_type": "PERCENT",
+            "percent_off": "10",
+            "is_active": True,
+            "expires_at": "2099-12-31T23:59:00Z",
+        },
+    )
+    assert response.status_code == 201, response.text
+    assert response.json()["expires_at"] is not None
+
+
 def test_basic_plan_unlimited_active_discounts(
     client: TestClient,
     seller_headers: dict[str, str],
