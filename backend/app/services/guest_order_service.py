@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, timezone
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
@@ -7,7 +8,7 @@ from app.schemas.chat import ConversationDetailResponse, MessageCreate, MessageR
 from app.schemas.customer_portal import CustomerReviewCreateRequest, CustomerReviewResponse
 from app.schemas.public import PublicReviewCreateRequest
 from app.models.enums import OrderStatus
-from app.models.order import PaymentProof
+from app.models.order import Order, PaymentProof
 from app.schemas.guest_order import (
     GuestOrderEdit,
     GuestOrderEditResponse,
@@ -19,9 +20,41 @@ from app.schemas.guest_order import (
 )
 from app.schemas.public import PublicPaymentMethod, public_store_profile_from_store
 from app.services import chat_service, order_access_service, review_service
+from app.services.entitlement_service import get_seller_entitlements
 from app.services.order_item_serializers import track_order_item_response
 from app.services.exceptions import ServiceError
 from app.utils.upload import save_payment_proof_image
+
+
+def _normalize_last4(value: str | None) -> str | None:
+    if value is None:
+        return None
+    digits = "".join(ch for ch in value if ch.isdigit())
+    if not digits:
+        return None
+    if len(digits) != 4:
+        raise ServiceError("چهار رقم آخر کارت باید ۴ رقم باشه", status_code=422)
+    return digits
+
+
+def _find_duplicate_invoice_codes(
+    db: Session,
+    *,
+    store_id: int,
+    content_hash: str,
+    exclude_order_id: int,
+) -> list[str]:
+    rows = db.scalars(
+        select(Order.invoice_code)
+        .join(PaymentProof, PaymentProof.order_id == Order.id)
+        .where(
+            Order.store_id == store_id,
+            PaymentProof.content_hash == content_hash,
+            Order.id != exclude_order_id,
+        )
+        .limit(5)
+    ).all()
+    return list(rows)
 
 
 async def upload_payment_proof(
@@ -29,13 +62,25 @@ async def upload_payment_proof(
     invoice_code: str,
     password: str,
     file,
+    *,
+    payer_card_last4: str | None = None,
+    transfer_tracking: str | None = None,
 ) -> PaymentProofUploadResponse:
     order = order_access_service.authenticate_order(db, invoice_code, password)
     order_access_service.assert_upload_allowed_status(order)
 
+    last4 = _normalize_last4(payer_card_last4)
+    tracking = (transfer_tracking or "").strip()[:100] or None
+
     try:
-        image_url = await save_payment_proof_image(file, order.id)
-        proof = PaymentProof(order_id=order.id, image_url=image_url)
+        saved = await save_payment_proof_image(file, order.id)
+        proof = PaymentProof(
+            order_id=order.id,
+            image_url=saved.url,
+            content_hash=saved.content_hash,
+            payer_card_last4=last4,
+            transfer_tracking=tracking,
+        )
         db.add(proof)
 
         old_status = order.status
@@ -53,6 +98,18 @@ async def upload_payment_proof(
                 note="رسید پرداخت ثبت شد",
             )
 
+        duplicate_warning = False
+        duplicate_codes: list[str] = []
+        entitlements = get_seller_entitlements(db, order.store.owner_id)
+        if entitlements.get("duplicate_receipt_warn") and saved.content_hash:
+            duplicate_codes = _find_duplicate_invoice_codes(
+                db,
+                store_id=order.store_id,
+                content_hash=saved.content_hash,
+                exclude_order_id=order.id,
+            )
+            duplicate_warning = bool(duplicate_codes)
+
         db.commit()
         db.refresh(proof)
     except ServiceError:
@@ -66,6 +123,8 @@ async def upload_payment_proof(
         message="رسید پرداخت ثبت شد",
         order_status=order.status,
         proof=PaymentProofResponse.model_validate(proof),
+        duplicate_warning=duplicate_warning,
+        duplicate_invoice_codes=duplicate_codes,
     )
 
 

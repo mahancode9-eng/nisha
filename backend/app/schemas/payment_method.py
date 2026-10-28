@@ -5,10 +5,20 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from app.models.enums import PaymentMethodType
 
 
+def card_last4_from_number(card_number: str | None) -> str | None:
+    if not card_number:
+        return None
+    digits = "".join(ch for ch in card_number if ch.isdigit())
+    if len(digits) < 4:
+        return None
+    return digits[-4:]
+
+
 class PaymentMethodCreate(BaseModel):
     type: PaymentMethodType
     display_name: str = Field(min_length=1, max_length=255)
     card_number: str | None = Field(default=None, max_length=50)
+    bank_name: str | None = Field(default=None, max_length=100)
     wallet_address: str | None = Field(default=None, max_length=255)
     external_url: str | None = Field(default=None, max_length=500)
     owner_name: str | None = Field(default=None, max_length=255)
@@ -41,6 +51,7 @@ class PaymentMethodUpdate(BaseModel):
     type: PaymentMethodType | None = None
     display_name: str | None = Field(default=None, min_length=1, max_length=255)
     card_number: str | None = Field(default=None, max_length=50)
+    bank_name: str | None = Field(default=None, max_length=100)
     wallet_address: str | None = Field(default=None, max_length=255)
     external_url: str | None = Field(default=None, max_length=500)
     owner_name: str | None = Field(default=None, max_length=255)
@@ -62,6 +73,8 @@ class PaymentMethodResponse(BaseModel):
     type: PaymentMethodType
     display_name: str
     card_number: str | None
+    bank_name: str | None = None
+    card_last4: str | None = None
     wallet_address: str | None
     external_url: str | None
     owner_name: str | None
@@ -69,6 +82,12 @@ class PaymentMethodResponse(BaseModel):
     is_active: bool
     created_at: datetime
     updated_at: datetime
+
+    @model_validator(mode="after")
+    def fill_card_last4(self) -> "PaymentMethodResponse":
+        if self.card_last4 is None:
+            self.card_last4 = card_last4_from_number(self.card_number)
+        return self
 
 
 def validate_payment_method_fields(

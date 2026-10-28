@@ -14,6 +14,7 @@ import app.models.message  # noqa: F401
 import app.models.order  # noqa: F401
 import app.models.payment_method  # noqa: F401
 import app.models.product  # noqa: F401
+import app.models.shipping_method  # noqa: F401
 import app.models.store  # noqa: F401
 import app.models.short_link  # noqa: F401
 import app.models.subscription  # noqa: F401

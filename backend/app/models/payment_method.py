@@ -29,6 +29,7 @@ class PaymentMethod(TimestampMixin, Base):
     )
     display_name: Mapped[str] = mapped_column(String(255), nullable=False)
     card_number: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    bank_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     wallet_address: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     external_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     owner_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)

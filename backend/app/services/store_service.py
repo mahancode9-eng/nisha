@@ -125,6 +125,19 @@ def update_store(db: Session, store: Store, data: StoreUpdate) -> Store:
             for field in page_fields:
                 update_data.pop(field, None)
 
+    if "payment_reminder_minutes" in update_data:
+        entitlements = get_seller_entitlements(db, store.owner_id)
+        if not entitlements.get("configurable_receipt_reminder"):
+            raise ServiceError(
+                "یادآوری رسید قابل تنظیم تو پلن فعلی‌ت فعال نیست. پلن رو ارتقا بده.",
+                status_code=403,
+                code="ENTITLEMENT_REQUIRED",
+                meta={
+                    "entitlement": "configurable_receipt_reminder",
+                    "upgrade_required": True,
+                },
+            )
+
     for field, value in update_data.items():
         setattr(store, field, value)
 

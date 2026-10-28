@@ -29,6 +29,7 @@ if TYPE_CHECKING:
     from app.models.payment_method import PaymentMethod
     from app.models.product import Product
     from app.models.product_category import ProductCategory
+    from app.models.shipping_method import ShippingMethod
     from app.models.user import User
 
 
@@ -158,6 +159,9 @@ class Store(TimestampMixin, Base):
         Numeric(12, 2),
         nullable=True,
     )
+    payment_reminder_minutes: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    sms_quota_month: Mapped[Optional[str]] = mapped_column(String(7), nullable=True)
+    sms_sent_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
     owner: Mapped["User"] = relationship("User", back_populates="store")
     products: Mapped[list["Product"]] = relationship(
@@ -169,6 +173,12 @@ class Store(TimestampMixin, Base):
         "PaymentMethod",
         back_populates="store",
         cascade="all, delete-orphan",
+    )
+    shipping_methods: Mapped[list["ShippingMethod"]] = relationship(
+        "ShippingMethod",
+        back_populates="store",
+        cascade="all, delete-orphan",
+        order_by="ShippingMethod.sort_order, ShippingMethod.id",
     )
     orders: Mapped[list["Order"]] = relationship(
         "Order",

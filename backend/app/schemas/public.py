@@ -136,10 +136,29 @@ class PublicPaymentMethod(BaseModel):
     type: PaymentMethodType
     display_name: str
     card_number: str | None
+    bank_name: str | None = None
+    card_last4: str | None = None
     wallet_address: str | None
     external_url: str | None
     owner_name: str | None
     instructions: str | None
+
+    @model_validator(mode="after")
+    def fill_card_last4(self) -> "PublicPaymentMethod":
+        from app.schemas.payment_method import card_last4_from_number
+
+        if self.card_last4 is None:
+            self.card_last4 = card_last4_from_number(self.card_number)
+        return self
+
+
+class PublicShippingMethod(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    name: str
+    cost: Decimal
+    eta_label: str | None = None
 
 
 class PublicStorePageResponse(BaseModel):
@@ -148,6 +167,7 @@ class PublicStorePageResponse(BaseModel):
     products: list[PublicProduct]
     categories: list[ProductCategorySummary] = Field(default_factory=list)
     payment_methods: list[PublicPaymentMethod]
+    shipping_methods: list[PublicShippingMethod] = Field(default_factory=list)
     review_summary: PublicStoreReviewSummary
 
 
@@ -242,6 +262,7 @@ class GuestOrderCreate(BaseModel):
     buyer_address: str = Field(min_length=1)
     buyer_note: str | None = Field(default=None, max_length=1000)
     payment_method_id: int
+    shipping_method_id: int | None = None
     discount_code: str | None = Field(default=None, max_length=50)
     items: list[OrderItemInput] = Field(min_length=1)
     # Honeypot for bots — must remain empty.
@@ -288,10 +309,20 @@ class CheckoutPaymentInstructions(BaseModel):
     type: PaymentMethodType
     display_name: str
     card_number: str | None
+    bank_name: str | None = None
+    card_last4: str | None = None
     wallet_address: str | None
     external_url: str | None
     owner_name: str | None
     instructions: str | None
+
+    @model_validator(mode="after")
+    def fill_card_last4(self) -> "CheckoutPaymentInstructions":
+        from app.schemas.payment_method import card_last4_from_number
+
+        if self.card_last4 is None:
+            self.card_last4 = card_last4_from_number(self.card_number)
+        return self
 
 
 class CheckoutResponse(BaseModel):
@@ -303,6 +334,8 @@ class CheckoutResponse(BaseModel):
     discount_code: str | None = None
     discount_amount: Decimal = Decimal("0")
     shipping_amount: Decimal = Decimal("0")
+    shipping_method_id: int | None = None
+    shipping_method_name: str | None = None
     total_amount: Decimal
     items: list[CheckoutOrderItemSummary]
     payment_method: CheckoutPaymentInstructions

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import io
 import uuid
 from dataclasses import dataclass
@@ -264,14 +265,33 @@ async def save_uploaded_video(file: UploadFile, *, subdir: str) -> UploadedMedia
     )
 
 
-async def save_payment_proof_image(file: UploadFile, order_id: int) -> str:
+@dataclass(slots=True)
+class SavedPaymentProof:
+    url: str
+    content_hash: str
+
+
+async def save_payment_proof_image(file: UploadFile, order_id: int) -> SavedPaymentProof:
+    content = await _read_upload_bytes(file)
+    content_hash = hashlib.sha256(content).hexdigest()
+
+    class _BytesUpload:
+        def __init__(self, raw: bytes, filename: str | None, content_type: str | None):
+            self.filename = filename
+            self.content_type = content_type
+            self._raw = raw
+
+        async def read(self) -> bytes:
+            return self._raw
+
+    wrapped = _BytesUpload(content, file.filename, file.content_type)
     media = await save_uploaded_media(
-        file,
+        wrapped,  # type: ignore[arg-type]
         subdir=settings.PAYMENT_PROOF_SUBDIR,
         image_only=True,
         private=True,
     )
-    return media.url
+    return SavedPaymentProof(url=media.url, content_hash=content_hash)
 
 
 async def save_subscription_proof_image(file: UploadFile) -> str:

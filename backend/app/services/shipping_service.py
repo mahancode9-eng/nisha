@@ -17,8 +17,9 @@ def compute_shipping_amount(
     default_shipping_cost: Decimal,
     free_shipping_min_subtotal: Decimal | None,
     lines: list[ShippingLineInput],
+    shipping_method_cost: Decimal | None = None,
 ) -> Decimal:
-    """Compute checkout shipping from store defaults and optional per-product fees."""
+    """Compute checkout shipping from store defaults, named methods, or per-product fees."""
     product_lines = [line for line in lines if line.shipping_cost is not None]
     if product_lines:
         return sum(
@@ -31,4 +32,8 @@ def compute_shipping_amount(
         and subtotal >= Decimal(free_shipping_min_subtotal)
     ):
         return Decimal("0")
+
+    if shipping_method_cost is not None:
+        return Decimal(shipping_method_cost)
+
     return Decimal(default_shipping_cost)

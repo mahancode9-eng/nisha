@@ -32,6 +32,7 @@ if TYPE_CHECKING:
     )
     from app.models.payment_method import PaymentMethod
     from app.models.product import Product
+    from app.models.shipping_method import ShippingMethod
     from app.models.store import Store
     from app.models.user import User
     from app.models.product import OrderItemFieldValue
@@ -95,6 +96,12 @@ class Order(TimestampMixin, Base):
     )
     tracking_code: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     is_manual: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    shipping_method_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("shipping_methods.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    shipping_method_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
 
     store: Mapped["Store"] = relationship("Store", back_populates="orders")
     customer: Mapped[Optional["CustomerAccount"]] = relationship(
@@ -103,6 +110,10 @@ class Order(TimestampMixin, Base):
     )
     payment_method: Mapped["PaymentMethod"] = relationship(
         "PaymentMethod",
+        back_populates="orders",
+    )
+    shipping_method: Mapped[Optional["ShippingMethod"]] = relationship(
+        "ShippingMethod",
         back_populates="orders",
     )
     items: Mapped[list["OrderItem"]] = relationship(
@@ -192,6 +203,9 @@ class PaymentProof(Base):
         index=True,
     )
     image_url: Mapped[str] = mapped_column(String(500), nullable=False)
+    content_hash: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, index=True)
+    payer_card_last4: Mapped[Optional[str]] = mapped_column(String(4), nullable=True)
+    transfer_tracking: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     uploaded_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

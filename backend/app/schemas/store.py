@@ -61,6 +61,9 @@ class StoreResponse(BaseModel):
     shipping_policy_text: str | None = None
     default_shipping_cost: Decimal = Decimal("0")
     free_shipping_min_subtotal: Decimal | None = None
+    payment_reminder_minutes: int | None = None
+    sms_quota_month: str | None = None
+    sms_sent_count: int = 0
     social_links: list[StoreSocialLinkResponse] = Field(default_factory=list)
     dm_reply_templates: list[dict[str, Any]] = Field(default_factory=list)
     created_at: datetime
@@ -109,6 +112,7 @@ class StoreUpdate(BaseModel):
     shipping_policy_text: str | None = None
     default_shipping_cost: Decimal | None = Field(default=None, ge=0)
     free_shipping_min_subtotal: Decimal | None = Field(default=None, ge=0)
+    payment_reminder_minutes: int | None = Field(default=None, ge=1, le=1440)
     dm_reply_templates: list[dict[str, Any]] | None = None
 
     @field_validator("dm_reply_templates")
