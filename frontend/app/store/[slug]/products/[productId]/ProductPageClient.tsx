@@ -483,6 +483,8 @@ export function ProductPageClient({ slug, productId }: ProductPageClientProps) {
         title={product.title}
         price={effectivePrice}
         storeName={store.name}
+        storeSlug={store.slug}
+        productId={product.id}
         imageUrl={
           activeMedia?.kind === "image"
             ? activeMedia.previewUrl
@@ -493,6 +495,9 @@ export function ProductPageClient({ slug, productId }: ProductPageClientProps) {
             ? window.location.href
             : `${paths.store(slug)}/products/${productId}`
         }
+        brandColor={store.primary_color}
+        allowPostTemplate={Boolean(store.share_card_templates)}
+        removeWatermark={Boolean(store.remove_nisha_watermark)}
       />
     </div>
   );

@@ -20,6 +20,7 @@ from app.api.v1 import (
     webhooks_router,
     ws_router,
 )
+from app.api.v1.public.redirects import router as short_redirect_router
 from app.core.config import settings
 from app.core.error_handlers import (
     service_error_handler,
@@ -138,6 +139,7 @@ app.include_router(customer_router, prefix="/api/v1")
 app.include_router(media_router, prefix="/api/v1")
 app.include_router(webhooks_router, prefix="/api/v1")
 app.include_router(ws_router, prefix="/api/v1")
+app.include_router(short_redirect_router)
 
 upload_dir = Path(settings.UPLOAD_DIR)
 upload_dir.mkdir(parents=True, exist_ok=True)

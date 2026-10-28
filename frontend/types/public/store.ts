@@ -31,6 +31,8 @@ export type PublicStoreProfile = {
   guest_checkout_enabled: boolean;
   theme_preset?: string | null;
   primary_color?: string | null;
+  share_card_templates?: boolean;
+  remove_nisha_watermark?: boolean;
   design_style?: string | null;
   about_text?: string | null;
   shipping_policy_text?: string | null;

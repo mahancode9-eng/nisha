@@ -49,6 +49,8 @@ class PublicStoreProfile(BaseModel):
     default_shipping_cost: Decimal = Decimal("0")
     free_shipping_min_subtotal: Decimal | None = None
     social_links: list[PublicStoreSocialLink] = Field(default_factory=list)
+    share_card_templates: bool = False
+    remove_nisha_watermark: bool = False
 
     @model_validator(mode="before")
     @classmethod
