@@ -26,6 +26,7 @@ export const paths = {
     customerDetail: (key: string) => `/seller/customers/${encodeURIComponent(key)}`,
     discounts: "/seller/discounts",
     analytics: "/seller/analytics",
+    reports: "/seller/reports",
     subscription: "/seller/subscription",
   },
   admin: {

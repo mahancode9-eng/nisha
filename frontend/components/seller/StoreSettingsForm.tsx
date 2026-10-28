@@ -72,6 +72,7 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
   const canGuestCheckout = entitlements.guest_checkout;
   const canTheme = entitlements.store_theme;
   const canPages = entitlements.store_pages;
+  const canHideBranding = entitlements.remove_nisha_watermark;
   const [messenger, setMessenger] = useState<MessengerStatus | null>(null);
   const [messengerBusy, setMessengerBusy] = useState<"telegram" | "bale" | null>(null);
   const [name, setName] = useState(store.name);
@@ -110,6 +111,7 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
   const [guestCheckoutEnabled, setGuestCheckoutEnabled] = useState(
     Boolean(store.guest_checkout_enabled && entitlements.guest_checkout),
   );
+  const [hideBranding, setHideBranding] = useState(Boolean(store.hide_nisha_branding));
   const [themePreset, setThemePreset] = useState(store.theme_preset ?? "default");
   const [designStyle, setDesignStyle] = useState(store.design_style ?? "saas");
   const [primaryColor, setPrimaryColor] = useState(store.primary_color ?? "");
@@ -204,6 +206,7 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
     setIsPublished(store.is_published);
     setDmTemplates(store.dm_reply_templates ?? []);
     setGuestCheckoutEnabled(Boolean(store.guest_checkout_enabled && canGuestCheckout));
+    setHideBranding(Boolean(store.hide_nisha_branding));
     setThemePreset(store.theme_preset ?? "default");
     setDesignStyle(store.design_style ?? "saas");
     setPrimaryColor(store.primary_color ?? "");
@@ -321,6 +324,7 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
         is_published: isPublished,
         dm_reply_templates: dmTemplates.filter((t) => t.title.trim() && t.body.trim()),
         guest_checkout_enabled: canGuestCheckout ? guestCheckoutEnabled : false,
+        ...(canHideBranding ? { hide_nisha_branding: hideBranding } : {}),
         ...(canTheme
           ? {
               theme_preset: themePreset || null,
@@ -342,7 +346,11 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
           : null,
       });
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "تنظیمات ذخیره نشد. دوباره امتحان کن.");
+      if (err instanceof ApiError && err.upgradeRequired) {
+        setError("حذف نشان نیشا تو پلن فعلی‌ت نیست. پلن رو ارتقا بده یا این گزینه رو خاموش کن.");
+      } else {
+        setError(err instanceof ApiError ? err.message : "تنظیمات ذخیره نشد. دوباره امتحان کن.");
+      }
     } finally {
       setLoading(false);
     }
@@ -737,6 +745,28 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
                 />
                 خرید بدون ورود (مهمان)
               </label>
+              <label className="flex items-center gap-2 text-sm text-foreground">
+                <input
+                  type="checkbox"
+                  checked={canHideBranding && hideBranding}
+                  disabled={!canHideBranding}
+                  onChange={(e) => setHideBranding(e.target.checked)}
+                  className="rounded border-border"
+                />
+                حذف نشان نیشا
+              </label>
+              <p className="text-xs text-foreground-muted">
+                {canHideBranding ? (
+                  "نشان و «میزبانی‌شده روی نیشا» از ویترین، صفحه لینک‌ها و کارت‌های اشتراک‌گذاری برداشته می‌شه."
+                ) : (
+                  <>
+                    حذف نشان نیشا فقط تو پلن حرفه‌ای هست.{" "}
+                    <Link href={paths.seller.subscription} className="text-brand underline-offset-2 hover:underline">
+                      ارتقای پلن
+                    </Link>
+                  </>
+                )}
+              </p>
               {!canGuestCheckout ? (
                 <p className="text-xs text-foreground-muted">
                   خرید مهمان تو پلن فعلی‌ت نیست.{" "}

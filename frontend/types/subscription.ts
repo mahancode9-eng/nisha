@@ -24,6 +24,11 @@ export type PlanEntitlements = {
   excel_export: boolean;
   store_pages: boolean;
   priority_support: boolean;
+  sales_report: boolean;
+  customer_list: boolean;
+  customer_tags: boolean;
+  customer_export: boolean;
+  remove_nisha_watermark: boolean;
   [key: string]: unknown;
 };
 

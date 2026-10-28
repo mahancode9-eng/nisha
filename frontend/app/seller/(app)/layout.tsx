@@ -18,6 +18,7 @@ export default function SellerAppLayout({ children }: { children: React.ReactNod
   const navItems = [
     { href: paths.seller.dashboard, label: "داشبورد", primary: true, group: "فروش", icon: "dashboard" as const },
     { href: paths.seller.analytics, label: "آمار فروش", group: "فروش", icon: "analytics" as const },
+    { href: paths.seller.reports, label: "گزارش فروش", group: "فروش", icon: "analytics" as const },
     { href: paths.seller.products, label: "محصولات", primary: true, group: "فروش", icon: "products" as const },
     { href: paths.seller.orders, label: "سفارش‌ها", primary: true, group: "فروش", icon: "orders" as const },
     { href: paths.seller.discounts, label: "تخفیف‌ها", group: "فروش", icon: "discounts" as const },

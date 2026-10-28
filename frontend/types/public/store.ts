@@ -33,6 +33,7 @@ export type PublicStoreProfile = {
   primary_color?: string | null;
   share_card_templates?: boolean;
   remove_nisha_watermark?: boolean;
+  hide_nisha_branding?: boolean;
   design_style?: string | null;
   about_text?: string | null;
   shipping_policy_text?: string | null;

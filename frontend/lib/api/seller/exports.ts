@@ -8,6 +8,10 @@ export function exportOrdersCsv() {
   return apiDownload("/api/v1/seller/exports/orders.csv");
 }
 
+export function exportCustomersCsv() {
+  return apiDownload("/api/v1/seller/exports/customers.csv");
+}
+
 export async function downloadCsv(fetchBlob: () => Promise<Blob>, filename: string) {
   const blob = await fetchBlob();
   const url = window.URL.createObjectURL(blob);

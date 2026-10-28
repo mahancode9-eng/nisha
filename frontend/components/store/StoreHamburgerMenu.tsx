@@ -30,9 +30,10 @@ type StoreHamburgerMenuProps = {
   open: boolean;
   onClose: () => void;
   storeName: string;
+  hideBranding?: boolean;
 };
 
-export function StoreHamburgerMenu({ open, onClose, storeName }: StoreHamburgerMenuProps) {
+export function StoreHamburgerMenu({ open, onClose, storeName, hideBranding = false }: StoreHamburgerMenuProps) {
   const {
     categories,
     activeCategorySlug,
@@ -255,13 +256,15 @@ export function StoreHamburgerMenu({ open, onClose, storeName }: StoreHamburgerM
             <ThemeSwitcher variant="group" />
           </div>
 
-          <Link
-            href={paths.home}
-            onClick={onClose}
-            className="mt-1 flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs text-foreground-muted transition hover:bg-surface-muted hover:text-foreground"
-          >
-            میزبانی‌شده روی نیشا
-          </Link>
+          {hideBranding ? null : (
+            <Link
+              href={paths.home}
+              onClick={onClose}
+              className="mt-1 flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs text-foreground-muted transition hover:bg-surface-muted hover:text-foreground"
+            >
+              میزبانی‌شده روی نیشا
+            </Link>
+          )}
         </nav>
       </div>
     </>

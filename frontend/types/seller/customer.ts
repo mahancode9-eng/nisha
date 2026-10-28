@@ -22,6 +22,10 @@ export type SellerCustomerListItem = {
   last_order_at: string | null;
   has_conversation: boolean;
   conversation_id: number | null;
+  paid_order_count: number;
+  total_spent: string | number;
+  is_repeat: boolean;
+  tags: string[];
 };
 
 export type SellerCustomerDetail = SellerCustomerListItem & {
@@ -34,4 +38,6 @@ export type ListSellerCustomersParams = {
   search?: string;
   page?: number;
   page_size?: number;
+  repeat_only?: boolean;
+  tag?: string;
 };

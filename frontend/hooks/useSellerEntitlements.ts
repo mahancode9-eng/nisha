@@ -22,6 +22,11 @@ const DEFAULT_ENTITLEMENTS: PlanEntitlements = {
   excel_export: false,
   store_pages: false,
   priority_support: false,
+  sales_report: false,
+  customer_list: false,
+  customer_tags: false,
+  customer_export: false,
+  remove_nisha_watermark: false,
 };
 
 export function useSellerEntitlements() {

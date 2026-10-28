@@ -20,7 +20,7 @@ export const PLAN_CATALOG = [
     yearly_price_toman: 2_990_000,
     is_recommended: false,
     blurb: "وقتی سفارش‌ها بیشتر شد",
-    highlights: ["کد تخفیف نامحدود", "تایید رسید از تلگرام", "تا ۲۰۰ محصول"],
+    highlights: ["تا ۲۰۰ محصول", "گزارش فروش و لیست مشتری", "خروجی Excel"],
   },
   {
     code: "pro",
@@ -30,7 +30,7 @@ export const PLAN_CATALOG = [
     yearly_price_toman: 5_990_000,
     is_recommended: true,
     blurb: "برای فروشگاهی که داره بزرگ می‌شه",
-    highlights: ["آمار ۹۰ روزه", "تم و صفحات فروشگاه", "ویدیوی محصول"],
+    highlights: ["آمار ۹۰ روزه", "تم، صفحات و حذف نشان نیشا", "برچسب و خروجی مشتری‌ها"],
   },
   {
     code: "enterprise",
@@ -78,17 +78,21 @@ export function highlightsForPlan(plan: SubscriptionPlan | CatalogPlan): string[
   const items: string[] = [];
   if (e.max_products == null) items.push("محصول نامحدود");
   else items.push(`تا ${e.max_products} محصول`);
-  items.push(`تا ${e.max_product_images} عکس برای هر محصول`);
   if (e.discounts) {
     if (e.max_active_discount_codes == null) items.push("کد تخفیف نامحدود");
     else items.push(`${e.max_active_discount_codes} کد تخفیف فعال`);
   }
-  if (e.guest_checkout) items.push("خرید مهمان");
+  if (e.sales_report) items.push("گزارش فروش ماهانه");
+  if (e.customer_list) items.push("لیست مشتری‌ها");
+  if (e.customer_tags) items.push("برچسب مشتری");
   if (e.excel_export) items.push("خروجی Excel");
+  if (e.remove_nisha_watermark) items.push("حذف نشان نیشا");
+  items.push(`تا ${e.max_product_images} عکس برای هر محصول`);
   if (e.messenger_receipt_actions) items.push("تایید رسید از تلگرام/بله");
   items.push(`آمار تا ${e.analytics_max_days} روز`);
   if (e.product_video) items.push("ویدیوی محصول");
   if (e.store_theme || e.store_pages) items.push("تم و صفحات فروشگاه");
+  if (e.guest_checkout) items.push("خرید مهمان");
   if (e.priority_support) items.push("پشتیبانی اولویت‌دار");
   return items.slice(0, 6);
 }

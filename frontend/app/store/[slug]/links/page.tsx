@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const data = await fetchStore(slug);
   const name = data?.store?.name ?? slug;
   const title = `${name} · لینک‌ها`;
-  const description = `سفارش و ارتباط با ${name} در نیشا`;
+  const description = `سفارش و ارتباط با ${name}${data?.store?.hide_nisha_branding ? "" : " در نیشا"}`;
   const image = data?.store?.logo_url ? resolveMediaUrl(data.store.logo_url) : null;
   const canonical = `${getSiteUrl()}/store/${slug}/links`;
   return {

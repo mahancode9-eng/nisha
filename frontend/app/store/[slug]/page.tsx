@@ -16,6 +16,7 @@ type StoreSeoProfile = {
   name?: string;
   description?: string | null;
   logo_url?: string | null;
+  hide_nisha_branding?: boolean;
 };
 
 type StoreSeoData = {
@@ -45,7 +46,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const store = result === STORE_MISSING ? null : result;
   const name = store?.name ?? slug;
   const description =
-    store?.description ?? "خرید آنلاین از فروشگاه " + name + " در نیشا";
+    store?.description ??
+    "خرید آنلاین از فروشگاه " + name + (store?.hide_nisha_branding ? "" : " در نیشا");
   const canonical = SITE_URL + "/store/" + slug;
   return {
     title: name,

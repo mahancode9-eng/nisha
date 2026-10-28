@@ -105,11 +105,13 @@ function StoreShellInner({
   slug,
   storeName,
   storeDesign,
+  hideBranding,
   children,
 }: {
   slug: string;
   storeName: string;
   storeDesign: DesignStyle;
+  hideBranding: boolean;
   children: ReactNode;
 }) {
   const { setDesignOverride, activeDesignStyle } = useTheme();
@@ -150,15 +152,21 @@ function StoreShellInner({
             </button>
           </div>
 
-          <Link
-            href={paths.home}
-            className="justify-self-center rounded-lg p-1 opacity-90 transition hover:opacity-100"
-            aria-label="نیشا"
-            title="نیشا"
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo-mark.png" alt="" className="h-6 w-6 object-contain sm:h-7 sm:w-7" />
-          </Link>
+          {hideBranding ? (
+            <span className="max-w-[40vw] truncate justify-self-center text-sm font-semibold text-foreground">
+              {storeName}
+            </span>
+          ) : (
+            <Link
+              href={paths.home}
+              className="justify-self-center rounded-lg p-1 opacity-90 transition hover:opacity-100"
+              aria-label="نیشا"
+              title="نیشا"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo-mark.png" alt="" className="h-6 w-6 object-contain sm:h-7 sm:w-7" />
+            </Link>
+          )}
 
           <div className="flex shrink-0 items-center justify-end gap-1 justify-self-end sm:gap-2">
             <Link href={paths.trackOrder} className="hidden lg:inline-flex">
@@ -186,12 +194,16 @@ function StoreShellInner({
           )}
         >
           <div className="flex flex-col items-center gap-3 text-center sm:flex-row sm:justify-between sm:text-start">
-            <p className="text-xs text-foreground-muted">
-              میزبانی‌شده روی{" "}
-              <Link href={paths.home} className="font-medium text-foreground hover:underline">
-                نیشا
-              </Link>
-            </p>
+            {hideBranding ? (
+              <span />
+            ) : (
+              <p className="text-xs text-foreground-muted">
+                میزبانی‌شده روی{" "}
+                <Link href={paths.home} className="font-medium text-foreground hover:underline">
+                  نیشا
+                </Link>
+              </p>
+            )}
             <nav aria-label="لینک‌های حقوقی" className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
               {FOOTER_LINKS.map((link) => (
                 <Link
@@ -207,7 +219,7 @@ function StoreShellInner({
         </footer>
       </div>
 
-      <StoreHamburgerMenu open={menuOpen} onClose={() => setMenuOpen(false)} storeName={storeName} />
+      <StoreHamburgerMenu open={menuOpen} onClose={() => setMenuOpen(false)} storeName={storeName} hideBranding={hideBranding} />
     </div>
   );
 }
@@ -221,6 +233,7 @@ export function StoreLayoutWrapper({
 }) {
   const [storeName, setStoreName] = useState(slug);
   const [storeDesign, setStoreDesign] = useState<DesignStyle>("saas");
+  const [hideBranding, setHideBranding] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -229,6 +242,7 @@ export function StoreLayoutWrapper({
       .then((data) => {
         if (cancelled) return;
         setStoreName(data.store.name);
+        setHideBranding(Boolean(data.store.hide_nisha_branding));
         setStoreDesign(isDesignStyle(data.store.design_style) ? data.store.design_style : "saas");
       })
       .catch(() => {
@@ -244,7 +258,7 @@ export function StoreLayoutWrapper({
     <CartProvider key={slug} slug={slug}>
       <StoreChromeProvider>
         <SectionTravelProvider>
-          <StoreShellInner slug={slug} storeName={storeName} storeDesign={storeDesign}>
+          <StoreShellInner slug={slug} storeName={storeName} storeDesign={storeDesign} hideBranding={hideBranding}>
             {children}
           </StoreShellInner>
         </SectionTravelProvider>

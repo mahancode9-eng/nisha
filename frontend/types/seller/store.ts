@@ -23,6 +23,7 @@ export type Store = {
   is_active: boolean;
   is_published: boolean;
   guest_checkout_enabled: boolean;
+  hide_nisha_branding?: boolean;
   theme_preset: string | null;
   primary_color: string | null;
   design_style: string | null;
@@ -75,6 +76,7 @@ export type StoreUpdate = {
   is_active?: boolean;
   is_published?: boolean;
   guest_checkout_enabled?: boolean;
+  hide_nisha_branding?: boolean;
   theme_preset?: string | null;
   primary_color?: string | null;
   design_style?: string | null;
