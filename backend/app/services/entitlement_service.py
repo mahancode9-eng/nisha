@@ -42,6 +42,8 @@ DEFAULT_ENTITLEMENTS: dict[str, Any] = {
     "named_shipping_methods": False,
     "sales_report": False,
     "customer_tags": False,
+    "store_team": False,
+    "custom_domain": False,
 }
 
 _PAID_DISCOUNT_ENTITLEMENTS: dict[str, Any] = {
@@ -151,6 +153,8 @@ PLAN_SEEDS: list[dict[str, Any]] = [
             "named_shipping_methods": True,
             "sales_report": True,
             "customer_tags": True,
+            "store_team": True,
+            "custom_domain": True,
         },
     },
 ]

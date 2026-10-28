@@ -64,6 +64,8 @@ class StoreResponse(BaseModel):
     payment_reminder_minutes: int | None = None
     sms_quota_month: str | None = None
     sms_sent_count: int = 0
+    custom_domain: str | None = None
+    custom_domain_verified_at: datetime | None = None
     social_links: list[StoreSocialLinkResponse] = Field(default_factory=list)
     dm_reply_templates: list[dict[str, Any]] = Field(default_factory=list)
     created_at: datetime

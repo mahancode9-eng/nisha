@@ -105,11 +105,13 @@ function StoreShellInner({
   slug,
   storeName,
   storeDesign,
+  hideNishaBranding,
   children,
 }: {
   slug: string;
   storeName: string;
   storeDesign: DesignStyle;
+  hideNishaBranding: boolean;
   children: ReactNode;
 }) {
   const { setDesignOverride, activeDesignStyle } = useTheme();
@@ -150,15 +152,21 @@ function StoreShellInner({
             </button>
           </div>
 
-          <Link
-            href={paths.home}
-            className="justify-self-center rounded-lg p-1 opacity-90 transition hover:opacity-100"
-            aria-label="نیشا"
-            title="نیشا"
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo-mark.png" alt="" className="h-6 w-6 object-contain sm:h-7 sm:w-7" />
-          </Link>
+          {hideNishaBranding ? (
+            <span className="justify-self-center truncate text-sm font-semibold text-foreground sm:text-base">
+              {storeName}
+            </span>
+          ) : (
+            <Link
+              href={paths.home}
+              className="justify-self-center rounded-lg p-1 opacity-90 transition hover:opacity-100"
+              aria-label="نیشا"
+              title="نیشا"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo-mark.png" alt="" className="h-6 w-6 object-contain sm:h-7 sm:w-7" />
+            </Link>
+          )}
 
           <div className="flex shrink-0 items-center justify-end gap-1 justify-self-end sm:gap-2">
             <Link href={paths.trackOrder} className="hidden lg:inline-flex">
@@ -179,32 +187,34 @@ function StoreShellInner({
           <CartDrawer open={cartOpen} slug={slug} onClose={() => setCartOpen(false)} />
         </div>
 
-        <footer
-          className={cn(
-            "mt-auto hidden rounded-2xl border border-border px-4 py-4 sm:block",
-            isGlass ? "glass-panel" : "bg-surface/60 backdrop-blur-xl",
-          )}
-        >
-          <div className="flex flex-col items-center gap-3 text-center sm:flex-row sm:justify-between sm:text-start">
-            <p className="text-xs text-foreground-muted">
-              میزبانی‌شده روی{" "}
-              <Link href={paths.home} className="font-medium text-foreground hover:underline">
-                نیشا
-              </Link>
-            </p>
-            <nav aria-label="لینک‌های حقوقی" className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
-              {FOOTER_LINKS.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="text-xs text-foreground-muted transition-colors hover:text-foreground"
-                >
-                  {link.label}
+        {!hideNishaBranding ? (
+          <footer
+            className={cn(
+              "mt-auto hidden rounded-2xl border border-border px-4 py-4 sm:block",
+              isGlass ? "glass-panel" : "bg-surface/60 backdrop-blur-xl",
+            )}
+          >
+            <div className="flex flex-col items-center gap-3 text-center sm:flex-row sm:justify-between sm:text-start">
+              <p className="text-xs text-foreground-muted">
+                میزبانی‌شده روی{" "}
+                <Link href={paths.home} className="font-medium text-foreground hover:underline">
+                  نیشا
                 </Link>
-              ))}
-            </nav>
-          </div>
-        </footer>
+              </p>
+              <nav aria-label="لینک‌های حقوقی" className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+                {FOOTER_LINKS.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="text-xs text-foreground-muted transition-colors hover:text-foreground"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </nav>
+            </div>
+          </footer>
+        ) : null}
       </div>
 
       <StoreHamburgerMenu open={menuOpen} onClose={() => setMenuOpen(false)} storeName={storeName} />
@@ -221,6 +231,7 @@ export function StoreLayoutWrapper({
 }) {
   const [storeName, setStoreName] = useState(slug);
   const [storeDesign, setStoreDesign] = useState<DesignStyle>("saas");
+  const [hideNishaBranding, setHideNishaBranding] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -230,10 +241,12 @@ export function StoreLayoutWrapper({
         if (cancelled) return;
         setStoreName(data.store.name);
         setStoreDesign(isDesignStyle(data.store.design_style) ? data.store.design_style : "saas");
+        setHideNishaBranding(Boolean(data.store.remove_nisha_watermark));
       })
       .catch(() => {
         if (cancelled) return;
         setStoreName(slug);
+        setHideNishaBranding(false);
       });
     return () => {
       cancelled = true;
@@ -244,7 +257,12 @@ export function StoreLayoutWrapper({
     <CartProvider key={slug} slug={slug}>
       <StoreChromeProvider>
         <SectionTravelProvider>
-          <StoreShellInner slug={slug} storeName={storeName} storeDesign={storeDesign}>
+          <StoreShellInner
+            slug={slug}
+            storeName={storeName}
+            storeDesign={storeDesign}
+            hideNishaBranding={hideNishaBranding}
+          >
             {children}
           </StoreShellInner>
         </SectionTravelProvider>
