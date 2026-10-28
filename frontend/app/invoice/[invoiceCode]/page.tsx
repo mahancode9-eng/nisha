@@ -62,6 +62,22 @@ export default function InvoicePage({ params }: PageProps) {
     document.title = previousTitle;
   }
 
+  async function handleShare() {
+    if (!order) return;
+    const url = typeof window !== "undefined" ? window.location.href : `/invoice/${invoiceCode}`;
+    const shareText = `فاکتور ${order.invoice_code} از ${order.store.name}`;
+    try {
+      if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
+        await navigator.share({ title: shareText, text: shareText, url });
+        return;
+      }
+      await navigator.clipboard.writeText(url);
+      toast.success("لینک فاکتور کپی شد");
+    } catch {
+      /* cancelled */
+    }
+  }
+
   async function handleUnlock(e: FormEvent) {
     e.preventDefault();
     setError(null);
@@ -153,7 +169,10 @@ export default function InvoicePage({ params }: PageProps) {
         </Card>
       ) : (
         <div className="page-stack">
-          <div className="flex justify-end gap-3 print:hidden">
+          <div className="flex flex-wrap justify-end gap-3 print:hidden">
+            <Button variant="secondary" onClick={() => void handleShare()}>
+              اشتراک‌گذاری
+            </Button>
             <Button variant="secondary" onClick={handlePrint}>
               دانلود PDF / چاپ
             </Button>

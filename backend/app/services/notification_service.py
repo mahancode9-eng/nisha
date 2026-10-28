@@ -148,6 +148,32 @@ TEMPLATES: dict[str, NotificationTemplate] = {
         ),
         html_style="simple",
     ),
+    "low_stock_seller": NotificationTemplate(
+        sms_text=(
+            "نیشا: {product_count} محصول تو فروشگاه {store_name} موجودی کم داره. "
+            "ببین: {products_url}"
+        ),
+        email_subject="موجودی کم تو {store_name}",
+        email_body=(
+            "تو فروشگاه {store_name}، {product_count} محصول موجودی‌ش به {threshold} "
+            "یا کمتر رسیده:\n\n{product_lines}\n\n"
+            "برای به‌روزرسانی موجودی برو اینجا:\n{products_url}"
+        ),
+        html_style="simple",
+    ),
+    "order_expired_buyer": NotificationTemplate(
+        sms_text=(
+            "نیشا: مهلت پرداخت سفارش {invoice_code} تموم شد. "
+            "اگه هنوز می‌خوای بخری، دوباره سفارش بده یا با فروشگاه هماهنگ کن: {invoice_url}"
+        ),
+        email_subject="مهلت پرداخت سفارش {invoice_code} تموم شد",
+        email_body=(
+            "مهلت پرداخت سفارش {invoice_code} تو فروشگاه {store_name} تموم شد و "
+            "موجودی آزاد شد.\n"
+            "جزئیات فاکتور: {invoice_url}"
+        ),
+        html_style="simple",
+    ),
     "test_message": NotificationTemplate(
         sms_text="نیشا: پیام آزمایشی {code}",
         email_subject="پیام آزمایشی {code}",
