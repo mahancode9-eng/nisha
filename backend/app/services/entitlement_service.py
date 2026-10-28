@@ -35,6 +35,7 @@ DEFAULT_ENTITLEMENTS: dict[str, Any] = {
     "priority_support": False,
     "share_card_templates": False,
     "remove_nisha_watermark": False,
+    "instagram_import_limit": 5,
 }
 
 _PAID_DISCOUNT_ENTITLEMENTS: dict[str, Any] = {
@@ -74,6 +75,7 @@ PLAN_SEEDS: list[dict[str, Any]] = [
             "analytics_max_days": 30,
             "excel_export": True,
             "share_card_templates": True,
+            "instagram_import_limit": None,
         },
     },
     {
@@ -98,6 +100,7 @@ PLAN_SEEDS: list[dict[str, Any]] = [
             "store_pages": True,
             "share_card_templates": True,
             "remove_nisha_watermark": True,
+            "instagram_import_limit": None,
         },
     },
     {
@@ -124,6 +127,7 @@ PLAN_SEEDS: list[dict[str, Any]] = [
             "priority_support": True,
             "share_card_templates": True,
             "remove_nisha_watermark": True,
+            "instagram_import_limit": None,
         },
     },
 ]

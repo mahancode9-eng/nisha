@@ -1,15 +1,23 @@
-from datetime import date, datetime, time, timezone
+from datetime import date, datetime, time, timedelta, timezone
+from decimal import Decimal
 
-from sqlalchemy import case, func, or_, select
+from sqlalchemy import case, func, or_, select, update
 from sqlalchemy.orm import Session, selectinload
 
+from app.core.config import settings
+from app.core.security import hash_password
 from app.models.enums import OrderStatus
 from app.models.order import Order, OrderItem
+from app.models.payment_method import PaymentMethod
+from app.models.product import Product
 from app.models.store import Store
 from app.models.user import User
+from app.schemas.seller_order import ManualOrderCreate, ManualOrderCreateResponse
 from app.services import chat_service, order_access_service, stock_service
 from app.services.exceptions import ServiceError
+from app.services.shipping_service import ShippingLineInput, compute_shipping_amount
 from app.utils import order_transitions
+from app.utils.invoice import generate_invoice_code, generate_invoice_password
 
 
 def conversation_id_for_order(order: Order) -> int | None:
@@ -247,6 +255,119 @@ _TRACKING_ALLOWED_STATUSES = {
     OrderStatus.SHIPPED,
     OrderStatus.DELIVERED,
 }
+
+
+def create_manual_order(
+    db: Session, store: Store, data: ManualOrderCreate
+) -> ManualOrderCreateResponse:
+    """Register an order that arrived outside the storefront (DM / phone)."""
+    method = db.scalar(
+        select(PaymentMethod).where(
+            PaymentMethod.id == data.payment_method_id,
+            PaymentMethod.store_id == store.id,
+            PaymentMethod.is_active.is_(True),
+        )
+    )
+    if method is None:
+        raise ServiceError("روش پرداخت پیدا نشد", status_code=404)
+
+    line_rows: list[tuple[Product, int, Decimal]] = []
+    subtotal = Decimal("0")
+    for item in data.items:
+        product = db.scalar(
+            select(Product)
+            .where(
+                Product.id == item.product_id,
+                Product.store_id == store.id,
+                Product.is_active.is_(True),
+            )
+            .with_for_update()
+        )
+        if product is None:
+            raise ServiceError("محصول پیدا نشد", status_code=404)
+        if product.stock_quantity < item.quantity:
+            raise ServiceError(
+                f"موجودی «{product.title}» کافی نیست.",
+                status_code=422,
+            )
+        unit = Decimal(product.price)
+        total = unit * item.quantity
+        subtotal += total
+        line_rows.append((product, item.quantity, unit))
+
+    shipping_amount = compute_shipping_amount(
+        subtotal=subtotal,
+        default_shipping_cost=Decimal(store.default_shipping_cost),
+        free_shipping_min_subtotal=store.free_shipping_min_subtotal,
+        lines=[
+            ShippingLineInput(
+                product_id=product.id,
+                quantity=qty,
+                shipping_cost=product.shipping_cost,
+            )
+            for product, qty, _unit in line_rows
+        ],
+    )
+    plain_password = generate_invoice_password()
+    invoice_code = generate_invoice_code(db)
+    status = (
+        OrderStatus.PAYMENT_CONFIRMED if data.mark_paid else OrderStatus.PENDING_PAYMENT
+    )
+    order = Order(
+        store_id=store.id,
+        invoice_code=invoice_code,
+        invoice_password_hash=hash_password(plain_password),
+        buyer_name=data.buyer_name.strip(),
+        buyer_phone=data.buyer_phone.strip(),
+        buyer_address=data.buyer_address.strip(),
+        buyer_note=data.buyer_note,
+        payment_method_id=method.id,
+        status=status,
+        subtotal_amount=subtotal,
+        shipping_amount=shipping_amount,
+        total_amount=subtotal + shipping_amount,
+        stock_restored=False,
+        is_manual=True,
+        reservation_expires_at=(
+            None
+            if data.mark_paid
+            else datetime.now(timezone.utc)
+            + timedelta(minutes=settings.ORDER_RESERVATION_MINUTES)
+        ),
+    )
+    db.add(order)
+    db.flush()
+    for product, qty, unit in line_rows:
+        db.add(
+            OrderItem(
+                order_id=order.id,
+                product_id=product.id,
+                product_title_snapshot=product.title,
+                unit_price_snapshot=unit,
+                quantity=qty,
+                total_price=unit * qty,
+            )
+        )
+        db.execute(
+            update(Product)
+            .where(Product.id == product.id)
+            .values(stock_quantity=Product.stock_quantity - qty)
+        )
+    order_access_service.append_status_history(
+        db,
+        order=order,
+        old_status=None,
+        new_status=status,
+        note="سفارش دستی ثبت شد",
+    )
+    db.commit()
+    return ManualOrderCreateResponse(
+        order_id=order.id,
+        invoice_code=invoice_code,
+        invoice_edit_password=plain_password,
+        status=status,
+        is_manual=True,
+    )
 
 
 def update_tracking_code(

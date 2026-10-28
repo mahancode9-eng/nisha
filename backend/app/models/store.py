@@ -5,7 +5,18 @@ from datetime import datetime
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Optional
 
-from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Numeric, String, Text, UniqueConstraint, func
+from sqlalchemy import (
+    Boolean,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Integer,
+    Numeric,
+    String,
+    Text,
+    UniqueConstraint,
+    func,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -128,6 +139,7 @@ class Store(TimestampMixin, Base):
     support_contact: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     onboarding_state_json: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     dm_reply_templates_json: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    instagram_import_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_published: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     guest_checkout_enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
