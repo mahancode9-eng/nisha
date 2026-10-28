@@ -45,6 +45,7 @@ def _public_product(product) -> PublicProduct:
         title=product.title,
         description=product.description,
         price=product.price,
+        compare_at_price=product.compare_at_price,
         stock_quantity=product.stock_quantity,
         video_url=product.video_url,
         video_mime_type=product.video_mime_type,

@@ -96,6 +96,7 @@ class PublicProduct(BaseModel):
     title: str
     description: str | None
     price: Decimal
+    compare_at_price: Decimal | None = None
     stock_quantity: int
     video_url: str | None = None
     video_mime_type: str | None = None

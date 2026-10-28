@@ -15,6 +15,7 @@ router = APIRouter(prefix="/customers", tags=["seller-customers"])
 @router.get("", response_model=PaginatedResponse[SellerCustomerListItem])
 def list_customers(
     search: str | None = Query(default=None, max_length=100),
+    tag_id: int | None = Query(default=None, ge=1),
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=20, ge=1, le=100),
     store: Store = Depends(get_seller_store),
@@ -26,6 +27,7 @@ def list_customers(
         page=page,
         page_size=page_size,
         search=search,
+        tag_id=tag_id,
     )
     return build_paginated_response(items, total, page, page_size)
 

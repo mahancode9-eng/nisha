@@ -323,6 +323,7 @@ def create_product(db: Session, store: Store, data: ProductCreate) -> Product:
         title=data.title,
         description=data.description,
         price=data.price,
+        compare_at_price=data.compare_at_price,
         stock_quantity=data.stock_quantity,
         is_active=data.is_active,
         video_url=data.video_url,
