@@ -1,9 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { formatMoney } from "@/lib/format";
+import { getApiUrl } from "@/lib/env";
 import { cn } from "@/lib/cn";
+import {
+  buildShareCardBlob,
+  type ShareCardFormat,
+} from "@/lib/share/buildShareCard";
 
 type ProductShareSheetProps = {
   open: boolean;
@@ -11,111 +16,20 @@ type ProductShareSheetProps = {
   title: string;
   price: string | number;
   storeName: string;
+  storeSlug: string;
+  productId: number;
   imageUrl: string | null;
   shareUrl: string;
+  brandColor?: string | null;
+  allowPostTemplate?: boolean;
+  removeWatermark?: boolean;
 };
 
-const STORY_W = 1080;
-const STORY_H = 1920;
-
-async function loadImage(src: string): Promise<HTMLImageElement | null> {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => resolve(img);
-    img.onerror = () => resolve(null);
-    img.src = src;
-  });
-}
-
-async function buildStoryBlob(opts: {
-  title: string;
-  priceLabel: string;
-  storeName: string;
-  imageUrl: string | null;
-}): Promise<Blob | null> {
-  const canvas = document.createElement("canvas");
-  canvas.width = STORY_W;
-  canvas.height = STORY_H;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return null;
-
-  const gradient = ctx.createLinearGradient(0, 0, 0, STORY_H);
-  gradient.addColorStop(0, "#1a1512");
-  gradient.addColorStop(1, "#3d2a1f");
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, STORY_W, STORY_H);
-
-  if (opts.imageUrl) {
-    const img = await loadImage(opts.imageUrl);
-    if (img) {
-      const size = 900;
-      const x = (STORY_W - size) / 2;
-      const y = 220;
-      ctx.save();
-      const r = 48;
-      ctx.beginPath();
-      ctx.moveTo(x + r, y);
-      ctx.arcTo(x + size, y, x + size, y + size, r);
-      ctx.arcTo(x + size, y + size, x, y + size, r);
-      ctx.arcTo(x, y + size, x, y, r);
-      ctx.arcTo(x, y, x + size, y, r);
-      ctx.closePath();
-      ctx.clip();
-      const scale = Math.max(size / img.width, size / img.height);
-      const dw = img.width * scale;
-      const dh = img.height * scale;
-      ctx.drawImage(img, x + (size - dw) / 2, y + (size - dh) / 2, dw, dh);
-      ctx.restore();
-    }
-  }
-
-  ctx.fillStyle = "#f5efe6";
-  ctx.textAlign = "center";
-  ctx.direction = "rtl";
-  ctx.font = "600 48px Vazirmatn, Tahoma, sans-serif";
-  ctx.fillText(opts.storeName.slice(0, 40), STORY_W / 2, 160);
-
-  ctx.font = "700 64px Vazirmatn, Tahoma, sans-serif";
-  const title = opts.title.length > 42 ? opts.title.slice(0, 40) + "…" : opts.title;
-  wrapText(ctx, title, STORY_W / 2, 1240, STORY_W - 160, 78);
-
-  ctx.font = "600 56px Vazirmatn, Tahoma, sans-serif";
-  ctx.fillStyle = "#e8c9a0";
-  ctx.fillText(opts.priceLabel, STORY_W / 2, 1480);
-
-  ctx.font = "500 36px Vazirmatn, Tahoma, sans-serif";
-  ctx.fillStyle = "rgba(245,239,230,0.7)";
-  ctx.fillText("نیشا", STORY_W / 2, 1780);
-
-  return new Promise((resolve) => {
-    canvas.toBlob((blob) => resolve(blob), "image/png");
-  });
-}
-
-function wrapText(
-  ctx: CanvasRenderingContext2D,
-  text: string,
-  x: number,
-  y: number,
-  maxWidth: number,
-  lineHeight: number,
-) {
-  const words = text.split(/\s+/);
-  let line = "";
-  let yy = y;
-  for (const word of words) {
-    const test = line ? `${line} ${word}` : word;
-    if (ctx.measureText(test).width > maxWidth && line) {
-      ctx.fillText(line, x, yy);
-      line = word;
-      yy += lineHeight;
-    } else {
-      line = test;
-    }
-  }
-  if (line) ctx.fillText(line, x, yy);
-}
+type ShortLinkPayload = {
+  code: string;
+  url: string;
+  qr_url: string;
+};
 
 export function ProductShareSheet({
   open,
@@ -123,12 +37,18 @@ export function ProductShareSheet({
   title,
   price,
   storeName,
+  storeSlug,
+  productId,
   imageUrl,
   shareUrl,
+  brandColor,
+  allowPostTemplate = false,
+  removeWatermark = false,
 }: ProductShareSheetProps) {
   const [busy, setBusy] = useState(false);
   const [hint, setHint] = useState<string | null>(null);
-  const dialogRef = useRef<HTMLDivElement>(null);
+  const [format, setFormat] = useState<ShareCardFormat>("story");
+  const [shortLink, setShortLink] = useState<ShortLinkPayload | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -139,31 +59,60 @@ export function ProductShareSheet({
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(
+          `${getApiUrl()}/api/v1/public/short-links/product?slug=${encodeURIComponent(storeSlug)}&product_id=${productId}`,
+          { method: "POST" },
+        );
+        if (!res.ok) return;
+        const data = (await res.json()) as ShortLinkPayload;
+        if (!cancelled) setShortLink(data);
+      } catch {
+        /* keep full URL fallback */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, storeSlug, productId]);
+
   if (!open) return null;
 
-  async function downloadStory() {
+  const linkToShare = shortLink?.url || shareUrl;
+  const qrSrc = shortLink
+    ? `${getApiUrl()}${shortLink.qr_url.startsWith("/") ? shortLink.qr_url : `/${shortLink.qr_url}`}`
+    : `${getApiUrl()}/api/v1/public/qr.png?data=${encodeURIComponent(shareUrl)}`;
+
+  async function downloadCard() {
     setBusy(true);
     setHint(null);
     try {
-      const blob = await buildStoryBlob({
+      const blob = await buildShareCardBlob({
         title,
         priceLabel: formatMoney(price),
         storeName,
         imageUrl,
+        format,
+        brandColor: allowPostTemplate ? brandColor : null,
+        showWatermark: !removeWatermark,
       });
       if (!blob) {
-        setHint("ساخت تصویر استوری نشد");
+        setHint("ساخت تصویر نشد");
         return;
       }
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `nisha-story-${Date.now()}.png`;
+      a.download = `nisha-${format}-${Date.now()}.png`;
       a.click();
       URL.revokeObjectURL(url);
-      setHint("تصویر استوری دانلود شد");
+      setHint(format === "story" ? "تصویر استوری دانلود شد" : "تصویر پست دانلود شد");
     } catch {
-      setHint("ساخت تصویر استوری نشد");
+      setHint("ساخت تصویر نشد");
     } finally {
       setBusy(false);
     }
@@ -171,7 +120,7 @@ export function ProductShareSheet({
 
   async function copyLink() {
     try {
-      await navigator.clipboard.writeText(shareUrl);
+      await navigator.clipboard.writeText(linkToShare);
       setHint("لینک کپی شد");
     } catch {
       setHint("کپی لینک نشد");
@@ -182,12 +131,28 @@ export function ProductShareSheet({
     const shareText = `${title} — ${formatMoney(price)}`;
     try {
       if (typeof navigator.share === "function") {
-        await navigator.share({ title, text: shareText, url: shareUrl });
+        await navigator.share({ title, text: shareText, url: linkToShare });
         return;
       }
       await copyLink();
     } catch {
       /* cancelled */
+    }
+  }
+
+  async function downloadQr() {
+    try {
+      const res = await fetch(qrSrc);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `nisha-qr-${Date.now()}.png`;
+      a.click();
+      URL.revokeObjectURL(url);
+      setHint("QR دانلود شد");
+    } catch {
+      setHint("دانلود QR نشد");
     }
   }
 
@@ -198,20 +163,17 @@ export function ProductShareSheet({
       onClick={onClose}
     >
       <div
-        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-label="اشتراک‌گذاری محصول"
-        className={cn(
-          "w-full max-w-md rounded-2xl border border-border bg-surface p-5 shadow-xl",
-        )}
+        className="w-full max-w-md rounded-2xl border border-border bg-surface p-5 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>
             <h2 className="text-base font-semibold text-foreground">اشتراک‌گذاری</h2>
             <p className="mt-1 text-sm text-foreground-muted">
-              لینک بفرست یا تصویر استوری بگیر
+              لینک کوتاه، QR و کارت استوری/پست
             </p>
           </div>
           <button
@@ -223,29 +185,52 @@ export function ProductShareSheet({
           </button>
         </div>
 
-        <div className="mb-4 overflow-hidden rounded-xl border border-border bg-surface-muted">
-          {imageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={imageUrl} alt="" className="aspect-[4/5] w-full object-cover" />
-          ) : (
-            <div className="flex aspect-[4/5] items-center justify-center text-sm text-foreground-muted">
-              بدون تصویر
-            </div>
-          )}
-          <div className="space-y-1 p-3">
-            <p className="text-sm font-medium text-foreground">{title}</p>
+        <div className="mb-4 grid grid-cols-[1fr_auto] gap-3 overflow-hidden rounded-xl border border-border bg-surface-muted p-3">
+          <div className="min-w-0 space-y-1">
+            <p className="truncate text-sm font-medium text-foreground">{title}</p>
             <p className="text-sm text-brand">{formatMoney(price)}</p>
-            <p className="text-xs text-foreground-muted">{storeName}</p>
+            <p className="truncate text-xs text-foreground-muted" dir="ltr">
+              {linkToShare}
+            </p>
           </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={qrSrc} alt="QR" className="h-24 w-24 rounded-lg bg-white p-1" />
         </div>
+
+        {allowPostTemplate ? (
+          <div className="mb-3 flex gap-2">
+            {(["story", "post"] as ShareCardFormat[]).map((item) => (
+              <button
+                key={item}
+                type="button"
+                onClick={() => setFormat(item)}
+                className={cn(
+                  "flex-1 rounded-xl border px-3 py-2 text-sm",
+                  format === item
+                    ? "border-brand bg-brand/10 text-foreground"
+                    : "border-border text-foreground-muted",
+                )}
+              >
+                {item === "story" ? "استوری ۹:۱۶" : "پست ۱:۱"}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p className="mb-3 text-xs text-foreground-muted">
+            قالب پست و رنگ برند تو پلن پایه به بالاست.
+          </p>
+        )}
 
         <div className="grid gap-2">
           <Button onClick={() => void nativeShare()}>اشتراک‌گذاری لینک</Button>
-          <Button variant="secondary" loading={busy} onClick={() => void downloadStory()}>
-            دانلود تصویر استوری
+          <Button variant="secondary" loading={busy} onClick={() => void downloadCard()}>
+            {format === "story" ? "دانلود تصویر استوری" : "دانلود تصویر پست"}
           </Button>
           <Button variant="secondary" onClick={() => void copyLink()}>
-            کپی لینک
+            کپی لینک کوتاه
+          </Button>
+          <Button variant="secondary" onClick={() => void downloadQr()}>
+            دانلود QR
           </Button>
         </div>
         {hint ? <p className="mt-3 text-center text-sm text-foreground-muted">{hint}</p> : null}

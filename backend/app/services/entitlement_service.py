@@ -33,6 +33,8 @@ DEFAULT_ENTITLEMENTS: dict[str, Any] = {
     "excel_export": False,
     "store_pages": False,
     "priority_support": False,
+    "share_card_templates": False,
+    "remove_nisha_watermark": False,
 }
 
 _PAID_DISCOUNT_ENTITLEMENTS: dict[str, Any] = {
@@ -71,6 +73,7 @@ PLAN_SEEDS: list[dict[str, Any]] = [
             "custom_fields": True,
             "analytics_max_days": 30,
             "excel_export": True,
+            "share_card_templates": True,
         },
     },
     {
@@ -93,6 +96,8 @@ PLAN_SEEDS: list[dict[str, Any]] = [
             "store_theme": True,
             "excel_export": True,
             "store_pages": True,
+            "share_card_templates": True,
+            "remove_nisha_watermark": True,
         },
     },
     {
@@ -117,6 +122,8 @@ PLAN_SEEDS: list[dict[str, Any]] = [
             "excel_export": True,
             "store_pages": True,
             "priority_support": True,
+            "share_card_templates": True,
+            "remove_nisha_watermark": True,
         },
     },
 ]
