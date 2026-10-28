@@ -84,6 +84,7 @@ export function highlightsForPlan(plan: SubscriptionPlan | CatalogPlan): string[
     else items.push(`${e.max_active_discount_codes} کد تخفیف فعال`);
   }
   if (e.guest_checkout) items.push("خرید مهمان");
+  if (e.excel_export) items.push("خروجی Excel");
   if (e.messenger_receipt_actions) items.push("تایید رسید از تلگرام/بله");
   items.push(`آمار تا ${e.analytics_max_days} روز`);
   if (e.product_video) items.push("ویدیوی محصول");

@@ -2,6 +2,7 @@
 
 import { use, useEffect, useState, type FormEvent } from "react";
 import { PaymentProofUpload } from "@/components/store/PaymentProofUpload";
+import { StoreContactCard } from "@/components/store/StoreContactCard";
 import { ChatThread } from "@/components/chat/ChatThread";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -367,9 +368,7 @@ export default function CustomerOrderDetailPage({ params }: PageProps) {
               <CardTitle>فروشگاه</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
-              <p className="font-medium text-neutral-900">{order.store.name}</p>
-              {order.store.phone && <p>{order.store.phone}</p>}
-              {order.store.support_contact && <p>{order.store.support_contact}</p>}
+              <StoreContactCard store={order.store} />
               {order.store.trust_badges.length > 0 && (
                 <div className="flex flex-wrap gap-2 pt-2">
                   {order.store.trust_badges.map((badge) => (

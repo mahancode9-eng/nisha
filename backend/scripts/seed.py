@@ -215,7 +215,13 @@ def get_or_create_seller_and_store(
         db.flush()
         print(f"Created store: {store_slug}")
     else:
-        print(f"Store already exists: {store_slug}")
+        store.name = store_name
+        store.description = description
+        store.phone = phone
+        store.support_contact = f"support@{store_slug}.example.com"
+        store.guest_checkout_enabled = True
+        store.is_active = True
+        print(f"Store already exists, refreshed demo contacts: {store_slug}")
 
     return user, store
 

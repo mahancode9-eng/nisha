@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session, selectinload
 from app.core.security import verify_password
 from app.models.enums import OrderStatus
 from app.models.order import Order, OrderItem, OrderStatusHistory
+from app.models.store import Store
 from app.models.user import User
 from app.services import order_notification_service
 from app.services.exceptions import ServiceError
@@ -19,7 +20,7 @@ def get_order_by_invoice_code(db: Session, invoice_code: str) -> Order:
             selectinload(Order.items).selectinload(OrderItem.field_values),
             selectinload(Order.payment_proofs),
             selectinload(Order.payment_method),
-            selectinload(Order.store),
+            selectinload(Order.store).selectinload(Store.social_links),
             selectinload(Order.status_history),
         )
         .where(Order.invoice_code == invoice_code)

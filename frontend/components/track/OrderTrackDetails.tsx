@@ -7,6 +7,7 @@ import { formatDateTime } from "@/lib/format";
 import { resolveMediaUrl } from "@/lib/media";
 import { PaymentInstructions } from "@/components/store/PaymentInstructions";
 import { PaymentProofUpload } from "@/components/store/PaymentProofUpload";
+import { StoreContactCard } from "@/components/store/StoreContactCard";
 import { useToast } from "@/contexts/ToastContext";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
@@ -93,10 +94,8 @@ export function OrderTrackDetails({ order, password, onUpdated }: OrderTrackDeta
         <CardHeader>
           <CardTitle>فروشگاه</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3 text-sm">
-          <p className="font-medium">{order.store.name}</p>
-          {order.store.phone && <p>تلفن: {order.store.phone}</p>}
-          {order.store.support_contact && <p>پشتیبانی: {order.store.support_contact}</p>}
+        <CardContent>
+          <StoreContactCard store={order.store} />
         </CardContent>
       </Card>
 

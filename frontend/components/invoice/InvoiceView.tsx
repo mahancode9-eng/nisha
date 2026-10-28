@@ -1,5 +1,6 @@
 import { formatDateTime, formatMoney } from "@/lib/format";
 import { OrderItemsPanel } from "@/components/orders/OrderItemsPanel";
+import { StoreContactCard } from "@/components/store/StoreContactCard";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import type { OrderTrackResponse } from "@/types/public/order";
 
@@ -19,9 +20,9 @@ export function InvoiceView({ order }: { order: OrderTrackResponse }) {
       <div className="grid gap-6 sm:grid-cols-2">
         <section>
           <h2 className="text-xs font-semibold text-foreground-muted">فروشنده</h2>
-          <p className="mt-1 font-medium">{order.store.name}</p>
-          {order.store.phone && <p className="text-sm">{order.store.phone}</p>}
-          {order.store.support_contact && <p className="text-sm">{order.store.support_contact}</p>}
+          <div className="mt-1">
+            <StoreContactCard store={order.store} />
+          </div>
         </section>
         <section>
           <h2 className="text-xs font-semibold text-foreground-muted">خریدار</h2>
