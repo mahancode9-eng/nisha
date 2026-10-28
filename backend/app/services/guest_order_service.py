@@ -11,6 +11,7 @@ from app.models.order import PaymentProof
 from app.schemas.guest_order import (
     GuestOrderEdit,
     GuestOrderEditResponse,
+    OrderInvoicePreviewResponse,
     OrderTrackItemResponse,
     OrderTrackResponse,
     PaymentProofResponse,
@@ -65,6 +66,18 @@ async def upload_payment_proof(
         message="رسید پرداخت ثبت شد",
         order_status=order.status,
         proof=PaymentProofResponse.model_validate(proof),
+    )
+
+
+def preview_invoice(db: Session, invoice_code: str) -> OrderInvoicePreviewResponse:
+    """Password-free OG/share preview — no buyer PII beyond store + total."""
+    order = order_access_service.get_order_by_invoice_code(db, invoice_code)
+    store = order.store
+    return OrderInvoicePreviewResponse(
+        invoice_code=order.invoice_code,
+        status=order.status,
+        store_name=store.name if store is not None else "",
+        total_amount=order.total_amount,
     )
 
 

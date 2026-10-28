@@ -6,4 +6,5 @@ export type OrderStatus =
   | "PREPARING"
   | "SHIPPED"
   | "DELIVERED"
-  | "CANCELLED";
+  | "CANCELLED"
+  | "EXPIRED";

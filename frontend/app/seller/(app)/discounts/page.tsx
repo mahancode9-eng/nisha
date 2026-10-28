@@ -43,6 +43,7 @@ export default function SellerDiscountsPage() {
   const maxActive = entitlements.max_active_discount_codes;
   const atActiveCap = maxActive != null && activeCount >= maxActive;
 
+  const [upgradeHint, setUpgradeHint] = useState<string | null>(null);
   const [code, setCode] = useState("");
   const [discountType, setDiscountType] = useState<DiscountType>("PERCENT");
   const [percentOff, setPercentOff] = useState("");
@@ -112,6 +113,7 @@ export default function SellerDiscountsPage() {
       return;
     }
     setSubmitting(true);
+    setUpgradeHint(null);
     try {
       await discountsApi.createDiscount({
         code: code.trim(),
@@ -128,6 +130,9 @@ export default function SellerDiscountsPage() {
       resetForm();
       await loadDiscounts();
     } catch (err) {
+      if (err instanceof ApiError && err.upgradeRequired) {
+        setUpgradeHint(err.message);
+      }
       toast.error(err instanceof ApiError ? err.message : "کد تخفیف ساخته نشد. دوباره امتحان کن.");
     } finally {
       setSubmitting(false);
@@ -193,6 +198,9 @@ export default function SellerDiscountsPage() {
           )}
         </CardHeader>
         <CardContent className="space-y-4">
+          {upgradeHint ? (
+            <UpgradeGate compact description={upgradeHint} ctaLabel="ارتقا بده" />
+          ) : null}
           <div className="space-y-2">
             <p className="text-sm font-medium text-foreground">قالب آماده</p>
             <div className="flex flex-wrap gap-2">

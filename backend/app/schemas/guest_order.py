@@ -13,6 +13,16 @@ class OrderTrackRequest(BaseModel):
     invoice_edit_password: str
 
 
+class OrderInvoicePreviewResponse(BaseModel):
+    """Public, password-free snippet for Open Graph / share previews."""
+
+    invoice_code: str
+    status: OrderStatus
+    store_name: str
+    total_amount: Decimal
+    currency_label: str = "تومان"
+
+
 class GuestOrderEdit(BaseModel):
     invoice_edit_password: str
     buyer_name: str | None = Field(default=None, min_length=1, max_length=255)
