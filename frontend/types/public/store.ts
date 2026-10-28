@@ -1,6 +1,15 @@
 import type { PaymentMethodType } from "@/types/seller/payment-method";
 import type { ProductFormField, ProductImage } from "@/types/seller/product";
 
+export type PublicStoreSocialLink = {
+  id: number;
+  label: string;
+  url: string;
+  icon_key: string | null;
+  sort_order: number;
+  is_active: boolean;
+};
+
 export type PublicStoreProfile = {
   id: number;
   name: string;
@@ -27,6 +36,7 @@ export type PublicStoreProfile = {
   shipping_policy_text?: string | null;
   default_shipping_cost?: string;
   free_shipping_min_subtotal?: string | null;
+  social_links?: PublicStoreSocialLink[];
 };
 
 export type PublicProductCategory = {
@@ -34,15 +44,6 @@ export type PublicProductCategory = {
   name: string;
   slug: string;
   parent_id?: number | null;
-};
-
-export type PublicStoreSocialLink = {
-  id: number;
-  label: string;
-  url: string;
-  icon_key: string | null;
-  sort_order: number;
-  is_active: boolean;
 };
 
 export type PublicProductImage = ProductImage;

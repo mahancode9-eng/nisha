@@ -70,6 +70,7 @@ PLAN_SEEDS: list[dict[str, Any]] = [
             "max_product_images": 8,
             "custom_fields": True,
             "analytics_max_days": 30,
+            "excel_export": True,
         },
     },
     {
@@ -138,6 +139,7 @@ def _sync_plan_entitlements(plan: SubscriptionPlan, seed_entitlements: dict[str,
         "max_active_discount_codes",
         "timed_discounts",
         "messenger_receipt_actions",
+        "excel_export",
     )
     for key in policy_keys:
         if key not in seed_entitlements:

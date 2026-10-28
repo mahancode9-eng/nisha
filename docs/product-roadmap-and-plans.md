@@ -10,13 +10,14 @@ Current plan gates (from `entitlement_service.py`):
 | max_product_images | 3 | 8 | 8 | 8 |
 | product_video | — | — | ✓ | ✓ |
 | custom_fields | — | ✓ | ✓ | ✓ |
-| discounts | — | ✓ | ✓ | ✓ |
+| discounts | 1 active (no expiry) | unlimited + timed | unlimited + timed | unlimited + timed |
 | analytics_max_days | 7 | 30 | 90 | 90 |
-| guest_checkout | — | ✓ | ✓ | ✓ |
+| guest_checkout | ✓ | ✓ | ✓ | ✓ |
+| messenger_receipt_actions | — | ✓ | ✓ | ✓ |
 | badge_trust | — | — | ✓ | ✓ |
 | badge_premium | — | — | — | ✓ |
 | store_theme | — | — | ✓ | ✓ |
-| excel_export | — | — | ✓ | ✓ |
+| excel_export | — | ✓ | ✓ | ✓ |
 | store_pages | — | — | ✓ | ✓ |
 | priority_support | — | — | — | ✓ |
 
@@ -48,7 +49,7 @@ Current plan gates (from `entitlement_service.py`):
 14. **Trust & premium badges on storefront** (Pro/Enterprise — make them *visible* and desirable)
 15. **Custom store pages** (Pro) — About, Shipping, FAQ that buyers actually read
 16. **Theme packs** (Pro) — 3–5 polished skins, not infinite DIY
-17. **Excel export of orders/products** — accountants care (planned on Basic+; still gated in code until that phase)
+17. **Excel export of orders/products** — accountants care (Basic+)
 18. **Review highlights on product page** — social proof without clutter
 19. **Seller quick-replies in chat** — “کد پیگیری”، «کارت به کارت»، «موجود شد»
 20. **Multi-staff / roles** — later Enterprise hook

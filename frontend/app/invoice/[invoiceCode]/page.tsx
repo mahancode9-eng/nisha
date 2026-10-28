@@ -3,6 +3,7 @@
 import { use, useState, type FormEvent } from "react";
 import { ChatThread } from "@/components/chat/ChatThread";
 import { InvoiceView } from "@/components/invoice/InvoiceView";
+import { StoreContactCard } from "@/components/store/StoreContactCard";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { ErrorAlert } from "@/components/ui/ErrorAlert";
@@ -267,10 +268,8 @@ export default function InvoicePage({ params }: PageProps) {
                 )}
               </div>
               <div className="space-y-2 text-sm text-foreground">
-                <p className="font-medium text-foreground">{order.store.name}</p>
                 {order.store.location && <p>{order.store.location}</p>}
-                {order.store.phone && <p>{order.store.phone}</p>}
-                {order.store.support_contact && <p>{order.store.support_contact}</p>}
+                <StoreContactCard store={order.store} />
               </div>
               {order.payment_proofs.length > 0 && (
                 <div className="flex gap-3 overflow-x-auto pt-2">

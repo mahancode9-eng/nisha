@@ -9,6 +9,7 @@ from app.models.customer_account import CustomerAccount
 from app.models.customer_portal import CustomerOrderReceipt, CustomerReview, OrderClaim, OrderComplaint
 from app.models.enums import ComplaintStatus, CustomerReceiptStatus, OrderStatus
 from app.models.order import Order, OrderItem
+from app.models.store import Store
 from app.schemas.customer_portal import (
     CustomerAddressResponse,
     CustomerComplaintCreateRequest,
@@ -27,7 +28,7 @@ from app.schemas.customer_portal import (
 from app.services.order_item_serializers import customer_order_item_response
 from app.schemas.guest_order import OrderStatusHistoryResponse, PaymentProofResponse
 from app.schemas.payment_method import PaymentMethodResponse
-from app.schemas.public import PublicStoreProfile
+from app.schemas.public import public_store_profile_from_store
 from app.services import chat_service, order_access_service, review_service
 from app.services.customer_profile_service import list_addresses
 from app.services.exceptions import ServiceError
@@ -49,7 +50,7 @@ def get_owned_order(db: Session, customer_id: int, order_id: int) -> Order:
             selectinload(Order.payment_method),
             selectinload(Order.payment_proofs),
             selectinload(Order.status_history),
-            selectinload(Order.store),
+            selectinload(Order.store).selectinload(Store.social_links),
             selectinload(Order.receipt),
             selectinload(Order.complaints),
             selectinload(Order.conversations),
@@ -100,7 +101,7 @@ def _build_detail(order: Order) -> CustomerOrderDetailResponse:
         payment_method=PaymentMethodResponse.model_validate(order.payment_method),
         payment_proofs=[PaymentProofResponse.model_validate(proof) for proof in order.payment_proofs],
         status_history=[OrderStatusHistoryResponse.model_validate(history) for history in order.status_history],
-        store=PublicStoreProfile.model_validate(order.store),
+        store=public_store_profile_from_store(order.store),
     )
 
 

@@ -75,7 +75,7 @@ def register_seller(db: Session, *, email: str, password: str, full_name: str) -
             name=f"فروشگاه {user.full_name}",
             slug=generate_unique_store_slug(db, slug_base),
             is_active=True,
-            guest_checkout_enabled=False,
+            guest_checkout_enabled=True,
         )
         db.add(store)
         from app.services.email_verification_service import issue_verification

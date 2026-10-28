@@ -9,6 +9,17 @@ from app.schemas.product import ProductFormFieldResponse, ProductImageResponse
 from app.schemas.product_category import ProductCategoryResponse, ProductCategorySummary
 
 
+class PublicStoreSocialLink(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    label: str
+    url: str
+    icon_key: str | None
+    sort_order: int
+    is_active: bool
+
+
 class PublicStoreProfile(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -37,17 +48,31 @@ class PublicStoreProfile(BaseModel):
     shipping_policy_text: str | None = None
     default_shipping_cost: Decimal = Decimal("0")
     free_shipping_min_subtotal: Decimal | None = None
+    social_links: list[PublicStoreSocialLink] = Field(default_factory=list)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _orm_without_social_relationship(cls, data: Any) -> Any:
+        """Avoid lazy-loading store.social_links during from_attributes validation."""
+        if hasattr(data, "__table__"):
+            payload = {column.name: getattr(data, column.name) for column in data.__table__.columns}
+            payload["badge_labels"] = list(getattr(data, "badge_labels", []) or [])
+            payload["social_links"] = []
+            return payload
+        return data
 
 
-class PublicStoreSocialLink(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: int
-    label: str
-    url: str
-    icon_key: str | None
-    sort_order: int
-    is_active: bool
+def public_store_profile_from_store(store: Any) -> PublicStoreProfile:
+    """Build a public store profile including active social links when loaded."""
+    profile = PublicStoreProfile.model_validate(store)
+    links = getattr(store, "social_links", None) or []
+    active = [
+        PublicStoreSocialLink.model_validate(link)
+        for link in links
+        if getattr(link, "is_active", True)
+    ]
+    active.sort(key=lambda item: (item.sort_order, item.id))
+    return profile.model_copy(update={"social_links": active})
 
 
 class PublicProductVariant(BaseModel):

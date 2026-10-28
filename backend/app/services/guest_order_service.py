@@ -16,7 +16,7 @@ from app.schemas.guest_order import (
     PaymentProofResponse,
     PaymentProofUploadResponse,
 )
-from app.schemas.public import PublicPaymentMethod, PublicStoreProfile
+from app.schemas.public import PublicPaymentMethod, public_store_profile_from_store
 from app.services import chat_service, order_access_service, review_service
 from app.services.order_item_serializers import track_order_item_response
 from app.services.exceptions import ServiceError
@@ -88,7 +88,7 @@ def track_order(db: Session, invoice_code: str, password: str) -> OrderTrackResp
         created_at=order.created_at,
         items=[track_order_item_response(item) for item in order.items],
         payment_proofs=[PaymentProofResponse.model_validate(p) for p in order.payment_proofs],
-        store=PublicStoreProfile.model_validate(order.store),
+        store=public_store_profile_from_store(order.store),
         payment_method=PublicPaymentMethod.model_validate(order.payment_method),
     )
 
