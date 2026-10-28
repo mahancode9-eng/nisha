@@ -20,7 +20,7 @@ export default function SellerLoginPage() {
       logout();
       throw new ApiError(
         403,
-        "این صفحه ورود فروشنده‌هاست. مدیران از صفحه ورود مدیر وارد شوند.",
+        "این صفحه ورود فروشنده‌هاست. مدیرها از صفحه ورود مدیر وارد شن.",
       );
     }
 
@@ -53,13 +53,13 @@ export default function SellerLoginPage() {
       <AuthPageFrame>
         <LoginForm
           title="ورود فروشنده"
-          subtitle="برای مدیریت فروشگاه وارد شوید"
+          subtitle="برای مدیریت فروشگاهت وارد شو"
           onSubmit={handleLogin}
           onGoogleCredential={handleGoogle}
           forgotPasswordHref={paths.seller.recover}
           footer={
             <>
-              حساب ندارید؟{" "}
+              حساب نداری؟{" "}
               <Link href={paths.seller.register} className="font-medium text-brand-deep hover:underline">
                 ثبت‌نام
               </Link>

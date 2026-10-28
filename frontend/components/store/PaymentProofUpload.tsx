@@ -29,22 +29,22 @@ export function PaymentProofUpload({
     e.preventDefault();
     setError(null);
     if (!file) {
-      setError("عکس رسید را انتخاب کنید.");
+      setError("عکس رسید رو انتخاب کن.");
       return;
     }
     if (!password.trim()) {
-      setError("رمز فاکتور را وارد کنید.");
+      setError("رمز فاکتور رو وارد کن.");
       return;
     }
     setLoading(true);
     try {
       await ordersApi.uploadPaymentProof(invoiceCode, password.trim(), file);
-      toast.success("رسید پرداخت ثبت شد. فروشنده بعد از بررسی، پرداخت را تایید می‌کند.");
+      toast.success("رسیدت ثبت شد. فروشنده بعد از بررسی، پرداخت رو تایید می‌کنه.");
       setFile(null);
       if (fileRef.current) fileRef.current.value = "";
       onSuccess?.();
     } catch (err) {
-      const msg = err instanceof ApiError ? err.message : "رسید ارسال نشد. دوباره امتحان کنید.";
+      const msg = err instanceof ApiError ? err.message : "رسید ارسال نشد. دوباره امتحان کن.";
       setError(msg);
       toast.error(msg);
     } finally {
@@ -54,9 +54,9 @@ export function PaymentProofUpload({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 rounded-lg border border-border bg-surface p-4">
-      <h3 className="font-semibold text-foreground">بارگذاری رسید پرداخت</h3>
+      <h3 className="font-semibold text-foreground">فرستادن رسید پرداخت</h3>
       <p className="text-sm text-foreground-muted">
-        از رسید کارت‌به‌کارت عکس یا اسکرین‌شات بگیرید و اینجا بارگذاری کنید. فروشنده بعد از بررسی، پرداخت را تایید می‌کند.
+        از رسید کارت‌به‌کارت عکس یا اسکرین‌شات بگیر و اینجا بذار. فروشنده بعد از بررسی، پرداخت رو تایید می‌کنه.
       </p>
       {error && (
         <p className="rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-200" role="alert">

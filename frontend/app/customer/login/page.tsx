@@ -6,7 +6,7 @@ import { LoadingState } from "@/components/ui/LoadingState";
 
 export default function CustomerLoginPage() {
   return (
-    <Suspense fallback={<LoadingState message="در حال بارگذاری…" />}>
+    <Suspense fallback={<LoadingState message="داره بارگذاری می‌شه…" />}>
       <CustomerLoginForm />
     </Suspense>
   );

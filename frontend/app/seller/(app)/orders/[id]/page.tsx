@@ -59,7 +59,7 @@ export default function SellerOrderDetailPage({ params }: PageProps) {
       }
       await refetch();
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "وضعیت سفارش تغییر نکرد. دوباره امتحان کنید.");
+      toast.error(err instanceof ApiError ? err.message : "وضعیت سفارش تغییر نکرد. دوباره امتحان کن.");
     } finally {
       setActionLoading(false);
       setPendingAction(null);
@@ -81,13 +81,13 @@ export default function SellerOrderDetailPage({ params }: PageProps) {
       await downloadOrderInvoice(() => ordersApi.downloadInvoice(orderId), data.invoice_code);
       toast.success("فاکتور دانلود شد");
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "فاکتور دانلود نشد. دوباره امتحان کنید.");
+      toast.error(err instanceof ApiError ? err.message : "فاکتور دانلود نشد. دوباره امتحان کن.");
     } finally {
       setDownloadLoading(false);
     }
   }
 
-  if (isLoading) return <LoadingState message="در حال بارگذاری سفارش…" />;
+  if (isLoading) return <LoadingState message="داره سفارش رو بارگذاری می‌کنه…" />;
   if (error || !data) {
     return (
       <div className="space-y-4">
@@ -95,7 +95,7 @@ export default function SellerOrderDetailPage({ params }: PageProps) {
           {error ?? "سفارش پیدا نشد"}
         </p>
         <Link href={paths.seller.orders} className="text-sm text-brand hover:underline">
-          بازگشت به سفارش‌ها
+          برگرد به سفارش‌ها
         </Link>
       </div>
     );
@@ -105,14 +105,14 @@ export default function SellerOrderDetailPage({ params }: PageProps) {
     pendingAction === "reject_payment" ? "رد پرداخت" : "لغو سفارش";
   const confirmMessage =
     pendingAction === "reject_payment"
-      ? "به مشتری اطلاع داده می‌شود که دوباره پرداخت کند و موجودی کالا برمی‌گردد."
-      : "سفارش لغو می‌شود و موجودی کالاها به انبار برمی‌گردد.";
+      ? "به مشتری خبر می‌دیم که دوباره پرداخت کنه و موجودی کالا برمی‌گرده."
+      : "سفارش لغو می‌شه و موجودی کالاها به انبار برمی‌گرده.";
 
   return (
     <div className="page-stack">
       <div>
         <Link href={paths.seller.orders} className="text-sm text-brand hover:underline">
-          ← بازگشت به سفارش‌ها
+          ← برگرد به سفارش‌ها
         </Link>
         <div className="mt-2 flex flex-wrap items-center gap-3">
           <h1 className="text-2xl font-bold text-neutral-900">{data.invoice_code}</h1>
@@ -247,7 +247,7 @@ export default function SellerOrderDetailPage({ params }: PageProps) {
         </CardHeader>
         <CardContent>
           {data.status_history.length === 0 ? (
-            <p className="text-sm text-neutral-500">هنوز تغییری در وضعیت این سفارش ثبت نشده است.</p>
+            <p className="text-sm text-neutral-500">هنوز تغییری تو وضعیت این سفارش ثبت نشده.</p>
           ) : (
             <ul className="space-y-3">
               {data.status_history.map((entry) => (

@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from decimal import ROUND_HALF_UP, Decimal
 
-from sqlalchemy import or_, select, update
+from sqlalchemy import func, or_, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -17,12 +17,20 @@ from app.services import entitlement_service
 from app.services.exceptions import ServiceError
 
 INVALID_CODE_MESSAGE = "کد تخفیف معتبر نیست"
-NOT_STARTED_MESSAGE = "کد تخفیف هنوز فعال نشده است"
-EXPIRED_MESSAGE = "کد تخفیف منقضی شده است"
-MAX_USES_MESSAGE = "ظرفیت استفاده از این کد تخفیف تمام شده است."
-MIN_ORDER_MESSAGE = "مبلغ سفارش به حداقل لازم برای این کد تخفیف نمی‌رسد."
-DUPLICATE_CODE_MESSAGE = "کد تخفیفی با همین نام دارید؛ نام دیگری انتخاب کنید."
+NOT_STARTED_MESSAGE = "کد تخفیف هنوز فعال نشده"
+EXPIRED_MESSAGE = "کد تخفیف منقضی شده"
+MAX_USES_MESSAGE = "ظرفیت استفاده از این کد تخفیف تموم شده."
+MIN_ORDER_MESSAGE = "مبلغ سفارش به حداقل لازم برای این کد تخفیف نمی‌رسه."
+DUPLICATE_CODE_MESSAGE = "کد تخفیفی با همین نام داری؛ اسم دیگه‌ای انتخاب کن."
 NOT_FOUND_MESSAGE = "کد تخفیف پیدا نشد"
+ACTIVE_CAP_MESSAGE = (
+    "تو پلن رایگان فقط یک کد تخفیف فعال می‌تونی داشته باشی. "
+    "یکی رو غیرفعال کن یا پلن رو ارتقا بده."
+)
+TIMED_DISCOUNT_MESSAGE = (
+    "تاریخ انقضا فقط تو پلن پایه به بالاست. "
+    "پلن رو ارتقا بده یا کد رو بدون تاریخ انقضا بساز."
+)
 
 
 def normalize_code(code: str) -> str:
@@ -56,22 +64,70 @@ def list_discounts(db: Session, store_id: int) -> list[DiscountCode]:
 
 def _validate_type_fields(discount_type: str, percent_off, amount_off) -> None:
     if discount_type == DISCOUNT_TYPE_PERCENT and percent_off is None:
-        raise ServiceError("درصد تخفیف را وارد کنید.", status_code=422)
+        raise ServiceError("درصد تخفیف رو وارد کن.", status_code=422)
     if discount_type == DISCOUNT_TYPE_FIXED and amount_off is None:
-        raise ServiceError("مبلغ تخفیف را وارد کنید.", status_code=422)
+        raise ServiceError("مبلغ تخفیف رو وارد کن.", status_code=422)
+
+
+def _count_active_discounts(db: Session, store_id: int, *, exclude_id: int | None = None) -> int:
+    query = select(func.count()).select_from(DiscountCode).where(
+        DiscountCode.store_id == store_id,
+        DiscountCode.is_active.is_(True),
+    )
+    if exclude_id is not None:
+        query = query.where(DiscountCode.id != exclude_id)
+    return int(db.scalar(query) or 0)
+
+
+def _enforce_active_discount_cap(
+    db: Session,
+    store_id: int,
+    *,
+    owner_id: int,
+    activating: bool,
+    exclude_id: int | None = None,
+) -> dict:
+    entitlements = entitlement_service.require_entitlement(
+        db,
+        owner_id,
+        "discounts",
+        message="ساخت کد تخفیف تو پلن فعلی‌ت فعال نیست. پلن رو ارتقا بده.",
+    )
+    if not activating:
+        return entitlements
+    cap = entitlement_service.get_max_active_discount_codes(entitlements)
+    if cap is None:
+        return entitlements
+    active = _count_active_discounts(db, store_id, exclude_id=exclude_id)
+    if active >= cap:
+        raise ServiceError(ACTIVE_CAP_MESSAGE, status_code=403)
+    return entitlements
+
+
+def _enforce_timed_discount(
+    entitlements: dict,
+    *,
+    expires_at: datetime | None,
+) -> None:
+    if expires_at is None:
+        return
+    if not entitlement_service.can_use_timed_discounts(entitlements):
+        raise ServiceError(TIMED_DISCOUNT_MESSAGE, status_code=403)
 
 
 def create_discount(db: Session, store_id: int, payload: DiscountCodeCreate) -> DiscountCode:
     from app.models.store import Store
 
     store = db.get(Store, store_id)
-    if store is not None:
-        entitlement_service.require_entitlement(
-            db,
-            store.owner_id,
-            "discounts",
-            message="ساخت کد تخفیف در پلن فعلی شما فعال نیست. لطفاً پلن خود را ارتقا دهید.",
-        )
+    if store is None:
+        raise ServiceError("فروشگاه پیدا نشد", status_code=404)
+    entitlements = _enforce_active_discount_cap(
+        db,
+        store_id,
+        owner_id=store.owner_id,
+        activating=bool(payload.is_active),
+    )
+    _enforce_timed_discount(entitlements, expires_at=payload.expires_at)
     _validate_type_fields(payload.discount_type, payload.percent_off, payload.amount_off)
     discount = DiscountCode(
         store_id=store_id,
@@ -114,10 +170,31 @@ def update_discount(
     discount_id: int,
     payload: DiscountCodeUpdate,
 ) -> DiscountCode:
+    from app.models.store import Store
+
     discount = get_discount(db, store_id, discount_id)
     data = payload.model_dump(exclude_unset=True)
     if "code" in data and data["code"] is not None:
         data["code"] = normalize_code(data["code"])
+
+    store = db.get(Store, store_id)
+    if store is None:
+        raise ServiceError("فروشگاه پیدا نشد", status_code=404)
+
+    turning_on = "is_active" in data and bool(data["is_active"]) and not discount.is_active
+    entitlements = entitlement_service.get_seller_entitlements(db, store.owner_id)
+    if turning_on:
+        entitlements = _enforce_active_discount_cap(
+            db,
+            store_id,
+            owner_id=store.owner_id,
+            activating=True,
+            exclude_id=discount.id,
+        )
+
+    if "expires_at" in data:
+        _enforce_timed_discount(entitlements, expires_at=data.get("expires_at"))
+
     for field, value in data.items():
         setattr(discount, field, value)
     _validate_type_fields(discount.discount_type, discount.percent_off, discount.amount_off)

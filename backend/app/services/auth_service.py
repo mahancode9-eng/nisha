@@ -54,8 +54,8 @@ def register_seller(db: Session, *, email: str, password: str, full_name: str) -
                 db.commit()
             except IntegrityError as exc:
                 db.rollback()
-                raise AuthError("با این ایمیل قبلاً حساب ساخته شده است. وارد شوید یا رمز را بازیابی کنید.", status_code=409) from exc
-        raise AuthError("با این ایمیل قبلاً حساب ساخته شده است. وارد شوید یا رمز را بازیابی کنید.", status_code=409)
+                raise AuthError("با این ایمیل قبلاً حساب ساخته شده. وارد شو یا رمز رو بازیابی کن.", status_code=409) from exc
+        raise AuthError("با این ایمیل قبلاً حساب ساخته شده. وارد شو یا رمز رو بازیابی کن.", status_code=409)
 
     user = User(
         email=normalized_email,
@@ -90,7 +90,7 @@ def register_seller(db: Session, *, email: str, password: str, full_name: str) -
         db.commit()
     except IntegrityError as exc:
         db.rollback()
-        raise AuthError("با این ایمیل قبلاً حساب ساخته شده است. وارد شوید یا رمز را بازیابی کنید.", status_code=409) from exc
+        raise AuthError("با این ایمیل قبلاً حساب ساخته شده. وارد شو یا رمز رو بازیابی کن.", status_code=409) from exc
 
     return db.scalar(
         select(User)
@@ -115,7 +115,7 @@ def authenticate_user(db: Session, *, email: str, password: str) -> User:
         raise AuthError("ایمیل یا رمز عبور درست نیست.", status_code=401)
 
     if not user.is_active:
-        raise AuthError("این حساب غیرفعال است. با پشتیبانی تماس بگیرید.", status_code=403)
+        raise AuthError("این حساب غیرفعاله. با پشتیبانی تماس بگیر.", status_code=403)
 
     if user.email_verified_at is None:
         raise AuthError("Email not verified", status_code=403)

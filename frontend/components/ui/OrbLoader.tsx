@@ -1,10 +1,16 @@
 "use client";
 
-import { ThinkingOrb, type OrbState } from "thinking-orbs";
-import { useTheme } from "@/contexts/ThemeContext";
+import { Spinner } from "@/components/ui/Spinner";
 import { cn } from "@/lib/cn";
 
-export type { OrbState };
+/** Legacy orb state names — accepted but unused so call sites keep compiling. */
+export type OrbState =
+  | "breathing"
+  | "connecting"
+  | "searching"
+  | "weaving"
+  | "thinking"
+  | string;
 
 type OrbLoaderProps = {
   state?: OrbState;
@@ -14,30 +20,16 @@ type OrbLoaderProps = {
   label?: string;
 };
 
-/** Theme-aware ThinkingOrb wrapper for Nisha loading / travel states. */
-export function OrbLoader({
-  state = "breathing",
-  size = 64,
-  speed = 1,
-  className,
-  label,
-}: OrbLoaderProps) {
-  const { resolvedTheme } = useTheme();
-
+/**
+ * Back-compat loading indicator. Renders a standard spinner
+ * (replaces the previous ThinkingOrb visual).
+ */
+export function OrbLoader({ size = 64, className, label }: OrbLoaderProps) {
   return (
-    <div
-      className={cn("inline-flex flex-col items-center gap-2", className)}
-      role="status"
-      aria-live="polite"
-      aria-label={label ?? "در حال بارگذاری"}
-    >
-      <ThinkingOrb
-        state={state}
-        size={size}
-        speed={speed}
-        theme={resolvedTheme === "dark" ? "dark" : "light"}
-      />
-      {label ? <span className="text-sm text-foreground-muted">{label}</span> : null}
-    </div>
+    <Spinner
+      size={size === 20 ? "sm" : "lg"}
+      label={label}
+      className={cn(className)}
+    />
   );
 }

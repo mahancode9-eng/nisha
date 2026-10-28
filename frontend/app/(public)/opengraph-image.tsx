@@ -99,7 +99,7 @@ export default function Image() {
 
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 <div style={{ fontSize: 66, lineHeight: 1.02, fontWeight: 700, letterSpacing: "-0.04em" }}>
-                  فروشگاه خود را بسازید
+                  فروشگاهت رو بساز
                 </div>
                 <div style={{ fontSize: 36, lineHeight: 1.3, color: "rgba(255,255,255,0.76)" }}>
                   و سریع‌تر به فروش برسید

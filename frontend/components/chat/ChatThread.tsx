@@ -41,7 +41,7 @@ export function ChatThread({
   }, [conversation?.messages.length]);
 
   if (isLoading && !conversation) {
-    return <LoadingState message="در حال بارگذاری گفتگوâ¦" />;
+    return <LoadingState message="داره گفتگو بارگذاری می‌شه…" />;
   }
 
   return (

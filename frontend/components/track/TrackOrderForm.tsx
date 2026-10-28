@@ -30,7 +30,7 @@ export function TrackOrderForm({ onSuccess }: TrackOrderFormProps) {
       });
       onSuccess(order, password);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "سفارشی با این کد و رمز پیدا نشد. هر دو را دوباره بررسی کنید.");
+      setError(err instanceof ApiError ? err.message : "سفارشی با این کد و رمز پیدا نشد. هر دو رو دوباره چک کن.");
     } finally {
       setLoading(false);
     }

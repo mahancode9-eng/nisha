@@ -34,17 +34,22 @@ export function RotatingWords({
     };
   }, [words.length, intervalMs]);
 
+  // Invisible copies reserve the widest word so neighbors don't shift.
   return (
-    <span className="relative inline-grid max-w-full align-baseline text-start">
+    <span className="relative inline-grid max-w-full align-baseline text-center">
       {words.map((word) => (
-        <span key={word} className="invisible col-start-1 row-start-1 whitespace-nowrap" aria-hidden>
-          {word}
+        <span
+          key={word}
+          className="invisible col-start-1 row-start-1 whitespace-nowrap px-1"
+          aria-hidden
+        >
+          <span className={className}>{word}</span>
         </span>
       ))}
       <span
         className={cn(
-          "col-start-1 row-start-1 whitespace-nowrap transition-all duration-300 ease-out motion-reduce:transition-none",
-          leaving ? "-translate-y-3 opacity-0" : "translate-y-0 opacity-100",
+          "col-start-1 row-start-1 whitespace-nowrap px-1 transition-all duration-300 ease-out motion-reduce:transition-none",
+          leaving ? "-translate-y-2 opacity-0" : "translate-y-0 opacity-100",
         )}
       >
         <span className={className}>{words[index]}</span>

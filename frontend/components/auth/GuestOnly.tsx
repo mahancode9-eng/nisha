@@ -26,11 +26,11 @@ export function GuestOnly({ children, role }: GuestOnlyProps) {
   }, [user, isLoading, role, router]);
 
   if (isLoading) {
-    return <LoadingState message="در حال بررسی نشست…" />;
+    return <LoadingState message="داریم نشست رو چک می‌کنیم…" />;
   }
 
   if (user?.role === role) {
-    return <LoadingState message="در حال انتقال…" />;
+    return <LoadingState message="داریم می‌ریم پنل…" />;
   }
 
   return <>{children}</>;

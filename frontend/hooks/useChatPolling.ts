@@ -30,7 +30,7 @@ export function useChatPolling<T>({
       return result;
     } catch (err) {
       if (!cancelledRef.current) {
-        setError(err instanceof Error ? err.message : "پیام‌ها باز نشد. اتصال اینترنت را بررسی کنید.");
+        setError(err instanceof Error ? err.message : "پیام‌ها باز نشد. اتصال اینترنت رو چک کن.");
       }
       return null;
     } finally {

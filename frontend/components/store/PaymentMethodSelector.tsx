@@ -19,7 +19,7 @@ export function PaymentMethodSelector({
   onSelect,
 }: PaymentMethodSelectorProps) {
   if (methods.length === 0) {
-    return <p className="text-sm text-red-600 dark:text-red-400">این فروشگاه هنوز روش پرداختی ثبت نکرده است. لطفاً بعداً دوباره سر بزنید یا به فروشنده پیام بدهید.</p>;
+    return <p className="text-sm text-red-600 dark:text-red-400">این فروشگاه هنوز روش پرداختی نداره. بعداً دوباره سر بزن یا به فروشنده پیام بده.</p>;
   }
 
   return (

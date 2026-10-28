@@ -18,22 +18,8 @@ const TARGETS = [
 const FA = "؀-ۿ";
 const END = `(?=[\\s"'\`.!،؟:)<]|$)`;
 const RULES = [
-  {
-    id: "informal-register",
-    why: "use «شما», not «تو»",
-    re: new RegExp(
-      `[${FA}]*(?:کردی|کنی|داری|می‌خوای|می‌تونی|نداری|بزن|ببین|بساز|بفرست|بنویس|ات|ت)(?:${END})`,
-      "g",
-    ),
-    // Only words that are clearly 2nd-person informal; the suffix arm is narrowed below.
-    filter: (m) =>
-      /^(?:ن?می‌)?(?:کردی|کنی|می‌خوای|می‌تونی)$/.test(m) ||
-      /(?:کردی|کنی)$/.test(m) && !/(?:تکنیکی|کمکی|یکی)$/.test(m) ||
-      /^(?:ن?داری|می‌داری)$/.test(m) ||
-      /^(?:بزن|ببین|بساز|بفرست|بنویس)$/.test(m) ||
-      /(?:فروشگاهت|حسابت|سفارشت|محصولت|پنلت|خریدارهات|مشتری‌هات)$/.test(m),
-  },
-  { id: "officialese", why: "use everyday verbs (است / کنید / شد / برای)", re: /(?<![\u0600-\u06FF\u200C])(?:می‌?\s?باشد|می‌?\s?باشند|نمایید|نماید|نمایند|گردید|گردد|جهت\s|به منظور|در صورتی که|قادر به)/g },
+  // Informal «تو» is the product voice — do not flag it.
+  { id: "officialese", why: "use spoken verbs (است / کن / شد / برای)", re: /(?<![\u0600-\u06FF\u200C])(?:می‌?\s?باشد|می‌?\s?باشند|نمایید|نماید|نمایند|گردید|گردد|جهت\s|به منظور|در صورتی که|قادر به|فرمایید|فرموده)/g },
   { id: "ascii-ellipsis", why: "use «…» not \"...\"", re: new RegExp(`[${FA}]\\s?\\.\\.\\.`, "g") },
   { id: "arabic-letters", why: "use Persian ی / ک", re: /[يك]/g },
   { id: "latin-punctuation", why: "use «،» «؟» «؛» inside Persian", re: /[\u0621-\u06D3](?:\s?)[,?;](?=\s|$|[\u0621-\u06D3])/g },

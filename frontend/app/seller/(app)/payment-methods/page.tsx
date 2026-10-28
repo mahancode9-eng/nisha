@@ -72,18 +72,18 @@ export default function SellerPaymentMethodsPage() {
       setDeleteId(null);
       await refetch();
     } catch {
-      toast.error("روش پرداخت حذف نشد. دوباره امتحان کنید.");
+      toast.error("روش پرداخت حذف نشد. دوباره امتحان کن.");
     } finally {
       setDeleting(false);
     }
   }
 
-  if (isLoading) return <LoadingState message="در حال بارگذاری روش‌های پرداخت…" />;
+  if (isLoading) return <LoadingState message="داره روش‌های پرداخت رو بارگذاری می‌کنه…" />;
 
   return (
     <div className="page-stack">
       <PageHeader
-        description="مشتری‌ها از این راه‌ها به شما پول می‌دهند"
+        description="مشتری‌ها از این راه‌ها بهت پول می‌دن"
         action={<Button onClick={openCreate}>افزودن روش پرداخت</Button>}
       />
 
@@ -95,8 +95,8 @@ export default function SellerPaymentMethodsPage() {
 
       {!error && data?.length === 0 && (
         <EmptyState
-          title="هنوز روش پرداختی ندارید"
-          description="دست‌کم یک روش لازم است تا مشتری بتواند خرید را تمام کند."
+          title="هنوز روش پرداختی نداری"
+          description="دست‌کم یه روش لازم است تا مشتری بتونه خرید رو تمام کنه."
           action={<Button onClick={openCreate}>افزودن روش پرداخت</Button>}
         />
       )}
@@ -160,7 +160,7 @@ export default function SellerPaymentMethodsPage() {
       <ConfirmModal
         open={deleteId !== null}
         title="حذف روش پرداخت"
-        message="بعد از حذف، مشتری‌ها دیگر این روش را نمی‌بینند."
+        message="بعد از حذف، مشتری‌ها دیگه این روش رو نمی‌بینن."
         confirmLabel="حذف"
         loading={deleting}
         onConfirm={handleDelete}

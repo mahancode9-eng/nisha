@@ -26,13 +26,13 @@ def update_customer_profile(
     if normalized_email is not None and normalized_email != customer.email:
         existing = get_customer_by_email(db, normalized_email)
         if existing is not None and existing.id != customer.id:
-            raise AuthError("با این ایمیل قبلاً حساب ساخته شده است. وارد شوید یا رمز را بازیابی کنید.", status_code=409)
+            raise AuthError("با این ایمیل قبلاً حساب ساخته شده. وارد شو یا رمز رو بازیابی کن.", status_code=409)
         customer.email = normalized_email
 
     if normalized_phone is not None and normalized_phone != customer.phone:
         existing = get_customer_by_phone(db, normalized_phone)
         if existing is not None and existing.id != customer.id:
-            raise AuthError("با این شماره قبلاً حساب ساخته شده است. وارد شوید یا رمز را بازیابی کنید.", status_code=409)
+            raise AuthError("با این شماره قبلاً حساب ساخته شده. وارد شو یا رمز رو بازیابی کن.", status_code=409)
         customer.phone = normalized_phone
 
     if postal_code is not None:

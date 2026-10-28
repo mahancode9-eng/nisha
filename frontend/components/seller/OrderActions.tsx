@@ -20,7 +20,7 @@ export function OrderActions({ status, loading, onAction }: OrderActionsProps) {
 
   if (actions.length === 0) {
     return (
-      <p className="text-sm text-foreground-muted">در این مرحله کاری لازم نیست.</p>
+      <p className="text-sm text-foreground-muted">تو این مرحله کاری لازم نیست.</p>
     );
   }
 

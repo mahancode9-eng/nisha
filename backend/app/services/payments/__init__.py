@@ -63,7 +63,7 @@ def get_platform_card_instructions(db: Session) -> dict[str, str]:
         "card_number": cards["subscription_card_number"],
         "card_owner": cards["subscription_card_owner"],
         "card_bank": cards["subscription_card_bank"],
-        "message": "مبلغ را به کارت زیر واریز کنید و رسید را بارگذاری کنید.",
+        "message": "مبلغ رو به کارت زیر واریز کن و رسید رو بارگذاری کن.",
     }
 
 

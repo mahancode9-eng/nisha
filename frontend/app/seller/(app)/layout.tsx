@@ -53,7 +53,7 @@ export default function SellerAppLayout({ children }: { children: React.ReactNod
                 rel="noopener noreferrer"
               >
                 <Button variant="secondary" size="sm">
-                  مشاهده فروشگاه
+                  دیدن فروشگاه
                 </Button>
               </Link>
             ) : null}

@@ -29,7 +29,7 @@ export default function CustomerComplaintsPage() {
       } catch {
         if (!cancelled) {
           setComplaints([]);
-          toast.error("شکایت‌ها باز نشد. صفحه را دوباره بارگذاری کنید.");
+          toast.error("شکایت‌ها باز نشد. صفحه رو دوباره بارگذاری کن.");
         }
       }
     })();
@@ -39,7 +39,7 @@ export default function CustomerComplaintsPage() {
   }, [toast]);
 
   if (complaints === null) {
-    return <LoadingState message="در حال بارگذاری شکایت‌ها…" />;
+    return <LoadingState message="داره شکایت‌ها بارگذاری می‌شن…" />;
   }
 
   return (
@@ -50,8 +50,8 @@ export default function CustomerComplaintsPage() {
       <CardContent className="space-y-3">
         {complaints.length === 0 ? (
           <EmptyState
-            title="شکایتی ثبت نکرده‌اید"
-            description="اگر سفارشی به دستتان نرسید، از صفحه همان سفارش شکایت ثبت کنید."
+            title="شکایتی ثبت نکردی"
+            description="اگر سفارشی به دستت نرسید، از صفحه همون سفارش شکایت ثبت کن."
           />
         ) : (
           complaints.map((complaint) => (

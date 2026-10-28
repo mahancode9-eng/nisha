@@ -33,7 +33,7 @@ export default function CustomerProfilePage() {
         setPhone(data.phone ?? "");
         setPostalCode(data.postal_code ?? "");
       } catch {
-        if (!cancelled) setError("اطلاعات حساب باز نشد. صفحه را دوباره بارگذاری کنید.");
+        if (!cancelled) setError("اطلاعات حساب باز نشد. صفحه رو دوباره بارگذاری کن.");
       }
     })();
     return () => {
@@ -55,7 +55,7 @@ export default function CustomerProfilePage() {
       setProfile(updated);
       await refreshCustomer();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "تغییرات ذخیره نشد. دوباره امتحان کنید.");
+      setError(err instanceof ApiError ? err.message : "تغییرات ذخیره نشد. دوباره امتحان کن.");
     } finally {
       setSaving(false);
     }
@@ -66,7 +66,7 @@ export default function CustomerProfilePage() {
   }
 
   if (!profile) {
-    return <LoadingState message="در حال بارگذاری…" />;
+    return <LoadingState message="داره بارگذاری می‌شه…" />;
   }
 
   return (
@@ -74,7 +74,7 @@ export default function CustomerProfilePage() {
       <div>
         <h1 className="text-2xl font-bold text-neutral-900 max-md:text-xl">پروفایل</h1>
         <p className="mt-1 text-sm text-neutral-600">
-          این اطلاعات برای ارسال سفارش و بازیابی رمز استفاده می‌شود؛ به‌روز نگهش دارید.
+          اینا برای ارسال سفارش و بازیابی رمز استفاده می‌شن؛ به‌روز نگهشون دار.
         </p>
       </div>
 

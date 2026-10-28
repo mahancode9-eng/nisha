@@ -77,7 +77,7 @@ function SellerLivePreview({
               </div>
             )}
             <div className="min-w-0">
-              <p className="text-xs text-zinc-500">فروشگاه شما</p>
+              <p className="text-xs text-zinc-500">فروشگاهت</p>
               <p className="truncate text-sm font-semibold text-white">{store.name}</p>
             </div>
           </div>
@@ -195,7 +195,7 @@ export function LandingStorePreview({ className }: LandingStorePreviewProps) {
         href={paths.seller.onboarding}
         className={landingButtonClasses({ size: "md", className: "w-full justify-center" })}
       >
-        شروع ساخت فروشگاه
+        بزن بریم فروشگاه بساز
       </Link>
     </div>
   );

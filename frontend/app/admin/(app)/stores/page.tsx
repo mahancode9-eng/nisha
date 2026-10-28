@@ -66,7 +66,7 @@ export default function AdminStoresPage() {
       }
       await refetch();
     } catch {
-      toast.error("به‌روزرسانی فروشگاه انجام نشد. دوباره امتحان کنید.");
+      toast.error("به‌روزرسانی فروشگاه انجام نشد. دوباره امتحان کن.");
     } finally {
       setActionId(null);
     }
@@ -80,7 +80,7 @@ export default function AdminStoresPage() {
       toast.success("با حساب فروشنده وارد شدید");
       router.push(paths.seller.dashboard);
     } catch {
-      toast.error("ورود به‌جای فروشنده انجام نشد. دوباره امتحان کنید.");
+      toast.error("ورود به‌جای فروشنده انجام نشد. دوباره امتحان کن.");
       setActionId(null);
     }
   }

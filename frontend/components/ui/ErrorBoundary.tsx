@@ -36,12 +36,12 @@ export class ErrorBoundary extends Component<Props, State> {
         this.props.fallback ?? (
           <div className="flex flex-col items-center justify-center p-8 text-center">
             <h2 className="text-xl font-semibold">مشکلی پیش آمد</h2>
-            <p className="mt-2 text-muted-foreground">این بخش درست نمایش داده نشد. صفحه را دوباره بارگذاری کنید.</p>
+            <p className="mt-2 text-muted-foreground">این بخش درست نشون داده نشد. صفحه رو دوباره بارگذاری کن.</p>
             <button
               className="mt-4 rounded-md bg-brand px-4 py-2 text-white"
               onClick={this.handleRetry}
             >
-              دوباره امتحان کنید
+              دوباره امتحان کن
             </button>
           </div>
         )

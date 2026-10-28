@@ -13,8 +13,11 @@ export type PlanEntitlements = {
   product_video: boolean;
   custom_fields: boolean;
   discounts: boolean;
+  max_active_discount_codes: number | null;
+  timed_discounts: boolean;
   analytics_max_days: number;
   guest_checkout: boolean;
+  messenger_receipt_actions: boolean;
   badge_trust: boolean;
   badge_premium: boolean;
   store_theme: boolean;

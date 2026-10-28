@@ -19,7 +19,7 @@ export function SellerPrimaryCta({
   size = "md",
   className,
   guestLabel = "شروع فروش",
-  sellerLabel = "رفتن به داشبورد",
+  sellerLabel = "برو داشبورد",
   sellerHref = paths.seller.dashboard,
 }: SellerPrimaryCtaProps) {
   const { user, isLoading } = useAuth();

@@ -42,13 +42,13 @@ export default function AdminSettingsPage() {
       toast.success("تنظیمات پلتفرم ذخیره شد");
       await refetch();
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "ذخیره تنظیمات انجام نشد. دوباره امتحان کنید.");
+      toast.error(err instanceof ApiError ? err.message : "ذخیره تنظیمات انجام نشد. دوباره امتحان کن.");
     } finally {
       setSaving(false);
     }
   }
 
-  if (isLoading) return <LoadingState message="در حال بارگذاری تنظیماتâ¦" />;
+  if (isLoading) return <LoadingState message="در حال بارگذاری تنظیمات…" />;
 
   return (
     <div className="space-y-6">
@@ -86,7 +86,7 @@ export default function AdminSettingsPage() {
             این کارت را در صفحه اشتراک می‌بیند.
           </p>
           {!cardNumber.trim() && (
-            <ErrorAlert message="شماره کارت اشتراک خالی است. تا پرش نکنید، فروشنده‌ها نمی‌توانند پلن بخرند." />
+            <ErrorAlert message="شماره کارت اشتراک خالیه. تا پرش نکنی، فروشنده‌ها نمی‌تونن پلن بخرن." />
           )}
           <Input label="شماره کارت" value={cardNumber} onChange={(e) => setCardNumber(e.target.value)} />
           <Input label="نام صاحب کارت" value={cardOwner} onChange={(e) => setCardOwner(e.target.value)} />

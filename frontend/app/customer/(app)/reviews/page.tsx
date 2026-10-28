@@ -61,7 +61,7 @@ export default function CustomerReviewsPage() {
       } catch {
         if (!cancelled) {
           setOrders([]);
-          toast.error("سفارش‌ها باز نشد. صفحه را دوباره بارگذاری کنید.");
+          toast.error("سفارش‌ها باز نشد. صفحه رو دوباره بارگذاری کن.");
         }
       }
     })();
@@ -73,7 +73,7 @@ export default function CustomerReviewsPage() {
       } catch {
         if (!cancelled) {
           setReviews([]);
-          toast.error("نظرها باز نشد. صفحه را دوباره بارگذاری کنید.");
+          toast.error("نظرها باز نشد. صفحه رو دوباره بارگذاری کن.");
         }
       }
     })();
@@ -116,27 +116,27 @@ export default function CustomerReviewsPage() {
       setIsPublic(false);
       setRating(5);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "نظر ذخیره نشد. دوباره امتحان کنید.");
+      setError(err instanceof ApiError ? err.message : "نظر ذخیره نشد. دوباره امتحان کن.");
     } finally {
       setSaving(false);
     }
   }
 
   if (orders === null || reviews === null) {
-    return <LoadingState message="در حال بارگذاری نظرها…" />;
+    return <LoadingState message="داره نظرها بارگذاری می‌شن…" />;
   }
 
   return (
     <div className="page-stack">
       <Card>
         <CardHeader>
-          <CardTitle>برای کدام خرید نظر می‌دهید؟</CardTitle>
+          <CardTitle>برای کدوم خرید نظر می‌دی؟</CardTitle>
         </CardHeader>
         <CardContent>
           {orders.length === 0 ? (
             <EmptyState
-              title="هنوز سفارش تحویل‌داده‌شده‌ای ندارید"
-              description="بعد از تحویل هر سفارش، می‌توانید اینجا درباره‌اش نظر بدهید."
+              title="هنوز سفارش تحویل‌شده‌ای نداری"
+              description="بعد از تحویل هر سفارش، اینجا می‌تونی درباره‌اش نظر بدی."
             />
           ) : (
             <div className="grid gap-3 md:grid-cols-2">
@@ -183,7 +183,7 @@ export default function CustomerReviewsPage() {
         </CardHeader>
         <CardContent>
           {!selectedOrder ? (
-            <EmptyState title="اول یک سفارش انتخاب کنید" description="از فهرست بالا، سفارشی را که تحویل گرفته‌اید انتخاب کنید." />
+            <EmptyState title="اول یک سفارش انتخاب کن" description="از فهرست بالا، سفارشی که تحویل گرفتی رو انتخاب کن." />
           ) : (
             <form onSubmit={handleSubmit} className="grid gap-4 md:grid-cols-2">
               <Input label="سفارش انتخاب‌شده" value={selectedOrder.invoice_code} readOnly />
@@ -213,7 +213,7 @@ export default function CustomerReviewsPage() {
               />
               <label className="flex items-center gap-2 text-sm text-neutral-700 md:col-span-2">
                 <input type="checkbox" checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} />
-                نظرم بعد از تایید، در صفحه فروشگاه نمایش داده شود
+                نظرم بعد از تایید، تو صفحه فروشگاه نشون داده بشه
               </label>
               {error && (
                 <p className="rounded-3xl bg-red-50 px-4 py-3 text-sm text-red-700 md:col-span-2" role="alert">
@@ -228,7 +228,7 @@ export default function CustomerReviewsPage() {
           <ConfirmModal
             open={showConfirm}
             title="ثبت نظر"
-            message="نظر ثبت شود؟"
+            message="نظر ثبت بشه؟"
             confirmLabel="ثبت نظر"
             loading={saving}
             onConfirm={confirmSubmit}
@@ -239,11 +239,11 @@ export default function CustomerReviewsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>نظرهای شما</CardTitle>
+          <CardTitle>نظرهات</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           {reviews.length === 0 ? (
-            <EmptyState title="هنوز نظری نداده‌اید" description="نظرهایی که درباره خریدهایتان می‌دهید، اینجا می‌مانند." />
+            <EmptyState title="هنوز نظری ندادی" description="نظرهایی که درباره خریدات می‌دی، اینجا می‌مونن." />
           ) : (
             reviews.map((review) => (
               <div key={review.id} className="rounded-3xl border border-border p-4">

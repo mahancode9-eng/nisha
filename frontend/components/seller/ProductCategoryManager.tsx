@@ -40,7 +40,7 @@ export function ProductCategoryManager() {
       toast.success(parentId === "" ? "دسته‌بندی اضافه شد" : "زیردسته اضافه شد");
       await refetch();
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "دسته‌بندی ذخیره نشد. دوباره امتحان کنید.");
+      toast.error(err instanceof ApiError ? err.message : "دسته‌بندی ذخیره نشد. دوباره امتحان کن.");
     } finally {
       setSaving(false);
     }
@@ -52,7 +52,7 @@ export function ProductCategoryManager() {
       toast.success("دسته‌بندی حذف شد");
       await refetch();
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "دسته‌بندی حذف نشد. دوباره امتحان کنید.");
+      toast.error(err instanceof ApiError ? err.message : "دسته‌بندی حذف نشد. دوباره امتحان کن.");
     }
   }
 
@@ -176,7 +176,7 @@ export function ProductCategoryManager() {
         )}
       </ul>
       <p className="text-[11px] text-foreground-muted">
-        دسته‌ها و زیردسته‌ها در منوی فروشگاه به مشتری نمایش داده می‌شود.
+        دسته‌ها و زیردسته‌ها تو منوی فروشگاه به مشتری نشون داده می‌شه.
       </p>
     </div>
   );

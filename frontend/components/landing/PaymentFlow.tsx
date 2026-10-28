@@ -13,23 +13,23 @@ const icon = (path: ReactNode) => (
 
 const STEPS = [
   {
-    title: "ثبت سفارش",
-    caption: "مشتری سبد را تکمیل می‌کند",
+    title: "سفارش",
+    caption: "سبد رو پر می‌کنه و ثبت می‌کنه",
     icon: icon(<><path d="M6 6h15l-1.5 9h-12z" /><path d="M6 6 5 3H2" /><circle cx="9" cy="20" r="1" /><circle cx="18" cy="20" r="1" /></>),
   },
   {
-    title: "کارت‌به‌کارت",
-    caption: "مبلغ را به کارت شما واریز می‌کند",
+    title: "واریز",
+    caption: "به کارت تو می‌زنه",
     icon: icon(<><rect x="2.5" y="5" width="19" height="14" rx="2.5" /><path d="M2.5 10h19" /><path d="M6.5 15h4" /></>),
   },
   {
-    title: "ارسال رسید",
-    caption: "عکس رسید را همان‌جا می‌فرستد",
+    title: "رسید",
+    caption: "عکس رسید رو می‌فرسته",
     icon: icon(<><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z" /><path d="M9 8h6M9 12h6" /></>),
   },
   {
-    title: "تایید شما",
-    caption: "با یک دکمه پرداخت را تایید می‌کنید",
+    title: "تایید تو",
+    caption: "یک دکمه؛ پرداخت تایید می‌شه",
     icon: icon(<><circle cx="12" cy="12" r="9" /><path d="m8 12.5 2.7 2.7L16 9.8" /></>),
   },
 ];

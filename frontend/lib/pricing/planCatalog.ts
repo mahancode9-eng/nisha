@@ -9,8 +9,8 @@ export const PLAN_CATALOG = [
     quarterly_price_toman: 0,
     yearly_price_toman: 0,
     is_recommended: false,
-    blurb: "شروع سریع با ویترین و فروش کارت‌به‌کارت",
-    highlights: ["تا ۳۰ محصول", "آمار ۷ روزه", "بدون کارمزد روی فروش"],
+    blurb: "فروشگاهت رو بساز و با کارت‌به‌کارت بفروش",
+    highlights: ["خرید مهمان", "یک کد تخفیف فعال", "تا ۳۰ محصول"],
   },
   {
     code: "basic",
@@ -19,8 +19,8 @@ export const PLAN_CATALOG = [
     quarterly_price_toman: 807_000,
     yearly_price_toman: 2_990_000,
     is_recommended: false,
-    blurb: "برای وقتی که فروش جدی‌تر شد",
-    highlights: ["خرید مهمان با کارت‌به‌کارت", "کد تخفیف", "تا ۲۰۰ محصول"],
+    blurb: "وقتی سفارش‌ها بیشتر شد",
+    highlights: ["کد تخفیف نامحدود", "تایید رسید از تلگرام", "تا ۲۰۰ محصول"],
   },
   {
     code: "pro",
@@ -29,8 +29,8 @@ export const PLAN_CATALOG = [
     quarterly_price_toman: 1_617_000,
     yearly_price_toman: 5_990_000,
     is_recommended: true,
-    blurb: "پیشنهاد ما برای فروشگاه در حال رشد",
-    highlights: ["آمار ۹۰ روزه", "تم و صفحات فروشگاه", "خروجی Excel و ویدیو"],
+    blurb: "برای فروشگاهی که داره بزرگ می‌شه",
+    highlights: ["آمار ۹۰ روزه", "تم و صفحات فروشگاه", "ویدیوی محصول"],
   },
   {
     code: "enterprise",
@@ -39,7 +39,7 @@ export const PLAN_CATALOG = [
     quarterly_price_toman: 3_483_000,
     yearly_price_toman: 12_900_000,
     is_recommended: false,
-    blurb: "برای فروش زیاد و پشتیبانی سریع‌تر",
+    blurb: "فروش زیاد، جواب سریع‌تر از پشتیبانی",
     highlights: ["همه امکانات پلن حرفه‌ای", "پشتیبانی اولویت‌دار", "تعداد محصول نامحدود"],
   },
 ] as const;
@@ -78,13 +78,16 @@ export function highlightsForPlan(plan: SubscriptionPlan | CatalogPlan): string[
   const items: string[] = [];
   if (e.max_products == null) items.push("محصول نامحدود");
   else items.push(`تا ${e.max_products} محصول`);
-  items.push(`تا ${e.max_product_images} تصویر برای هر محصول`);
-  if (e.discounts) items.push("کد تخفیف");
+  items.push(`تا ${e.max_product_images} عکس برای هر محصول`);
+  if (e.discounts) {
+    if (e.max_active_discount_codes == null) items.push("کد تخفیف نامحدود");
+    else items.push(`${e.max_active_discount_codes} کد تخفیف فعال`);
+  }
   if (e.guest_checkout) items.push("خرید مهمان");
+  if (e.messenger_receipt_actions) items.push("تایید رسید از تلگرام/بله");
   items.push(`آمار تا ${e.analytics_max_days} روز`);
   if (e.product_video) items.push("ویدیوی محصول");
   if (e.store_theme || e.store_pages) items.push("تم و صفحات فروشگاه");
-  if (e.excel_export) items.push("خروجی Excel");
   if (e.priority_support) items.push("پشتیبانی اولویت‌دار");
   return items.slice(0, 6);
 }

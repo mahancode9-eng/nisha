@@ -22,7 +22,7 @@ export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
   }, [user, isLoading, router]);
 
   if (isLoading || !user || user.role !== "ADMIN") {
-    return <LoadingState message="در حال بارگذاری پنل مدیریت…" />;
+    return <LoadingState message="داریم پنل مدیریت رو می‌آریم…" />;
   }
 
   return <>{children}</>;

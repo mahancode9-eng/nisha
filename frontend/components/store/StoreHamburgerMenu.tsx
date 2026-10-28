@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useStoreChrome } from "@/components/store/StoreChromeContext";
+import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 import { useSectionTravel } from "@/components/ui/SectionTravel";
 import { paths } from "@/lib/auth/paths";
 import { cn } from "@/lib/cn";
@@ -61,16 +62,10 @@ export function StoreHamburgerMenu({ open, onClose, storeName }: StoreHamburgerM
 
   function pickCategory(slug: string | null) {
     onClose();
-    travelTo(
-      () => {
-        selectCategory(slug);
-        document.getElementById("store-products")?.scrollIntoView({ behavior: "smooth", block: "start" });
-      },
-      {
-        state: slug ? "searching" : "breathing",
-        label: slug ? "در حال باز کردن دسته…" : "نمایش همه محصول‌ها…",
-      },
-    );
+    travelTo(() => {
+      selectCategory(slug);
+      document.getElementById("store-products")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   }
 
   return (
@@ -126,11 +121,11 @@ export function StoreHamburgerMenu({ open, onClose, storeName }: StoreHamburgerM
                     : "text-foreground hover:bg-surface-muted",
                 )}
               >
-                همه محصولات
+                همه محصول‌ها
               </button>
             </li>
             {tree.length === 0 ? (
-              <li className="px-3 py-2 text-xs text-foreground-muted">این فروشگاه هنوز دسته‌بندی ندارد.</li>
+              <li className="px-3 py-2 text-xs text-foreground-muted">این فروشگاه هنوز دسته‌بندی نداره.</li>
             ) : (
               tree.map((node) => {
                 const hasChildren = node.children.length > 0;
@@ -252,10 +247,18 @@ export function StoreHamburgerMenu({ open, onClose, storeName }: StoreHamburgerM
             ))}
           </ul>
 
+          <div className="my-3 border-t border-border/70" />
+          <p className="px-3 pb-1.5 text-[11px] font-medium uppercase tracking-wide text-foreground-muted">
+            ظاهر
+          </p>
+          <div className="px-3 pb-2">
+            <ThemeSwitcher variant="group" />
+          </div>
+
           <Link
             href={paths.home}
             onClick={onClose}
-            className="mt-3 flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs text-foreground-muted transition hover:bg-surface-muted hover:text-foreground"
+            className="mt-1 flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs text-foreground-muted transition hover:bg-surface-muted hover:text-foreground"
           >
             میزبانی‌شده روی نیشا
           </Link>

@@ -49,7 +49,7 @@ export default function AdminChatDetailPage({ params }: PageProps) {
               {data.invoice_code && <p className="text-xs text-foreground-muted">سفارش {data.invoice_code}</p>}
             </div>
           ) : (
-            <span className="text-neutral-500">در حال بارگذاریâ¦</span>
+            <span className="text-neutral-500">در حال بارگذاری…</span>
           )
         }
       />

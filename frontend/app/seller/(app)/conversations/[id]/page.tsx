@@ -30,7 +30,7 @@ export default function SellerConversationPage({ params }: PageProps) {
   return (
     <div className="page-stack">
       <Link href={paths.seller.conversations} className="text-sm text-brand hover:underline">
-        بازگشت به پیام‌ها
+        برگرد به پیام‌ها
       </Link>
       <ChatThread
         conversation={data}
@@ -42,7 +42,7 @@ export default function SellerConversationPage({ params }: PageProps) {
             await conversationsApi.sendMessage(conversationId, payload);
             await refetch();
           } catch {
-            toast.error("پیام ارسال نشد. دوباره امتحان کنید.");
+            toast.error("پیام ارسال نشد. دوباره امتحان کن.");
           }
         }}
         header={
@@ -52,7 +52,7 @@ export default function SellerConversationPage({ params }: PageProps) {
               {data.invoice_code && <p className="text-xs text-neutral-500">سفارش {data.invoice_code}</p>}
             </div>
           ) : (
-            <span className="text-neutral-500">در حال بارگذاری…</span>
+            <span className="text-neutral-500">داره بارگذاری می‌شه…</span>
           )
         }
       />

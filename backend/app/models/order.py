@@ -89,6 +89,10 @@ class Order(TimestampMixin, Base):
         nullable=True,
         index=True,
     )
+    payment_reminder_sent_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
 
     store: Mapped["Store"] = relationship("Store", back_populates="orders")
     customer: Mapped[Optional["CustomerAccount"]] = relationship(

@@ -11,6 +11,7 @@ import { useSellerEntitlements } from "@/hooks/useSellerEntitlements";
 import { useSellerFetch } from "@/hooks/useSellerFetch";
 import { ConfirmModal } from "@/components/seller/ConfirmModal";
 import { ProductCategoryManager } from "@/components/seller/ProductCategoryManager";
+import { UpgradeGate } from "@/components/seller/UpgradeGate";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Badge } from "@/components/ui/Badge";
 import { Button, buttonClassName } from "@/components/ui/Button";
@@ -33,6 +34,7 @@ export default function SellerProductsPage() {
   const toast = useToast();
   const { entitlements } = useSellerEntitlements();
   const canExport = entitlements.excel_export;
+  const maxProducts = entitlements.max_products;
   const [page, setPage] = useState(1);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -54,7 +56,7 @@ export default function SellerProductsPage() {
       setDeleteId(null);
       await refetch();
     } catch {
-      toast.error("محصول حذف نشد. دوباره امتحان کنید.");
+      toast.error("محصول حذف نشد. دوباره امتحان کن.");
     } finally {
       setDeleting(false);
     }
@@ -66,7 +68,7 @@ export default function SellerProductsPage() {
       await exportsApi.downloadCsv(() => exportsApi.exportProductsCsv(), "products.csv");
       toast.success("فایل اکسل محصول‌ها دانلود شد");
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "فایل خروجی ساخته نشد. دوباره امتحان کنید.");
+      toast.error(err instanceof ApiError ? err.message : "فایل خروجی ساخته نشد. دوباره امتحان کن.");
     } finally {
       setExporting(false);
     }
@@ -74,11 +76,13 @@ export default function SellerProductsPage() {
 
   const items = data?.items ?? [];
   const isEmpty = !isLoading && !error && data && data.total === 0;
+  const atProductLimit =
+    typeof maxProducts === "number" && data != null && data.total >= maxProducts;
 
   return (
     <div className="space-y-4">
       <PageHeader
-        description="محصول‌ها و دسته‌بندی‌های فروشگاه"
+        description="محصول‌ها و دسته‌بندی‌های فروشگاهت"
         action={
           <div className="flex flex-wrap gap-2">
             {canExport && (
@@ -86,12 +90,27 @@ export default function SellerProductsPage() {
                 خروجی Excel
               </Button>
             )}
-            <Link href={paths.seller.productNew} className={buttonClassName({ size: "sm" })}>
-              افزودن محصول
-            </Link>
+            {atProductLimit ? (
+              <Link href={paths.seller.subscription} className={buttonClassName({ size: "sm", variant: "secondary" })}>
+                ارتقا برای محصول بیشتر
+              </Link>
+            ) : (
+              <Link href={paths.seller.productNew} className={buttonClassName({ size: "sm" })}>
+                افزودن محصول
+              </Link>
+            )}
           </div>
         }
       />
+
+      {atProductLimit ? (
+        <UpgradeGate
+          compact
+          title={`سقف ${maxProducts} محصول پلن فعلی پر شده`}
+          description="با ارتقا به پلن بالاتر می‌تونی محصولات بیشتری اضافه کنی و فروشگاهت رو کامل‌تر کنی."
+          ctaLabel="دیدن پلن‌ها و ارتقا"
+        />
+      ) : null}
 
       <ErrorAlert message={error ?? ""} />
 
@@ -111,8 +130,8 @@ export default function SellerProductsPage() {
 
           {isEmpty && (
             <EmptyState
-              title="هنوز محصولی ندارید"
-              description="اولین محصول را اضافه کنید؛ دسته‌بندی را می‌شود بعداً هم تعیین کرد."
+              title="هنوز محصولی نداری"
+              description="اولین محصول رو اضافه کن؛ دسته‌بندی رو بعداً هم می‌شه تعیین کرد."
               action={
                 <Link href={paths.seller.productNew} className={buttonClassName({ size: "sm" })}>
                   افزودن محصول
@@ -184,7 +203,7 @@ export default function SellerProductsPage() {
       <ConfirmModal
         open={deleteId !== null}
         title="حذف محصول"
-        message="محصول از فروشگاه حذف می‌شود و این کار برگشت‌پذیر نیست."
+        message="محصول از فروشگاه حذف می‌شه و برنمی‌گرده."
         confirmLabel="حذف"
         loading={deleting}
         onConfirm={handleDelete}

@@ -1,28 +1,25 @@
-"use client";
-
 import { cn } from "@/lib/cn";
-import { OrbLoader, type OrbState } from "@/components/ui/OrbLoader";
+import { Spinner } from "@/components/ui/Spinner";
 
 type LoadingStateProps = {
   message?: string;
   className?: string;
-  /** Orb animation verb — defaults to breathing for generic loads. */
-  orbState?: OrbState;
+  /** @deprecated Ignored — kept so existing call sites keep type-checking. */
+  orbState?: string;
 };
 
 export function LoadingState({
-  message = "در حال بارگذاری…",
+  message = "داره بارگذاری می‌شه…",
   className,
-  orbState = "breathing",
 }: LoadingStateProps) {
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-border bg-surface px-6 py-16 text-foreground-muted shadow-sm glass-panel backdrop-blur-xl",
+        "flex min-h-[12rem] flex-col items-center justify-center gap-3 px-6 py-12 text-foreground-muted",
         className,
       )}
     >
-      <OrbLoader state={orbState} size={64} label={message} />
+      <Spinner size="lg" label={message} />
     </div>
   );
 }

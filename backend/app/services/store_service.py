@@ -87,7 +87,7 @@ def update_store(db: Session, store: Store, data: StoreUpdate) -> Store:
         and not is_platform_guest_checkout_enabled(db)
     ):
         raise ServiceError(
-            "خرید مهمان فعلاً در کل نیشا خاموش است و فعال نمی‌شود.",
+            "خرید مهمان فعلاً تو کل نیشا خاموشه و فعال نمی‌شه.",
             status_code=422,
         )
 
@@ -95,7 +95,7 @@ def update_store(db: Session, store: Store, data: StoreUpdate) -> Store:
         entitlements = get_seller_entitlements(db, store.owner_id)
         if not entitlements.get("guest_checkout"):
             raise ServiceError(
-                "خرید مهمان در پلن فعلی شما فعال نیست. لطفاً پلن خود را ارتقا دهید.",
+                "خرید مهمان تو پلن فعلی‌ت فعال نیست. پلن رو ارتقا بده.",
                 status_code=403,
             )
 

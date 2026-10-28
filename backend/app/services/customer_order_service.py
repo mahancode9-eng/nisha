@@ -166,7 +166,7 @@ def claim_order(
         .with_for_update()
     )
     if order.customer_id is not None and order.customer_id != customer.id:
-        raise ServiceError("این سفارش قبلاً به حساب دیگری اضافه شده است.", status_code=409)
+        raise ServiceError("این سفارش قبلاً به حساب دیگه‌ای اضافه شده.", status_code=409)
 
     if order.customer_id is None:
         order.customer_id = customer.id
@@ -189,7 +189,7 @@ def claim_order(
 
     db.refresh(order)
     return CustomerOrderActionResponse(
-        message="سفارش به حساب شما اضافه شد.",
+        message="سفارش به حسابت اضافه شد.",
         order_id=order.id,
         status=order.status,
     )
@@ -241,7 +241,7 @@ def create_complaint(
 ) -> CustomerComplaintResponse:
     order = get_owned_order(db, customer_id, order_id)
     if order.status not in {OrderStatus.PAYMENT_CONFIRMED, OrderStatus.PREPARING, OrderStatus.SHIPPED, OrderStatus.DELIVERED}:
-        raise ServiceError("برای این سفارش در حال حاضر نمی‌توانید شکایت ثبت کنید.", status_code=422)
+        raise ServiceError("برای این سفارش الان نمی‌تونی شکایت ثبت کنی.", status_code=422)
 
     complaint = db.scalar(select(OrderComplaint).where(OrderComplaint.order_id == order.id))
     if complaint is None:

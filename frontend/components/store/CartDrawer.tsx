@@ -115,9 +115,9 @@ export function CartDrawer({ open, slug, onClose }: CartDrawerProps) {
                 <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-dashed border-border bg-surface-muted text-foreground-muted">
                   <CartBagIcon className="h-7 w-7" />
                 </div>
-                <p className="text-sm font-medium text-foreground">سبد خالی است</p>
+                <p className="text-sm font-medium text-foreground">سبد خالیه</p>
                 <p className="mt-1 max-w-[14rem] text-xs leading-5 text-foreground-muted">
-                  محصول‌ها را با دکمه + به سبد اضافه کنید.
+                  محصول‌ها رو با دکمه + به سبد اضافه کن.
                 </p>
               </div>
             ) : (
@@ -245,7 +245,7 @@ export function CartDrawer({ open, slug, onClose }: CartDrawerProps) {
                 items.length === 0 && "pointer-events-none opacity-50",
               )}
             >
-              تکمیل خرید
+              بزن بریم
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4 rotate-180" aria-hidden>
                 <path d="M5 12h14M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
               </svg>

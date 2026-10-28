@@ -33,7 +33,7 @@ export default function SellerRegisterPage() {
       logout();
       throw new ApiError(
         403,
-        "این صفحه ثبت‌نام فروشنده‌هاست. از صفحه مربوط به نقش خودتان استفاده کنید.",
+        "این صفحه ثبت‌نام فروشنده‌هاست. از صفحه مربوط به نقش خودت استفاده کن.",
       );
     }
     window.location.href = paths.seller.onboarding;
@@ -62,9 +62,9 @@ export default function SellerRegisterPage() {
           loginHref={paths.seller.login}
           footer={
             <>
-              حساب کاربری دارید؟{" "}
+              حساب داری؟{" "}
               <Link href={paths.seller.login} className="font-medium text-brand hover:underline">
-                وارد شوید
+                وارد شو
               </Link>
             </>
           }

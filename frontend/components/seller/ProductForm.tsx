@@ -8,6 +8,7 @@ import { uploadPublicImage, uploadPublicVideo } from "@/lib/api/public/uploads";
 import { useSellerEntitlements } from "@/hooks/useSellerEntitlements";
 import { useSellerFetch } from "@/hooks/useSellerFetch";
 import * as categoriesApi from "@/lib/api/seller/categories";
+import { UpgradeGate } from "@/components/seller/UpgradeGate";
 import { Button } from "@/components/ui/Button";
 import { FormSection } from "@/components/ui/FormSection";
 import { Input } from "@/components/ui/Input";
@@ -264,7 +265,7 @@ export function ProductForm({
         alt_text: payload.alt_text ?? "",
       });
     } catch (err) {
-      setImageError(err instanceof ApiError ? err.message : "عکس بارگذاری نشد. دوباره امتحان کنید.");
+      setImageError(err instanceof ApiError ? err.message : "عکس بارگذاری نشد. دوباره امتحان کن.");
     } finally {
       event.target.value = "";
     }
@@ -276,7 +277,7 @@ export function ProductForm({
     setImageError(null);
     const remaining = maxImages - images.length;
     if (remaining <= 0) {
-      setImageError(`حداکثر ${maxImages} عکس می‌توانید بگذارید.`);
+      setImageError(`حداکثر ${maxImages} عکس می‌تونی بذاری.`);
       event.target.value = "";
       return;
     }
@@ -297,10 +298,10 @@ export function ProductForm({
         })),
       ]);
       if (files.length > remaining) {
-        setImageError(`فقط ${remaining} عکس دیگر جا داشت و بقیه اضافه نشد.`);
+        setImageError(`فقط ${remaining} تا عکس دیگه جا داشت و بقیه اضافه نشد.`);
       }
     } catch (err) {
-      setImageError(err instanceof ApiError ? err.message : "عکس بارگذاری نشد. دوباره امتحان کنید.");
+      setImageError(err instanceof ApiError ? err.message : "عکس بارگذاری نشد. دوباره امتحان کن.");
     } finally {
       event.target.value = "";
     }
@@ -311,7 +312,7 @@ export function ProductForm({
     if (!file) return;
     setVideoError(null);
     if (file.size > MAX_VIDEO_BYTES) {
-      setVideoError("حجم ویدیو باید ۵۰ مگابایت یا کمتر باشد.");
+      setVideoError("حجم ویدیو باید ۵۰ مگابایت یا کمتر باشه.");
       event.target.value = "";
       return;
     }
@@ -321,7 +322,7 @@ export function ProductForm({
       setVideoUrl(uploaded.url);
       setVideoMimeType(uploaded.mime_type ?? "");
     } catch (err) {
-      setVideoError(err instanceof ApiError ? err.message : "ویدیو بارگذاری نشد. دوباره امتحان کنید.");
+      setVideoError(err instanceof ApiError ? err.message : "ویدیو بارگذاری نشد. دوباره امتحان کن.");
     } finally {
       setVideoUploading(false);
       event.target.value = "";
@@ -372,15 +373,15 @@ export function ProductForm({
     const priceNum = moneyInputToNumber(price);
     const stockNum = parseInt(stock, 10);
     if (!title.trim()) {
-      setError("عنوان محصول را بنویسید.");
+      setError("عنوان محصول رو بنویس.");
       return;
     }
     if (Number.isNaN(priceNum) || priceNum <= 0) {
-      setError("قیمت باید بیشتر از صفر باشد.");
+      setError("قیمت باید بیشتر از صفر باشه.");
       return;
     }
     if (Number.isNaN(stockNum) || stockNum < 0) {
-      setError("موجودی نمی‌تواند منفی باشد.");
+      setError("موجودی نمی‌تونه منفی باشه.");
       return;
     }
 
@@ -397,7 +398,7 @@ export function ProductForm({
       .filter((image) => image.image_url);
 
     if (payloadImages.length > maxImages) {
-      setError(`در پلن فعلی حداکثر ${maxImages} عکس می‌توانید بگذارید.`);
+      setError(`تو پلن فعلی حداکثر ${maxImages} عکس می‌تونی بذاری.`);
       return;
     }
 
@@ -411,15 +412,15 @@ export function ProductForm({
             (payload.field_type === "DROPDOWN" || payload.field_type === "RADIO") &&
             (!payload.options || payload.options.length === 0)
           ) {
-            throw new Error(`برای «${payload.label}» گزینه‌ها را بنویسید`);
+            throw new Error(`برای «${payload.label}» گزینه‌ها رو بنویس`);
           }
           if (!payload.field_key || !payload.label) {
-            throw new Error("هر سؤال سفارشی باید عنوان داشته باشد.");
+            throw new Error("هر سؤال سفارشی باید عنوان داشته باشه.");
           }
           return payload;
         });
       } catch (err) {
-        setError(err instanceof Error ? err.message : "یکی از سؤال‌های سفارشی درست تنظیم نشده است.");
+        setError(err instanceof Error ? err.message : "یکی از سؤال‌های سفارشی درست تنظیم نشده.");
         return;
       }
     }
@@ -429,20 +430,20 @@ export function ProductForm({
       payloadVariants = variants.map((variant, index) => {
         const name = variant.name.trim();
         if (!name) {
-          throw new Error("برای هر تنوع یک نام بنویسید؛ مثلاً «سایز L».");
+          throw new Error("برای هر تنوع یه اسم بنویس؛ مثلاً «سایز L».");
         }
         const overrideText = variant.priceOverride.trim();
         let priceOverride: number | null = null;
         if (overrideText) {
           const parsed = moneyInputToNumber(overrideText);
           if (Number.isNaN(parsed) || parsed <= 0) {
-            throw new Error(`قیمت «${name}» باید بیشتر از صفر باشد.`);
+            throw new Error(`قیمت «${name}» باید بیشتر از صفر باشه.`);
           }
           priceOverride = parsed;
         }
         const stockParsed = parseInt(variant.stockQuantity, 10);
         if (Number.isNaN(stockParsed) || stockParsed < 0) {
-          throw new Error(`موجودی «${name}» نمی‌تواند منفی باشد.`);
+          throw new Error(`موجودی «${name}» نمی‌تونه منفی باشه.`);
         }
         return {
           name,
@@ -453,7 +454,7 @@ export function ProductForm({
         };
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "یکی از تنوع‌ها درست تنظیم نشده است.");
+      setError(err instanceof Error ? err.message : "یکی از تنوع‌ها درست تنظیم نشده.");
       return;
     }
 
@@ -464,7 +465,7 @@ export function ProductForm({
       if (shippingText) {
         parsedShipping = moneyInputToNumber(shippingCost);
         if (Number.isNaN(parsedShipping) || parsedShipping < 0) {
-          setError("هزینه ارسال نمی‌تواند منفی باشد.");
+          setError("هزینه ارسال نمی‌تونه منفی باشه.");
           setLoading(false);
           return;
         }
@@ -485,7 +486,7 @@ export function ProductForm({
         variants: payloadVariants.length > 0 ? payloadVariants : null,
       });
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "محصول ذخیره نشد. دوباره امتحان کنید.");
+      setError(err instanceof ApiError ? err.message : "محصول ذخیره نشد. دوباره امتحان کن.");
     } finally {
       setLoading(false);
     }
@@ -504,7 +505,7 @@ export function ProductForm({
         </p>
       ) : null}
 
-      <FormSection title="اطلاعات اصلی" description="آنچه مشتری در فروشگاه می‌بیند.">
+      <FormSection title="اطلاعات اصلی" description="چی مشتری تو فروشگاه می‌بینه.">
         <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
           <div className="sm:col-span-2">
             <Input
@@ -543,7 +544,7 @@ export function ProductForm({
             label="هزینه ارسال این محصول"
             value={shippingCost}
             onValueChange={setShippingCost}
-            hint="اگر خالی بماند، هزینه ارسال پیش‌فرض فروشگاه حساب می‌شود."
+            hint="اگر خالی بمونه، هزینه ارسال پیش‌فرض فروشگاه حساب می‌شه."
           />
           <label htmlFor="product-is-active" className="flex items-center gap-2 text-sm text-foreground sm:col-span-2">
             <input
@@ -553,14 +554,14 @@ export function ProductForm({
               onChange={(e) => setIsActive(e.target.checked)}
               className="rounded border-border"
             />
-            محصول در فروشگاه نمایش داده شود
+            محصول تو فروشگاه نشون داده بشه
           </label>
         </div>
       </FormSection>
 
       <FormSection
         title="عکس‌ها"
-        description={`عکس اول، عکس اصلی محصول است. حداکثر ${maxImages} عکس.`}
+        description={`عکس اول، عکس اصلی محصول می‌شه. حداکثر ${maxImages} عکس.`}
         action={
           <Button
             type="button"
@@ -588,7 +589,7 @@ export function ProductForm({
             className="flex w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-surface-muted/40 px-4 py-10 text-sm text-foreground-muted transition hover:border-brand/40 hover:text-foreground"
           >
             <span className="font-medium text-foreground">بارگذاری عکس</span>
-            <span className="text-xs">برای نمایش در فروشگاه دست‌کم یک عکس لازم است</span>
+            <span className="text-xs">برای نمایش تو فروشگاه دست‌کم یه عکس لازم است</span>
           </button>
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
@@ -675,13 +676,13 @@ export function ProductForm({
           </div>
         )}
         {!hasPrimaryImage ? (
-          <p className="mt-3 text-xs text-amber-700 dark:text-amber-300">تا یک عکس اضافه نکنید، محصول در فروشگاه دیده نمی‌شود.</p>
+          <p className="mt-3 text-xs text-amber-700 dark:text-amber-300">تا یه عکس اضافه نکنی، محصول تو فروشگاه دیده نمی‌شه.</p>
         ) : null}
       </FormSection>
 
       <FormSection
         title="ویدیو (اختیاری)"
-        description={canVideo ? "فایل MP4 یا WebM، تا ۵۰ مگابایت." : "از پلن حرفه‌ای به بالا فعال است."}
+        description={canVideo ? "فایل MP4 یا WebM، تا ۵۰ مگابایت." : "از پلن حرفه‌ای به بالا فعاله."}
         action={
           canVideo ? (
             <div className="flex flex-wrap gap-2">
@@ -714,12 +715,12 @@ export function ProductForm({
         }
       >
         {!canVideo ? (
-          <p className="text-sm text-foreground-muted">
-            <Link href={paths.seller.subscription} className="text-brand underline-offset-2 hover:underline">
-              ارتقای پلن
-            </Link>{" "}
-            برای افزودن ویدیو.
-          </p>
+          <UpgradeGate
+            compact
+            title="ویدیو محصول در پلن حرفه‌ای فعال است"
+            description="با ویدیو، خریدار محصول رو بهتر می‌بینه و احتمال خرید بالاتر می‌ره."
+            ctaLabel="ارتقا به حرفه‌ای"
+          />
         ) : (
           <>
             <input
@@ -742,7 +743,7 @@ export function ProductForm({
                 className="max-h-64 w-full rounded-xl bg-black object-contain"
               />
             ) : (
-              <p className="text-sm text-foreground-muted">هنوز ویدیویی نگذاشته‌اید.</p>
+              <p className="text-sm text-foreground-muted">هنوز ویدیویی نذاشتی.</p>
             )}
           </>
         )}
@@ -750,7 +751,7 @@ export function ProductForm({
 
       <FormSection
         title="تنوع‌ها (اختیاری)"
-        description="مثل سایز یا رنگ. اگر قیمت تنوعی را خالی بگذارید، قیمت اصلی محصول حساب می‌شود."
+        description="مثل سایز یا رنگ. اگر قیمت تنوعی رو خالی بذاری، قیمت اصلی محصول حساب می‌شه."
         action={
           <Button type="button" variant="secondary" size="sm" onClick={() => setVariants((prev) => [...prev, emptyVariant()])}>
             افزودن
@@ -758,7 +759,7 @@ export function ProductForm({
         }
       >
         {variants.length === 0 ? (
-          <p className="text-sm text-foreground-muted">تنوعی ندارد؛ محصول با یک قیمت و یک موجودی فروخته می‌شود.</p>
+          <p className="text-sm text-foreground-muted">تنوعی نداره؛ محصول با یه قیمت و یه موجودی فروخته می‌شه.</p>
         ) : (
           <div className="space-y-3">
             {variants.map((variant, index) => (
@@ -774,7 +775,7 @@ export function ProductForm({
                     label="قیمت (اختیاری)"
                     value={variant.priceOverride}
                     onValueChange={(next) => setVariant(index, { priceOverride: next })}
-                    placeholder="خالی بماند یعنی قیمت اصلی"
+                    placeholder="خالی بمونه یعنی قیمت اصلی"
                   />
                   <Input
                     label="موجودی"
@@ -820,8 +821,8 @@ export function ProductForm({
         title="سؤال‌های سفارشی (اختیاری)"
         description={
           canCustomFields
-            ? "سؤال‌هایی که مشتری موقع خرید جواب می‌دهد؛ مثلاً متن حک روی محصول."
-            : "از پلن حرفه‌ای به بالا فعال است."
+            ? "سؤال‌هایی که مشتری موقع خرید جواب می‌ده؛ مثلاً متن حک روی محصول."
+            : "از پلن حرفه‌ای به بالا فعاله."
         }
         action={
           canCustomFields ? (
@@ -832,14 +833,14 @@ export function ProductForm({
         }
       >
         {!canCustomFields ? (
-          <p className="text-sm text-foreground-muted">
-            <Link href={paths.seller.subscription} className="text-brand underline-offset-2 hover:underline">
-              ارتقای پلن
-            </Link>{" "}
-            برای سؤال‌های سفارشی.
-          </p>
+          <UpgradeGate
+            compact
+            title="سؤال‌های سفارشی از پلن پایه به بالا"
+            description="مثلاً سایز، رنگ یا متن حکاکی رو موقع خرید از مشتری بپرس."
+            ctaLabel="ارتقا به پایه"
+          />
         ) : fields.length === 0 ? (
-          <p className="text-sm text-foreground-muted">سؤال سفارشی ندارد.</p>
+          <p className="text-sm text-foreground-muted">سؤال سفارشی نداره.</p>
         ) : (
           <div className="space-y-3">
             {fields.map((field, index) => (
@@ -889,7 +890,7 @@ export function ProductForm({
                     label="کلید فیلد"
                     value={field.field_key}
                     onChange={(e) => setField(index, { field_key: e.target.value })}
-                    hint="شناسه داخلی؛ معمولاً خودکار پر می‌شود"
+                    hint="شناسه داخلی؛ معمولاً خودکار پر می‌شه"
                   />
                   <Input
                     label="متن راهنما"

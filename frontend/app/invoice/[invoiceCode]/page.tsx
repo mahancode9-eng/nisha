@@ -89,7 +89,7 @@ export default function InvoicePage({ params }: PageProps) {
       });
       setConversation(created);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "گفتگو باز نشد. دوباره امتحان کنید.");
+      setError(err instanceof ApiError ? err.message : "گفتگو باز نشد. دوباره امتحان کن.");
     } finally {
       setOpeningChat(false);
     }
@@ -119,7 +119,7 @@ export default function InvoicePage({ params }: PageProps) {
       setReviewRating(5);
       setError(null);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "نظر شما ارسال نشد. دوباره امتحان کنید.");
+      setError(err instanceof ApiError ? err.message : "نظرت ارسال نشد. دوباره امتحان کن.");
     } finally {
       setReviewLoading(false);
     }
@@ -165,7 +165,7 @@ export default function InvoicePage({ params }: PageProps) {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs tracking-[0.2em] text-foreground-muted">گفتگوی سفارش</p>
-                  <h2 className="text-lg font-semibold text-foreground">با فروشنده گفتگو کنید</h2>
+                  <h2 className="text-lg font-semibold text-foreground">با فروشنده گفتگو کن</h2>
                 </div>
                 <Button variant="secondary" size="sm" onClick={openChat} loading={openingChat}>
                   {conversation ? "به‌روزرسانی گفتگو" : "باز کردن گفتگو"}
@@ -190,7 +190,7 @@ export default function InvoicePage({ params }: PageProps) {
                       );
                     } catch (err) {
                       toast.error(
-                        err instanceof ApiError ? err.message : "پیام ارسال نشد. دوباره امتحان کنید.",
+                        err instanceof ApiError ? err.message : "پیام ارسال نشد. دوباره امتحان کن.",
                       );
                     }
                   }}
@@ -205,7 +205,7 @@ export default function InvoicePage({ params }: PageProps) {
                 <LoadingState message="در حال باز کردن گفتگو…" className="py-10" />
               ) : (
                 <p className="text-sm text-foreground-muted">
-                  برای سؤال درباره این سفارش، گفتگو با فروشنده را باز کنید.
+                  برای سؤال درباره این سفارش، گفتگو با فروشنده رو باز کن.
                 </p>
               )}
             </CardContent>
@@ -216,7 +216,7 @@ export default function InvoicePage({ params }: PageProps) {
               <CardContent className="space-y-4 py-6">
                 <div>
                   <p className="text-xs tracking-[0.2em] text-foreground-muted">نظر</p>
-                  <h2 className="text-lg font-semibold text-foreground">نظرتان درباره این خرید چیست؟</h2>
+                  <h2 className="text-lg font-semibold text-foreground">نظرت درباره این خرید چیه؟</h2>
                 </div>
                 <form onSubmit={handleReview} className="space-y-4">
                   <label className="block">

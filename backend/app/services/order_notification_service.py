@@ -14,15 +14,27 @@ Hook points:
 from __future__ import annotations
 
 import logging
+from datetime import datetime, timedelta, timezone
 
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.orm import Session, selectinload
 
+from app.core.config import settings
 from app.models.enums import OrderStatus
 from app.models.order import Order
 from app.models.store import Store
-from app.services import notification_service
+from app.services import messenger_service, notification_service
 
 logger = logging.getLogger(__name__)
+
+
+def _invoice_url(invoice_code: str) -> str:
+    base = (settings.FRONTEND_BASE_URL or "").rstrip("/")
+    return f"{base}/invoice/{invoice_code}" if base else f"/invoice/{invoice_code}"
+
+
+def _utcnow() -> datetime:
+    return datetime.now(timezone.utc)
 
 # Persian labels used in buyer-facing status change messages.
 STATUS_LABELS: dict[OrderStatus, str] = {
@@ -54,6 +66,7 @@ def notify_order_placed(db: Session, order: Order, store: Store) -> None:
         payload = {
             "invoice_code": order.invoice_code,
             "store_name": store.name,
+            "invoice_url": _invoice_url(order.invoice_code),
         }
         if order.buyer_phone:
             notification_service.enqueue_sms(
@@ -64,10 +77,74 @@ def notify_order_placed(db: Session, order: Order, store: Store) -> None:
             notification_service.enqueue_email(
                 db, owner.email, "order_placed_seller", payload
             )
+        messenger_service.enqueue_seller_messenger(
+            db, store=store, order=order, kind="order"
+        )
     except Exception:  # noqa: BLE001 - notifications must never break checkout
         logger.exception(
             "Failed to enqueue order-placed notifications for order %s", order.id
         )
+
+
+def send_due_payment_reminders(db: Session, *, limit: int = 50) -> int:
+    """SMS buyers once when unpaid orders are close to reservation expiry."""
+    now = _utcnow()
+    window = max(1, int(settings.PAYMENT_REMINDER_MINUTES_BEFORE_EXPIRY))
+    reminder_horizon = now + timedelta(minutes=window)
+    candidates = list(
+        db.scalars(
+            select(Order)
+            .options(selectinload(Order.store).selectinload(Store.owner))
+            .where(
+                Order.status == OrderStatus.PENDING_PAYMENT,
+                Order.payment_reminder_sent_at.is_(None),
+                Order.reservation_expires_at.is_not(None),
+                Order.reservation_expires_at > now,
+                Order.reservation_expires_at <= reminder_horizon,
+            )
+            .limit(limit)
+        ).all()
+    )
+    sent = 0
+    for order in candidates:
+        locked = db.scalar(
+            select(Order).where(Order.id == order.id).with_for_update()
+        )
+        if (
+            locked is None
+            or locked.status != OrderStatus.PENDING_PAYMENT
+            or locked.payment_reminder_sent_at is not None
+            or locked.reservation_expires_at is None
+        ):
+            continue
+        expires = locked.reservation_expires_at
+        if expires.tzinfo is None:
+            expires = expires.replace(tzinfo=timezone.utc)
+        if expires <= now or expires > reminder_horizon:
+            continue
+        minutes_left = max(1, int((expires - now).total_seconds() // 60))
+        store = locked.store
+        payload = {
+            "invoice_code": locked.invoice_code,
+            "store_name": store.name if store is not None else "",
+            "invoice_url": _invoice_url(locked.invoice_code),
+            "minutes_left": str(minutes_left),
+        }
+        try:
+            if locked.buyer_phone:
+                notification_service.enqueue_sms(
+                    db, locked.buyer_phone, "payment_reminder_buyer", payload
+                )
+            locked.payment_reminder_sent_at = now
+            sent += 1
+        except Exception:  # noqa: BLE001
+            logger.exception(
+                "Failed to enqueue payment reminder for order %s", locked.id
+            )
+    if sent:
+        db.commit()
+        logger.info("Enqueued %s unpaid-order payment reminder(s)", sent)
+    return sent
 
 
 def notify_status_change(db: Session, order: Order, new_status: OrderStatus) -> None:
@@ -95,6 +172,9 @@ def notify_status_change(db: Session, order: Order, new_status: OrderStatus) -> 
                 notification_service.enqueue_email(
                     db, owner.email, "payment_uploaded_seller", payload
                 )
+            messenger_service.enqueue_seller_messenger(
+                db, store=store, order=order, kind="receipt"
+            )
     except Exception:  # noqa: BLE001 - notifications must never break the flow
         logger.exception(
             "Failed to enqueue status-change notifications for order %s", order.id

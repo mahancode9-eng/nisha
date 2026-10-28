@@ -14,7 +14,7 @@ export default function TrackOrderPage() {
       <div>
         <h1 className="text-2xl font-bold text-foreground max-md:text-xl">پیگیری سفارش</h1>
         <p className="mt-1 text-foreground-muted">
-          کد و رمز فاکتوری را که بعد از ثبت سفارش گرفتید، وارد کنید.
+          کد و رمز فاکتوری که بعد از ثبت سفارش گرفتی رو وارد کن.
         </p>
       </div>
 

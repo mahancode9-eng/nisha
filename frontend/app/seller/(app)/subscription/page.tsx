@@ -71,7 +71,7 @@ export default function SellerSubscriptionPage() {
         setCheckout(null);
       }
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "اطلاعات پلن باز نشد. صفحه را دوباره بارگذاری کنید.");
+      setError(err instanceof ApiError ? err.message : "اطلاعات پلن باز نشد. صفحه رو دوباره باز کن.");
     } finally {
       setLoading(false);
     }
@@ -102,13 +102,13 @@ export default function SellerSubscriptionPage() {
       setCheckout(result);
       setCardInstructions(result.card_instructions);
       if (!result.card_instructions.card_number?.trim()) {
-        toast.error("شماره کارت نیشا هنوز ثبت نشده است. لطفاً به پشتیبانی پیام بدهید.");
+        toast.error("شماره کارت نیشا هنوز ثبت نشده. به پشتیبانی پیام بده.");
       } else {
-        toast.success("فاکتور ساخته شد. مبلغ را واریز کنید و رسید را بارگذاری کنید.");
+        toast.success("فاکتور ساخته شد. مبلغ رو واریز کن و رسید رو بارگذاری کن.");
       }
       await load();
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "فاکتور ساخته نشد. دوباره امتحان کنید.");
+      toast.error(err instanceof ApiError ? err.message : "فاکتور ساخته نشد. دوباره امتحان کن.");
     } finally {
       setBusy(false);
       setBusyCode(null);
@@ -120,11 +120,11 @@ export default function SellerSubscriptionPage() {
     setBusy(true);
     try {
       await subscriptionApi.uploadProof(invoiceId, file);
-      toast.success("رسید شما ثبت شد. بعد از بررسی، پلن فعال می‌شود.");
+      toast.success("رسیدت ثبت شد. بعد از بررسی، پلن فعال می‌شه.");
       setCheckout(null);
       await load();
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "رسید ارسال نشد. دوباره امتحان کنید.");
+      toast.error(err instanceof ApiError ? err.message : "رسید ارسال نشد. دوباره امتحان کن.");
     } finally {
       setBusy(false);
     }
@@ -138,7 +138,7 @@ export default function SellerSubscriptionPage() {
       setCheckout(null);
       await load();
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "فاکتور لغو نشد. دوباره امتحان کنید.");
+      toast.error(err instanceof ApiError ? err.message : "فاکتور لغو نشد. دوباره امتحان کن.");
     } finally {
       setBusy(false);
     }
@@ -148,17 +148,17 @@ export default function SellerSubscriptionPage() {
     <div className="space-y-8">
       <div className="mx-auto max-w-3xl space-y-3 text-center">
         <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-          پلن مناسب خود را انتخاب کنید
+          پلن مناسبت رو انتخاب کن
         </h1>
         <p className="text-sm leading-7 text-foreground-muted sm:text-base">
-          از سفارش‌ها کارمزد نمی‌گیریم؛ فقط برای ابزارهای بیشتر هزینه می‌دهید.
+          از سفارش‌ها کارمزد نمی‌گیریم؛ فقط برای ابزارهای بیشتر هزینه می‌دی.
         </p>
         {detail && (
           <p className="inline-flex rounded-full border border-border bg-surface px-3 py-1.5 text-sm text-foreground-muted">
             پلن فعلی:{" "}
             <span className="mr-1 font-medium text-foreground">{detail.effective_plan.name_fa}</span>
             {detail.is_expired_fallback && (
-              <span className="mr-2 text-amber-700"> (بعد از پایان مدت، به پلن رایگان برمی‌گردد)</span>
+              <span className="mr-2 text-amber-700"> (بعد از پایان مدت، به پلن رایگان برمی‌گرده)</span>
             )}
           </p>
         )}
@@ -167,7 +167,7 @@ export default function SellerSubscriptionPage() {
       {error && <ErrorAlert message={error} />}
 
       {loading ? (
-        <LoadingState message="در حال بارگذاری پلن‌ها…" />
+        <LoadingState message="داره پلن‌ها رو بارگذاری می‌کنه…" />
       ) : (
         <>
           <div className="flex justify-center">
@@ -176,7 +176,7 @@ export default function SellerSubscriptionPage() {
 
           {openInvoice && (
             <p className="text-center text-sm text-amber-700">
-              یک فاکتور پرداخت‌نشده دارید. اول آن را پرداخت یا لغو کنید، بعد پلن جدید بگیرید.
+              یه فاکتور پرداخت‌نشده داری. اول اون رو پرداخت یا لغو کن، بعد پلن جدید بگیر.
             </p>
           )}
 
@@ -198,8 +198,7 @@ export default function SellerSubscriptionPage() {
                   در انتظار تایید نیشا
                 </h3>
                 <p className="text-sm text-amber-800 dark:text-amber-100/90">
-                  رسید فاکتور #{openInvoice.id} ({formatToman(openInvoice.amount_toman)}) دریافت شده
-                  است. بعد از بررسی، پلن شما فعال می‌شود.
+                  رسید فاکتور #{openInvoice.id} ({formatToman(openInvoice.amount_toman)}) رسیده. بعد از بررسی، پلنت فعال می‌شه.
                 </p>
               </CardContent>
             </Card>
@@ -212,14 +211,14 @@ export default function SellerSubscriptionPage() {
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
                 {!cardConfigured && (
-                  <ErrorAlert message="شماره کارت نیشا هنوز ثبت نشده است. لطفاً به پشتیبانی پیام بدهید." />
+                  <ErrorAlert message="شماره کارت نیشا هنوز ثبت نشده. به پشتیبانی پیام بده." />
                 )}
                 <p>{activeCards.message}</p>
                 <p>شماره کارت: {activeCards.card_number || "—"}</p>
                 <p>به نام: {activeCards.card_owner || "—"}</p>
                 <p>بانک: {activeCards.card_bank || "—"}</p>
                 <p>
-                  فاکتور #{paymentInvoice.id} — مبلغ: {formatToman(paymentInvoice.amount_toman)} —{" "}
+                  فاکتور #{paymentInvoice.id}، مبلغ: {formatToman(paymentInvoice.amount_toman)}،{" "}
                   {invoiceStatusLabel(paymentInvoice.status)}
                 </p>
                 {paymentInvoiceId != null && (
@@ -258,7 +257,7 @@ export default function SellerSubscriptionPage() {
                     className="flex justify-between gap-3 border-b border-border py-2"
                   >
                     <span>
-                      #{invoice.id} — {invoice.plan.name_fa} — {formatToman(invoice.amount_toman)}
+                      #{invoice.id}، {invoice.plan.name_fa}، {formatToman(invoice.amount_toman)}
                     </span>
                     <span className="text-foreground-muted">
                       {invoiceStatusLabel(invoice.status)}

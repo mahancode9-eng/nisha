@@ -116,7 +116,7 @@ export default function AdminUsersPage() {
       closeEditor();
       await platform.refetch();
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "به‌روزرسانی انجام نشد. دوباره امتحان کنید.");
+      toast.error(err instanceof ApiError ? err.message : "به‌روزرسانی انجام نشد. دوباره امتحان کن.");
     } finally {
       setBusyId(null);
     }
@@ -138,7 +138,7 @@ export default function AdminUsersPage() {
       closeEditor();
       await customers.refetch();
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "به‌روزرسانی انجام نشد. دوباره امتحان کنید.");
+      toast.error(err instanceof ApiError ? err.message : "به‌روزرسانی انجام نشد. دوباره امتحان کن.");
     } finally {
       setBusyId(null);
     }

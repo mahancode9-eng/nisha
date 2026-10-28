@@ -75,7 +75,7 @@ export default function CustomerAddressesPage() {
         const data = await listAddresses();
         if (!cancelled) setAddresses(data);
       } catch {
-        if (!cancelled) setError("آدرس‌ها باز نشد. صفحه را دوباره بارگذاری کنید.");
+        if (!cancelled) setError("آدرس‌ها باز نشد. صفحه رو دوباره بارگذاری کن.");
       }
     })();
     return () => {
@@ -119,7 +119,7 @@ export default function CustomerAddressesPage() {
       }
       startCreate();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "آدرس ذخیره نشد. دوباره امتحان کنید.");
+      setError(err instanceof ApiError ? err.message : "آدرس ذخیره نشد. دوباره امتحان کن.");
     } finally {
       setSaving(false);
     }
@@ -132,13 +132,13 @@ export default function CustomerAddressesPage() {
       setDeleteTarget(null);
       toast.success("آدرس حذف شد");
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "آدرس حذف نشد. دوباره امتحان کنید.");
+      setError(err instanceof ApiError ? err.message : "آدرس حذف نشد. دوباره امتحان کن.");
       setDeleteTarget(null);
     }
   }
 
   if (addresses === null) {
-    return <LoadingState message="در حال بارگذاری آدرس‌ها…" />;
+    return <LoadingState message="داره آدرس‌ها بارگذاری می‌شن…" />;
   }
 
   return (
@@ -152,7 +152,7 @@ export default function CustomerAddressesPage() {
         </CardHeader>
         <CardContent className="space-y-3">
           {addresses.length === 0 ? (
-            <EmptyState title="آدرسی ذخیره نشده" description="آدرس را یک بار ذخیره کنید تا در خریدهای بعدی دوباره ننویسید." />
+            <EmptyState title="آدرسی ذخیره نشده" description="آدرس رو یک بار ذخیره کن تا تو خریدای بعدی دوباره ننویسی." />
           ) : (
             addresses.map((address) => (
               <ListRow key={address.id}>
@@ -199,7 +199,7 @@ export default function CustomerAddressesPage() {
               required
               pattern="09[0-9]{9}"
               placeholder="09123456789"
-              title="شماره موبایل ۱۱ رقمی که با ۰۹ شروع می‌شود"
+              title="شماره موبایل ۱۱ رقمی که با ۰۹ شروع می‌شه"
             />
             <Input
               label="کد پستی"
@@ -240,7 +240,7 @@ export default function CustomerAddressesPage() {
                 onChange={(e) => setForm({ ...form, is_default: e.target.checked })}
                 className="rounded border-border"
               />
-              آدرس پیش‌فرض من باشد
+              آدرس پیش‌فرض من باشه
             </label>
             {error && (
               <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 sm:col-span-2" role="alert">
@@ -263,7 +263,7 @@ export default function CustomerAddressesPage() {
       <ConfirmModal
         open={deleteTarget !== null}
         title="حذف آدرس"
-        message="این آدرس حذف شود؟"
+        message="این آدرس حذف بشه؟"
         confirmLabel="حذف"
         onConfirm={() => deleteTarget !== null && handleDelete(deleteTarget)}
         onClose={() => setDeleteTarget(null)}

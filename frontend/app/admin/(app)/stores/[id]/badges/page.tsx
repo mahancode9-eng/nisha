@@ -65,7 +65,7 @@ export default function StoreBadgesPage({ params }: PageProps) {
     <div className="page-stack">
       <div>
         <h1 className="text-2xl font-bold text-foreground">نشان‌های فروشگاه</h1>
-        <p className="mt-1 text-foreground-muted">نشان‌های اعتماد فروشگاه #{storeId} را مدیریت کنید.</p>
+        <p className="mt-1 text-foreground-muted">نشان‌های اعتماد فروشگاه #{storeId} رو مدیریت کن.</p>
       </div>
 
       {isLoading && <TableSkeleton rows={4} columns={3} />}

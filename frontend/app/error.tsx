@@ -19,7 +19,7 @@ export default function GlobalError({
       <p className="text-sm font-medium tracking-wide text-brand">خطا</p>
       <h1 className="text-2xl font-bold text-foreground">مشکلی پیش آمد</h1>
       <p className="text-sm text-muted-foreground">
-        این صفحه درست بارگذاری نشد. یک بار دیگر امتحان کنید یا به صفحه اصلی بروید.
+        این صفحه درست بارگذاری نشد. یک بار دیگه امتحان کن یا برو صفحه اصلی.
       </p>
       <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
         <button

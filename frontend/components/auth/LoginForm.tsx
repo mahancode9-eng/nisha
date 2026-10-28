@@ -37,7 +37,7 @@ export function LoginForm({
     try {
       await onSubmit(email, password);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "ورود انجام نشد. ایمیل یا رمز را بررسی کنید.");
+      setError(err instanceof ApiError ? err.message : "ورود نشد. ایمیل یا رمز رو چک کن.");
     } finally {
       setLoading(false);
     }
@@ -64,7 +64,7 @@ export function LoginForm({
                   setError(
                     err instanceof ApiError
                       ? err.message
-                      : "ورود با گوگل انجام نشد. دوباره امتحان کنید.",
+                      : "ورود با گوگل نشد. دوباره امتحان کن.",
                   );
                 } finally {
                   setLoading(false);
@@ -96,7 +96,7 @@ export function LoginForm({
           {forgotPasswordHref && (
             <p className="text-center text-sm">
               <a href={forgotPasswordHref} className="font-medium text-brand-deep hover:underline">
-                رمز را فراموش کرده‌اید؟
+                رمزت رو فراموش کردی؟
               </a>
             </p>
           )}

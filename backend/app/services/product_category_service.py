@@ -70,16 +70,16 @@ def _validate_parent(
         return None
     parent = get_category(db, store_id, parent_id)
     if parent.parent_id is not None:
-        raise ServiceError("زیردسته نمی‌تواند زیردسته دیگری داشته باشد؛ فقط یک سطح مجاز است.", status_code=400)
+        raise ServiceError("زیردسته نمی‌تونه زیردسته دیگه‌ای داشته باشه؛ فقط یک سطح مجازه.", status_code=400)
     if category_id is not None and parent_id == category_id:
-        raise ServiceError("دسته نمی‌تواند والد خودش باشد", status_code=400)
+        raise ServiceError("دسته نمی‌تونه والد خودش باشه", status_code=400)
     # Prevent attaching a parent under a node that already has children becoming nested deeper
     if category_id is not None:
         child_count = db.scalar(
             select(func.count()).select_from(ProductCategory).where(ProductCategory.parent_id == category_id)
         ) or 0
         if child_count > 0:
-            raise ServiceError("دسته‌ای که زیردسته دارد، خودش نمی‌تواند زیردسته شود.", status_code=400)
+            raise ServiceError("دسته‌ای که زیردسته داره، خودش نمی‌تونه زیردسته بشه.", status_code=400)
     return parent.id
 
 
@@ -91,7 +91,7 @@ def create_category(db: Session, store: Store, data: ProductCategoryCreate) -> P
             ProductCategory.slug == slug,
         )
     ):
-        raise ServiceError("این شناسه دسته‌بندی قبلاً استفاده شده است", status_code=409)
+        raise ServiceError("این شناسه دسته‌بندی قبلاً استفاده شده", status_code=409)
 
     parent_id = _validate_parent(db, store.id, data.parent_id)
 
@@ -133,7 +133,7 @@ def update_category(
                 ProductCategory.id != category.id,
             )
         ):
-            raise ServiceError("این شناسه دسته‌بندی قبلاً استفاده شده است", status_code=409)
+            raise ServiceError("این شناسه دسته‌بندی قبلاً استفاده شده", status_code=409)
         category.slug = slug
     if "parent_id" in update_data:
         category.parent_id = _validate_parent(
@@ -152,7 +152,7 @@ def delete_category(db: Session, store: Store, category_id: int) -> None:
     ) or 0
     if product_count > 0:
         raise ServiceError(
-            "چند محصول در این دسته هستند. اول آن‌ها را به دسته دیگری ببرید یا حذف کنید.",
+            "چند محصول تو این دسته هستن. اول اونا رو به دسته دیگه‌ای ببر یا حذف کن.",
             status_code=409,
         )
     db.delete(category)

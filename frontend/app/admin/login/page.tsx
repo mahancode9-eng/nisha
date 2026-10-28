@@ -19,7 +19,7 @@ export default function AdminLoginPage() {
       logout();
       throw new ApiError(
         403,
-        "فقط برای مدیران است. برای حساب فروشنده از ورود فروشنده استفاده کنید.",
+        "فقط برای مدیرهاست. برای حساب فروشنده از ورود فروشنده استفاده کن.",
       );
     }
     router.replace(paths.admin.dashboard);
@@ -30,12 +30,12 @@ export default function AdminLoginPage() {
       <AuthPageFrame>
         <LoginForm
           title="ورود مدیر"
-          subtitle="مدیریت و نظارت بر پلتفرم"
+          subtitle="مدیریت و نظارت روی نیشا"
           onSubmit={handleLogin}
           forgotPasswordHref={paths.admin.recover}
           footer={
             <Link href={paths.home} className="text-brand-deep hover:underline">
-              بازگشت به صفحه اصلی
+              برگرد صفحه اصلی
             </Link>
           }
         />

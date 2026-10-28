@@ -22,9 +22,12 @@ import {
   getSocialPlatformLabel,
 } from "@/components/ui/SocialIcon";
 import { socialInputHint, socialInputPlaceholder } from "@/lib/seller/contactChannels";
+import * as messengerApi from "@/lib/api/seller/messenger";
 import { formatMoneyInput, moneyInputToNumber, parseMoneyInput } from "@/lib/moneyInput";
 import { cn } from "@/lib/cn";
+import { useToast } from "@/contexts/ToastContext";
 import type { Store, StoreUpdate } from "@/types/seller/store";
+import type { MessengerStatus } from "@/lib/api/seller/messenger";
 
 type EditableSocialLink = {
   platform: SocialPlatformKey;
@@ -64,10 +67,13 @@ function makeSocialLinkLabel(platform: SocialPlatformKey, customLabel: string): 
 }
 
 export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
+  const toast = useToast();
   const { entitlements } = useSellerEntitlements();
   const canGuestCheckout = entitlements.guest_checkout;
   const canTheme = entitlements.store_theme;
   const canPages = entitlements.store_pages;
+  const [messenger, setMessenger] = useState<MessengerStatus | null>(null);
+  const [messengerBusy, setMessengerBusy] = useState<"telegram" | "bale" | null>(null);
   const [name, setName] = useState(store.name);
   const [slug, setSlug] = useState(store.slug);
   const [description, setDescription] = useState(store.description ?? "");
@@ -121,6 +127,47 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
   const [loading, setLoading] = useState(false);
   const logoInputRef = useRef<HTMLInputElement | null>(null);
   const coverInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void messengerApi
+      .getMessengerStatus()
+      .then((status) => {
+        if (!cancelled) setMessenger(status);
+      })
+      .catch(() => {
+        if (!cancelled) setMessenger(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [store.id]);
+
+  async function handleMessengerConnect(channel: "telegram" | "bale") {
+    setMessengerBusy(channel);
+    try {
+      const res = await messengerApi.connectMessenger(channel);
+      window.open(res.deep_link, "_blank", "noopener,noreferrer");
+      toast.success("ربات باز شد. استارت رو بزن تا وصل بشه.");
+      setMessenger(await messengerApi.getMessengerStatus());
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : "وصل نشد. دوباره امتحان کن.");
+    } finally {
+      setMessengerBusy(null);
+    }
+  }
+
+  async function handleMessengerDisconnect(channel: "telegram" | "bale") {
+    setMessengerBusy(channel);
+    try {
+      setMessenger(await messengerApi.disconnectMessenger(channel));
+      toast.success("قطع شد");
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : "قطع نشد. دوباره امتحان کن.");
+    } finally {
+      setMessengerBusy(null);
+    }
+  }
 
   useEffect(() => {
     setName(store.name);
@@ -197,7 +244,7 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
       if (logoPreview?.startsWith("blob:")) URL.revokeObjectURL(logoPreview);
       setLogoPreview(uploaded.thumbnail_url ?? uploaded.url);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "لوگو بارگذاری نشد. دوباره امتحان کنید.");
+      setError(err instanceof ApiError ? err.message : "لوگو بارگذاری نشد. دوباره امتحان کن.");
     } finally {
       setLogoUploading(false);
       event.target.value = "";
@@ -215,7 +262,7 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
       if (coverPreview?.startsWith("blob:")) URL.revokeObjectURL(coverPreview);
       setCoverPreview(uploaded.thumbnail_url ?? uploaded.url);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "تصویر جلد بارگذاری نشد. دوباره امتحان کنید.");
+      setError(err instanceof ApiError ? err.message : "تصویر جلد بارگذاری نشد. دوباره امتحان کن.");
     } finally {
       setCoverUploading(false);
       event.target.value = "";
@@ -226,11 +273,11 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
     e.preventDefault();
     setError(null);
     if (!name.trim() || !slug.trim()) {
-      setError("نام فروشگاه و آدرس فروشگاه را وارد کنید.");
+      setError("نام فروشگاه و آدرس فروشگاه رو وارد کن.");
       return;
     }
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
-      setError("آدرس فروشگاه فقط می‌تواند حروف کوچک انگلیسی، عدد و خط تیره (-) داشته باشد.");
+      setError("آدرس فروشگاه فقط می‌تونه حروف کوچک انگلیسی، عدد و خط تیره (-) داشته باشه.");
       return;
     }
 
@@ -287,7 +334,7 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
           : null,
       });
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "تنظیمات ذخیره نشد. دوباره امتحان کنید.");
+      setError(err instanceof ApiError ? err.message : "تنظیمات ذخیره نشد. دوباره امتحان کن.");
     } finally {
       setLoading(false);
     }
@@ -305,7 +352,7 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
         <div className="space-y-6">
           <FormSection
             title="لوگو و تصویر جلد"
-            description="این دو، اولین چیزهایی هستند که مشتری در فروشگاه می‌بیند."
+            description="اینا اولین چیزایی هستن که مشتری تو فروشگاه می‌بینه."
           >
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-3">
@@ -320,7 +367,7 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
                     />
                   ) : (
                     <p className="px-4 text-center text-sm text-foreground-muted">
-                      هنوز لوگو نگذاشته‌اید
+                      هنوز لوگو نذاشتی
                     </p>
                   )}
                 </div>
@@ -342,7 +389,7 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
                     />
                   ) : (
                     <div className="flex h-40 items-center justify-center text-sm text-foreground-muted">
-                      هنوز تصویر جلد نگذاشته‌اید
+                      هنوز تصویر جلد نذاشتی
                     </div>
                   )}
                 </div>
@@ -400,7 +447,7 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
             </div>
           </FormSection>
 
-          <FormSection title="اطلاعات تماس" description="فقط مواردی که پر کنید، در صفحه فروشگاه نمایش داده می‌شود.">
+          <FormSection title="اطلاعات تماس" description="فقط چیزایی که پر کنی، تو صفحه فروشگاه نشون داده می‌شه.">
             <div className="grid gap-4 md:grid-cols-2">
               <Input label="موقعیت" value={location} onChange={(e) => setLocation(e.target.value)} />
               <Input label="تلفن" value={phone} onChange={(e) => setPhone(e.target.value)} />
@@ -412,12 +459,71 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
               <Input label="راه ارتباطی پشتیبانی" value={supportContact} onChange={(e) => setSupportContact(e.target.value)} />
             </div>
           </FormSection>
+
+          <FormSection
+            title="خبر سفارش در تلگرام و بله"
+            description="ربات نیشا بهت خبر می‌ده سفارش جدید اومد یا رسید آپلود شد. لینک پنل هم روشه. تو پلن پایه به بالا، عکس رسید و دکمه تایید/رد هم می‌فرسته."
+          >
+            <div className="space-y-3 text-sm">
+              {(["telegram", "bale"] as const).map((channel) => {
+                const linked =
+                  channel === "telegram" ? messenger?.telegram_linked : messenger?.bale_linked;
+                const configured =
+                  channel === "telegram"
+                    ? messenger?.telegram_configured
+                    : messenger?.bale_configured;
+                const label = channel === "telegram" ? "تلگرام" : "بله";
+                return (
+                  <div
+                    key={channel}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border px-3 py-2"
+                  >
+                    <div>
+                      <p className="font-medium text-foreground">{label}</p>
+                      <p className="text-xs text-foreground-muted">
+                        {!messenger
+                          ? "وضعیت در حال بارگذاری…"
+                          : !configured
+                            ? "ربات هنوز از سمت نیشا تنظیم نشده"
+                            : linked
+                              ? "وصل است"
+                              : "هنوز وصل نیست"}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      {linked ? (
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          loading={messengerBusy === channel}
+                          onClick={() => void handleMessengerDisconnect(channel)}
+                        >
+                          قطع اتصال
+                        </Button>
+                      ) : (
+                        <Button
+                          type="button"
+                          size="sm"
+                          disabled={!configured}
+                          loading={messengerBusy === channel}
+                          onClick={() => void handleMessengerConnect(channel)}
+                        >
+                          اتصال
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </FormSection>
         </div>
 
         <div className="space-y-6">
           <FormSection
             title="لینک‌های اجتماعی"
-            description="هر تعداد لینک که بخواهید اضافه کنید. آیکن هر لینک از روی شبکه‌ای که انتخاب می‌کنید مشخص می‌شود."
+            description="هر چند تا لینک که خواستی اضافه کن. آیکن هر لینک از روی شبکه‌ای که انتخاب می‌کنی مشخص می‌شه."
             action={
               <Button type="button" variant="secondary" size="sm" onClick={() => setSocialLinks((prev) => [...prev, blankLink()])}>
                 افزودن لینک
@@ -427,8 +533,8 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
             <div className="space-y-3">
               {socialLinks.length === 0 ? (
                 <EmptyState
-                  title="لینک اجتماعی ندارید"
-                  description="تلگرام، واتساپ، اینستاگرام، وب‌سایت یا هر لینک دیگری را اضافه کنید."
+                  title="لینک اجتماعی نداری"
+                  description="تلگرام، واتساپ، اینستاگرام، وب‌سایت یا هر لینک دیگه‌ای رو اضافه کن."
                   action={
                     <Button type="button" variant="secondary" onClick={() => setSocialLinks([blankLink()])}>
                       افزودن اولین لینک
@@ -457,7 +563,7 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
                             label="برچسب"
                             value={link.customLabel}
                             onChange={(e) => updateLink(index, { customLabel: e.target.value })}
-                            hint="اگر «دیگر» را انتخاب کنید، این عنوان کنار لینک نمایش داده می‌شود"
+                            hint="اگر «دیگر» رو انتخاب کنی، این عنوان کنار لینک نشون داده می‌شه"
                           />
                         )}
                         <Input
@@ -509,31 +615,31 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
 
           <FormSection
             title="هزینه ارسال"
-            description="موقع تکمیل خرید، هزینه ارسال از روی این دو عدد حساب می‌شود."
+            description="موقع ثبت سفارش، هزینه ارسال از روی این دو عدد حساب می‌شه."
           >
             <div className="grid gap-4 md:grid-cols-2">
               <MoneyInput
                 label="هزینه ارسال پایه"
                 value={defaultShippingCost}
                 onValueChange={setDefaultShippingCost}
-                hint="اگر صفر بگذارید، ارسال همیشه رایگان است"
+                hint="اگر صفر بذاری، ارسال همیشه رایگانه"
               />
               <MoneyInput
                 label="ارسال رایگان از مبلغ سفارش"
                 value={freeShippingMinSubtotal}
                 onValueChange={setFreeShippingMinSubtotal}
-                hint="سفارش‌های بالای این مبلغ، ارسال رایگان دارند. خالی بماند یعنی ارسال رایگان نداریم."
+                hint="سفارش‌های بالای این مبلغ، ارسال رایگان دارن. خالی بمونه یعنی ارسال رایگان نداریم."
               />
             </div>
           </FormSection>
 
           <FormSection
             title="ظاهر فروشگاه (ویترین عمومی)"
-            description="تم و رنگ صفحه فروشگاه، جدا از ظاهر پنل خودتان."
+            description="تم و رنگ صفحه فروشگاه، جدا از ظاهر پنلت."
           >
             {!(canTheme || canPages) && (
               <p className="text-sm text-foreground-muted">
-                تنظیم تم از پلن حرفه‌ای به بالا فعال است.{" "}
+                تنظیم تم از پلن حرفه‌ای به بالا فعاله.{" "}
                 <Link href={paths.seller.subscription} className="text-brand underline-offset-2 hover:underline">
                   ارتقای پلن
                 </Link>
@@ -542,7 +648,7 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
             <div className="space-y-3">
               <p className="text-sm font-medium text-foreground">سبک ویترین</p>
               <p className="text-xs text-foreground-muted">
-                این سبک فقط روی صفحه فروشگاه اعمال می‌شود و ظاهر پنل شما را تغییر نمی‌دهد.
+                این سبک فقط روی صفحه فروشگاه اعمال می‌شه و ظاهر پنلت رو عوض نمی‌کنه.
               </p>
               <div className="grid grid-cols-3 gap-2">
                 {(
@@ -611,7 +717,7 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
             />
           </FormSection>
 
-          <FormSection title="نمایش" description="تا وقتی فروشگاه آماده نشده، می‌توانید آن را از دید مشتری‌ها پنهان کنید.">
+          <FormSection title="نمایش" description="تا وقتی فروشگاه آماده نشده، می‌تونی از دید مشتری‌ها پنهانش کنی.">
             <div className="space-y-4">
               <label className="flex items-center gap-2 text-sm text-foreground">
                 <input
@@ -625,14 +731,14 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
               </label>
               {!canGuestCheckout ? (
                 <p className="text-xs text-foreground-muted">
-                  خرید مهمان از پلن پایه به بالا فعال است.{" "}
+                  خرید مهمان تو پلن فعلی‌ت نیست.{" "}
                   <Link href={paths.seller.subscription} className="text-brand underline-offset-2 hover:underline">
                     ارتقای پلن
                   </Link>
                 </p>
               ) : (
                 <p className="text-xs text-foreground-muted">
-                  اگر خاموش باشد، مشتری برای خرید باید حساب کاربری بسازد.
+                  اگر خاموش باشه، مشتری برای خرید باید حساب بسازه.
                 </p>
               )}
               <label className="flex items-center gap-2 text-sm text-foreground">
@@ -642,13 +748,13 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
                   onChange={(e) => setIsActive(e.target.checked)}
                   className="rounded border-border"
                 />
-                فروشگاه فعال است
+                فروشگاه فعاله
               </label>
               <Button type="submit" loading={loading} className="w-full">
                 ذخیره تغییرات
               </Button>
               <p className="text-xs text-foreground-muted">
-                محصول‌ها و سفارش‌ها را از منوی کناری، در بخش خودشان مدیریت کنید.
+                محصول‌ها و سفارش‌ها رو از منوی کناری، تو بخش خودشون مدیریت کن.
               </p>
             </div>
           </FormSection>

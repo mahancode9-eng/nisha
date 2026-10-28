@@ -48,7 +48,7 @@ export default function AdminSubscriptionsPage() {
     try {
       setInvoices(await subscriptionsApi.listInvoices(status || undefined));
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "بارگذاری فاکتورها انجام نشد. دوباره امتحان کنید.");
+      setError(err instanceof ApiError ? err.message : "بارگذاری فاکتورها انجام نشد. دوباره امتحان کن.");
     } finally {
       setLoading(false);
     }
@@ -65,7 +65,7 @@ export default function AdminSubscriptionsPage() {
       toast.success("پرداخت تایید و اشتراک فعال شد");
       await load();
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "تایید انجام نشد. دوباره امتحان کنید.");
+      toast.error(err instanceof ApiError ? err.message : "تایید انجام نشد. دوباره امتحان کن.");
     } finally {
       setBusyId(null);
     }
@@ -78,7 +78,7 @@ export default function AdminSubscriptionsPage() {
       toast.success("فاکتور رد شد");
       await load();
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "رد فاکتور انجام نشد. دوباره امتحان کنید.");
+      toast.error(err instanceof ApiError ? err.message : "رد فاکتور انجام نشد. دوباره امتحان کن.");
     } finally {
       setBusyId(null);
     }
@@ -88,7 +88,7 @@ export default function AdminSubscriptionsPage() {
     <div className="space-y-6">
       <PageHeader
         title="اشتراک‌های فروشندگان"
-        description="رسیدهای کارت‌به‌کارت اشتراک را بررسی و تایید کنید"
+        description="رسیدهای کارت‌به‌کارت اشتراک رو بررسی و تایید کن"
       />
       <div className="flex flex-wrap gap-2">
         {(
@@ -113,13 +113,13 @@ export default function AdminSubscriptionsPage() {
       </div>
       {error && <ErrorAlert message={error} />}
       {loading ? (
-        <LoadingState message="در حال بارگذاریâ¦" />
+        <LoadingState message="در حال بارگذاری…" />
       ) : (
         <div className="space-y-3">
           {invoices.length === 0 && (
             <Card>
               <CardContent className="py-8 text-sm text-foreground-muted">
-                فاکتوری یافت نشد.
+                فاکتوری پیدا نشد.
               </CardContent>
             </Card>
           )}
@@ -127,7 +127,7 @@ export default function AdminSubscriptionsPage() {
             <Card key={invoice.id}>
               <CardHeader>
                 <CardTitle>
-                  #{invoice.id} — {invoice.plan.name_fa} — {formatToman(invoice.amount_toman)}
+                  #{invoice.id}، {invoice.plan.name_fa}، {formatToman(invoice.amount_toman)}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-sm">

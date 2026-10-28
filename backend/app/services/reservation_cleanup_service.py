@@ -93,10 +93,12 @@ def expire_stale_reservations(db: Session, *, limit: int = 100) -> int:
 
 async def reservation_cleanup_worker_loop(stop_event: asyncio.Event, interval_seconds: int) -> None:
     from app.db.session import SessionLocal
+    from app.services.order_notification_service import send_due_payment_reminders
 
     while not stop_event.is_set():
         try:
             with SessionLocal() as db:
+                send_due_payment_reminders(db)
                 expire_stale_reservations(db)
         except Exception:  # noqa: BLE001 - keep worker alive
             logger.exception("Reservation cleanup failed")

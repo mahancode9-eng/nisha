@@ -53,8 +53,35 @@ credentials** and nothing is actually sent.
 | `KAVENEGAR_API_KEY` | string | required for `kavenegar` |
 | `SMS_SENDER` | string | optional dedicated sender line |
 
+**Production note:** `EMAIL_PROVIDER=console` is rejected at startup. `SMS_PROVIDER`
+defaults to `console` even in compose prod — set `SMS_PROVIDER=kavenegar` and
+`KAVENEGAR_API_KEY` or SMS only logs. The API logs a warning when production
+runs with SMS console.
+
 To use another Iranian SMS gateway (SMS.ir, Melipayamak, ...), add a small
 provider class implementing `send(to, text)` and extend `get_sms_provider`.
+
+### Telegram / Bale (seller bots)
+
+Platform bots (one Nisha bot per channel). Sellers connect from store settings;
+chat ids are stored on the store. Outbox channels: `telegram`, `bale`.
+
+| Variable | Notes |
+| --- | --- |
+| `TELEGRAM_BOT_TOKEN` / `TELEGRAM_BOT_USERNAME` | BotFather token + username |
+| `TELEGRAM_WEBHOOK_SECRET` | sent as `X-Telegram-Bot-Api-Secret-Token` |
+| `BALE_BOT_TOKEN` / `BALE_BOT_USERNAME` | Bale bot token + username |
+| `BALE_WEBHOOK_SECRET` | webhook shared secret |
+| `API_PUBLIC_BASE_URL` | public API origin so bots can fetch private receipt media |
+| `MESSENGER_LINK_TOKEN_EXPIRE_MINUTES` | default 30 |
+
+Webhook URLs:
+
+- `POST /api/v1/webhooks/telegram`
+- `POST /api/v1/webhooks/bale`
+
+All plans get text «سفارش جدید» / «رسید جدید» + panel link. Basic+ also get
+receipt photo + Confirm/Reject inline buttons (`messenger_receipt_actions`).
 
 ### Email
 

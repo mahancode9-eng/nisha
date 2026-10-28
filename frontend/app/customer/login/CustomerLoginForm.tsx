@@ -46,7 +46,7 @@ export default function CustomerLoginForm() {
       if (err instanceof ApiError && err.status === 403 && loginId.includes("@")) {
         setResendEmail(loginId);
       }
-      setError(err instanceof ApiError ? err.message : "ورود انجام نشد. ایمیل یا رمز را بررسی کنید.");
+      setError(err instanceof ApiError ? err.message : "ورود نشد. ایمیل یا رمز رو چک کن.");
     } finally {
       setSubmitting(false);
     }
@@ -58,7 +58,7 @@ export default function CustomerLoginForm() {
         <CardHeader>
           <CardTitle>ورود مشتری</CardTitle>
           <p className="mt-1 text-sm text-foreground-muted">
-            برای دیدن سفارش‌ها و پیام دادن به فروشنده‌ها وارد شوید
+            برای دیدن سفارش‌ها و پیام به فروشنده‌ها، وارد شو
           </p>
         </CardHeader>
         <CardContent>
@@ -88,13 +88,13 @@ export default function CustomerLoginForm() {
                 onClick={async () => {
                   try {
                     await resendVerificationEmail(resendEmail, "customer");
-                    setError("ایمیل تایید دوباره ارسال شد.");
+                    setError("ایمیل تایید دوباره فرستاده شد.");
                   } catch {
-                    setError("ایمیل دوباره ارسال نشد. کمی بعد امتحان کنید.");
+                    setError("ایمیل دوباره فرستاده نشد. کمی بعد امتحان کن.");
                   }
                 }}
               >
-                ارسال دوباره ایمیل تایید
+                دوباره ایمیل تایید بفرست
               </button>
             )}
             <Button type="submit" className="w-full" loading={submitting}>
@@ -111,7 +111,7 @@ export default function CustomerLoginForm() {
                   setError(
                     err instanceof ApiError
                       ? err.message
-                      : "ورود با گوگل انجام نشد. دوباره امتحان کنید.",
+                      : "ورود با گوگل نشد. دوباره امتحان کن.",
                   );
                 } finally {
                   setSubmitting(false);
@@ -119,14 +119,14 @@ export default function CustomerLoginForm() {
               }}
             />
             <p className="text-center text-sm text-foreground-muted">
-              حساب ندارید؟{" "}
+              حساب نداری؟{" "}
               <Link href={paths.customer.register} className="font-medium text-brand-deep hover:underline">
                 ثبت‌نام
               </Link>
             </p>
             <p className="text-center text-sm">
               <Link href={paths.customer.recover} className="font-medium text-brand-deep hover:underline">
-                رمز را فراموش کرده‌اید؟
+                رمزت رو فراموش کردی؟
               </Link>
             </p>
           </form>

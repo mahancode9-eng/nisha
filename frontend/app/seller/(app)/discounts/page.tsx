@@ -21,16 +21,22 @@ import {
 } from "@/components/ui/Table";
 import { UpgradeGate } from "@/components/seller/UpgradeGate";
 import { useSellerEntitlements } from "@/hooks/useSellerEntitlements";
+import { paths } from "@/lib/auth/paths";
 import type { DiscountCode, DiscountType } from "@/types/seller/discount";
+import Link from "next/link";
 
 export default function SellerDiscountsPage() {
   const toast = useToast();
   const { entitlements, isLoading: entitlementsLoading } = useSellerEntitlements();
-  const canManageDiscounts = entitlements.discounts;
-
   const [discounts, setDiscounts] = useState<DiscountCode[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const canManageDiscounts = entitlements.discounts;
+  const canTimedDiscounts = entitlements.timed_discounts;
+  const activeCount = discounts.filter((d) => d.is_active).length;
+  const maxActive = entitlements.max_active_discount_codes;
+  const atActiveCap = maxActive != null && activeCount >= maxActive;
 
   const [code, setCode] = useState("");
   const [discountType, setDiscountType] = useState<DiscountType>("PERCENT");
@@ -49,7 +55,7 @@ export default function SellerDiscountsPage() {
       setDiscounts(data);
       setError(null);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "کدهای تخفیف باز نشد. صفحه را دوباره بارگذاری کنید.");
+      setError(err instanceof ApiError ? err.message : "کدهای تخفیف باز نشد. صفحه رو دوباره باز کن.");
     } finally {
       setLoading(false);
     }
@@ -74,11 +80,15 @@ export default function SellerDiscountsPage() {
     e.preventDefault();
     if (!code.trim()) return;
     if (discountType === "PERCENT" && !percentOff.trim()) {
-      toast.error("درصد تخفیف را وارد کنید");
+      toast.error("درصد تخفیف رو وارد کن");
       return;
     }
     if (discountType === "FIXED" && !amountOff.trim()) {
-      toast.error("مبلغ تخفیف را وارد کنید");
+      toast.error("مبلغ تخفیف رو وارد کن");
+      return;
+    }
+    if (!canTimedDiscounts && expiresAt) {
+      toast.error("تاریخ انقضا فقط تو پلن پایه به بالاست. پلن رو ارتقا بده.");
       return;
     }
     setSubmitting(true);
@@ -91,14 +101,14 @@ export default function SellerDiscountsPage() {
         amount_off: discountType === "FIXED" ? amountOff.trim() : null,
         min_order_amount: minOrderAmount.trim() || null,
         max_uses: maxUses.trim() ? Number(maxUses) : null,
-        expires_at: expiresAt ? new Date(expiresAt).toISOString() : null,
+        expires_at: canTimedDiscounts && expiresAt ? new Date(expiresAt).toISOString() : null,
         is_active: true,
       });
       toast.success("کد تخفیف ساخته شد");
       resetForm();
       await loadDiscounts();
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "کد تخفیف ساخته نشد. دوباره امتحان کنید.");
+      toast.error(err instanceof ApiError ? err.message : "کد تخفیف ساخته نشد. دوباره امتحان کن.");
     } finally {
       setSubmitting(false);
     }
@@ -110,47 +120,57 @@ export default function SellerDiscountsPage() {
       await discountsApi.updateDiscount(discount.id, { is_active: !discount.is_active });
       await loadDiscounts();
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "تغییر ذخیره نشد. دوباره امتحان کنید.");
+      toast.error(err instanceof ApiError ? err.message : "تغییر ذخیره نشد. دوباره امتحان کن.");
     } finally {
       setBusyId(null);
     }
   }
 
   async function handleDelete(discount: DiscountCode) {
-    if (!window.confirm("کد تخفیف " + discount.code + " حذف شود؟")) return;
+    if (!window.confirm("کد تخفیف " + discount.code + " حذف بشه؟")) return;
     setBusyId(discount.id);
     try {
       await discountsApi.deleteDiscount(discount.id);
       toast.success("کد تخفیف حذف شد");
       await loadDiscounts();
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "حذف نشد. دوباره امتحان کنید.");
+      toast.error(err instanceof ApiError ? err.message : "حذف نشد. دوباره امتحان کن.");
     } finally {
       setBusyId(null);
     }
   }
 
-  if (loading) return <LoadingState message="در حال بارگذاری کدهای تخفیف…" />;
+  if (loading) return <LoadingState message="داره کدهای تخفیف رو بارگذاری می‌کنه…" />;
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-foreground max-md:text-xl">کدهای تخفیف</h1>
         <p className="mt-1 text-foreground-muted">
-          کد تخفیف درصدی یا مبلغی بسازید و برای مشتری‌ها بفرستید. مشتری موقع تکمیل خرید، کد را وارد می‌کند.
+          کد تخفیف درصدی یا مبلغی بساز و برای مشتری‌ها بفرست. مشتری موقع ثبت سفارش، کد رو وارد می‌کنه.
         </p>
       </div>
 
       {error && <ErrorAlert message={error} />}
 
       {!entitlementsLoading && !canManageDiscounts && (
-        <UpgradeGate description="کد تخفیف از پلن پایه به بالا فعال است." />
+        <UpgradeGate description="کد تخفیف تو پلن فعلی‌ت فعال نیست. پلن رو ارتقا بده." />
+      )}
+
+      {!entitlementsLoading && canManageDiscounts && atActiveCap && maxActive === 1 && (
+        <UpgradeGate description="تو پلن رایگان فقط یک کد تخفیف فعال می‌تونی داشته باشی. برای کدهای بیشتر پلن رو ارتقا بده." />
       )}
 
       {canManageDiscounts && (
       <Card>
         <CardHeader>
           <CardTitle>کد تخفیف جدید</CardTitle>
+          {maxActive != null && (
+            <p className="text-sm text-foreground-muted">
+              کد فعال: {activeCount} از {maxActive}
+              {atActiveCap ? " — برای ساخت فعال جدید، یکی رو غیرفعال کن یا پلن رو ارتقا بده." : ""}
+            </p>
+          )}
         </CardHeader>
         <CardContent>
           <form onSubmit={handleCreate} className="grid gap-4 md:grid-cols-2">
@@ -206,12 +226,23 @@ export default function SellerDiscountsPage() {
               value={maxUses}
               onChange={(e) => setMaxUses(e.target.value)}
             />
-            <Input
-              label="تاریخ انقضا (اختیاری)"
-              type="datetime-local"
-              value={expiresAt}
-              onChange={(e) => setExpiresAt(e.target.value)}
-            />
+            <div className="space-y-1">
+              <Input
+                label="تاریخ انقضا (اختیاری)"
+                type="datetime-local"
+                value={expiresAt}
+                onChange={(e) => setExpiresAt(e.target.value)}
+                disabled={!canTimedDiscounts}
+              />
+              {!canTimedDiscounts && (
+                <p className="text-xs text-foreground-muted">
+                  تاریخ انقضا فقط تو پلن پایه به بالاست.{" "}
+                  <Link href={paths.seller.subscription} className="text-brand underline-offset-2 hover:underline">
+                    ارتقای پلن
+                  </Link>
+                </p>
+              )}
+            </div>
             <Input
               label="توضیح (اختیاری)"
               value={description}
@@ -230,11 +261,11 @@ export default function SellerDiscountsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>کدهای شما</CardTitle>
+          <CardTitle>کدهات</CardTitle>
         </CardHeader>
         <CardContent>
           {discounts.length === 0 ? (
-            <p className="text-sm text-foreground-muted">هنوز کد تخفیفی نساخته‌اید.</p>
+            <p className="text-sm text-foreground-muted">هنوز کد تخفیفی نساختی.</p>
           ) : (
             <Table>
               <TableHead>

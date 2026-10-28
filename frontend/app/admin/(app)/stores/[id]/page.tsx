@@ -65,7 +65,7 @@ export default function AdminStoreDetailPage({ params }: PageProps) {
       }
       await refetch();
     } catch {
-      toast.error("به‌روزرسانی فروشگاه انجام نشد. دوباره امتحان کنید.");
+      toast.error("به‌روزرسانی فروشگاه انجام نشد. دوباره امتحان کن.");
     } finally {
       setActionBusy(false);
     }
@@ -78,13 +78,13 @@ export default function AdminStoreDetailPage({ params }: PageProps) {
       toast.success(enabled ? "خرید مهمان برای فروشگاه فعال شد" : "خرید مهمان برای فروشگاه غیرفعال شد");
       await refetch();
     } catch {
-      toast.error("به‌روزرسانی خرید مهمان انجام نشد. دوباره امتحان کنید.");
+      toast.error("به‌روزرسانی خرید مهمان انجام نشد. دوباره امتحان کن.");
     } finally {
       setActionBusy(false);
     }
   }
 
-  if (isLoading) return <LoadingState message="در حال بارگذاری فروشگاهâ¦" />;
+  if (isLoading) return <LoadingState message="در حال بارگذاری فروشگاه…" />;
 
   if (error || !data) {
     return (

@@ -5,80 +5,74 @@ description: Nisha's Persian UI voice and copy rules. Use whenever writing or ed
 
 # Nisha Persian voice
 
-Nisha talks like a helpful person at a small shop: polite, plain, short. Readers are
-sellers running a business from their phone and buyers paying card-to-card. Both are busy
-and a little anxious about money, so clarity beats charm.
+Nisha talks like a friendly person on the phone with a shop owner — warm, modern, spoken.
+Readers are busy sellers and buyers. Sound like a helpful friend, not a brochure or a bot.
 
-## 1. One register: «شما» with everyday verbs
+## 1. Register: casual «تو» (product UI)
 
-- Always address the reader as «شما». Never «تو» (no «کردی»، «فروشگاهت»، «بزن»).
-- Plural imperative for actions: «وارد کنید»، «ذخیره کنید», not «وارد کن».
-- Everyday verbs, not officialese:
+- Address the reader as «تو» in product UI: «می‌خوای»، «می‌تونی»، «بزن»، «ببین»، «بیا».
+- Short imperatives are fine: «ذخیره کن»، «ادامه بده»، «بزن بریم».
+- Prefer spoken forms: «می‌شه»، «نیست»، «لازم نیست»، «تمام».
+- Still polite — never rude or slangy-insulting. Warm friend, not street fight.
 
-| Avoid | Write |
+| Avoid (bookish / robot) | Write (spoken) |
 |---|---|
-| می‌باشد | است |
-| نمایید / نماید | کنید / کند |
-| گردید / گردد | شد / شود |
-| جهت | برای |
-| اقدام به … نمایید | … کنید |
-| قادر به … نیستید | نمی‌توانید … |
+| می‌باشد / می‌باشند | است / هستن |
+| نمایید / کنید (when stiff) | کن / بزن / بفرست |
+| جهت / به منظور | برای |
 | در صورتی که | اگر |
-| به منظور | برای |
-| فوق / مذکور | این |
-| لطفاً جهت ادامه … | برای ادامه … |
+| لطفاً اقدام فرمایید | این کار رو بکن |
+| فروشگاه خود را ایجاد کنید | فروشگاهت رو بساز |
+
+Legal pages (`/terms`, `/privacy`, `/complaints`) may stay a bit clearer and complete, but still plain — no officialese.
 
 ## 2. Say it short, say it once
 
-- Lead with what matters to the reader. Cut warm-up phrases («لازم به ذکر است»، «همان‌طور که می‌دانید»).
-- One idea per sentence. Most UI sentences fit in 12 words.
-- Buttons are 1-3 words, verb-led where there is an action: «ذخیره»، «ثبت سفارش»، «ادامه».
-- Don't repeat the heading in the first sentence below it.
+- Lead with what matters. Cut warm-ups («لازم به ذکر است»، «همان‌طور که می‌دانید»).
+- One idea per sentence. Most UI lines fit in ~12 words.
+- Buttons: 1–3 words, verb-led: «ذخیره»، «ثبت سفارش»، «بزن بریم».
 
 ## 3. Errors, empty states, confirmations
 
-- Error = what happened + what to do. No blame, no bare «خطا!».
-  - «بارگذاری نشد. اتصال اینترنت را بررسی کنید و دوباره امتحان کنید.»
-- Empty state = why it's empty + the next step. «هنوز سفارشی ندارید. لینک فروشگاه را برای مشتری‌ها بفرستید.»
-- Destructive confirmations name the thing and the consequence: «این محصول حذف شود؟ این کار برگشت‌پذیر نیست.»
-- Success messages are short and past tense: «ذخیره شد.»
+- Error = what happened + what to do. No blame.
+  - «بارگذاری نشد. اینترنت رو چک کن و دوباره امتحان کن.»
+- Empty = why empty + next step.
+  - «هنوز سفارشی نداری. لینک فروشگاهت رو برای مشتری‌ها بفرست.»
+- Confirmations name the thing: «این محصول حذف بشه؟ برنمی‌گرده.»
+- Success: short past tense — «ذخیره شد.»
 
-## 4. No machine-writing tells (adapted from blader/humanizer)
+## 4. No machine-writing tells
 
-- No hype: «بی‌نظیر»، «فوق‌العاده»، «انقلابی»، «حرفه‌ای‌ترین»، «بهترین تجربه».
-- No invented authority or numbers: «هزاران فروشگاه»، «مورد اعتماد همه».
-- No lists of three just for rhythm, no «نه فقط … بلکه …» contrasts nobody asked for.
-- No dashes (— –) inside Persian sentences; use «،» or split the sentence.
-- No exclamation marks except real celebrations (first sale, store published).
-- Don't translate English idioms literally («تجربه‌ای بی‌دردسر را رقم بزنید» ✗).
+- No hype: «بی‌نظیر»، «فوق‌العاده»، «انقلابی»، «بهترین تجربه».
+- No fake authority: «هزاران فروشگاه»، «مورد اعتماد همه».
+- No dash (— –) inside Persian; use «،» or split.
+- No English-idiom calques («تجربه‌ای بی‌دردسر رقم بزن»).
+- Don't sound like a translated SaaS landing.
 
-## 5. Typography (what Virastar would fix)
+## 5. Typography
 
-- Half-space (ZWNJ, U+200C): «می‌کنید»، «نمی‌شود»، «سفارش‌ها»، «بزرگ‌ترین»، «خانه‌ای»، «کارت‌به‌کارت».
-- Persian letters only: «ی» and «ک», never Arabic «ي» «ك».
-- Persian punctuation: «،» «؛» «؟» and guillemets «» for quotes.
-- Ellipsis is one character «…», not "...".
-- No space before punctuation; one space after.
-- Numbers shown to users come from `formatMoney` / `fa-IR` formatting; don't hand-write digits in templates.
+- Half-space (ZWNJ): «می‌کنی»، «نمی‌شه»، «سفارش‌ها»، «کارت‌به‌کارت».
+- Persian «ی» / «ک» only (not Arabic ي / ك).
+- Persian punctuation: «،» «؛» «؟» and guillemets «» when quoting.
+- Ellipsis is «…», not "...".
+- User-facing numbers via `formatMoney` / `fa-IR`.
 
-## 6. Glossary (use these words, consistently)
+## 6. Glossary
 
 | Concept | Word |
 |---|---|
 | seller / seller panel | فروشنده / پنل فروشنده |
 | buyer at checkout | خریدار |
-| registered shopper account | حساب مشتری |
-| order / invoice code / invoice password | سفارش / کد فاکتور / رمز فاکتور |
-| payment receipt (screenshot) | رسید پرداخت |
-| customer confirmed delivery | تحویل گرفته / تحویل نگرفته |
+| registered shopper | حساب مشتری |
+| order / invoice code / password | سفارش / کد فاکتور / رمز فاکتور |
+| payment receipt | رسید پرداخت |
 | card-to-card | کارت‌به‌کارت |
 | subscription plan | پلن |
 | storefront | ویترین / صفحه فروشگاه |
 | sign in / sign up | ورود / ثبت‌نام |
-| save / cancel / delete | ذخیره / انصراف / حذف |
 
 ## 7. Checking
 
-Run `node scripts/check-persian-copy.mjs` from the repo root. It flags informal «تو» verbs,
-officialese, "...", Arabic letters, Latin punctuation inside Persian, and missing half-spaces.
-Legal pages (`/terms`, `/privacy`, `/complaints`) are allowed a more formal tone but still use «شما».
+Run `node scripts/check-persian-copy.mjs` from the repo root.
+It flags officialese, "...", Arabic letters, Latin punctuation in Persian, missing half-spaces, and hype.
+Informal «تو» is **allowed** (and preferred) in product UI.

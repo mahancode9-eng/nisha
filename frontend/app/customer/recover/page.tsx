@@ -35,7 +35,7 @@ export default function CustomerRecoverPage() {
       setHint(res.delivery_hint);
       setDebugCode(res.debug_code);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "کد بازیابی ارسال نشد. دوباره امتحان کنید.");
+      setError(err instanceof ApiError ? err.message : "کد بازیابی فرستاده نشد. دوباره امتحان کن.");
     } finally {
       setLoading(false);
     }
@@ -55,7 +55,7 @@ export default function CustomerRecoverPage() {
       setSession(res.access_token, res.customer);
       router.replace(paths.customer.dashboard);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "رمز تغییر نکرد. کد را دوباره بررسی کنید.");
+      setError(err instanceof ApiError ? err.message : "رمز عوض نشد. کد رو دوباره چک کن.");
     } finally {
       setLoading(false);
     }
@@ -67,7 +67,7 @@ export default function CustomerRecoverPage() {
         <div className="text-center">
           <h1 className="text-2xl font-semibold tracking-tight text-foreground max-md:text-xl">بازیابی رمز عبور</h1>
           <p className="mt-1 text-sm text-foreground-muted">
-            یک کد برایتان می‌فرستیم؛ با آن رمز تازه بگذارید.
+            یک کد برات می‌فرستیم؛ باهاش رمز تازه بذار.
           </p>
         </div>
 

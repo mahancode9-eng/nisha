@@ -28,5 +28,5 @@ export function StartChatHandler() {
 
   if (!storeId) return null;
 
-  return <LoadingState message="Opening conversation…" />;
+  return <LoadingState message="داره گفتگو باز می‌شه…" />;
 }

@@ -71,7 +71,7 @@ export default function CustomerOrderDetailPage({ params }: PageProps) {
         const data = await getOrder(orderId);
         if (!cancelled) setOrder(data);
       } catch {
-        if (!cancelled) setError("سفارش باز نشد. صفحه را دوباره بارگذاری کنید.");
+        if (!cancelled) setError("سفارش باز نشد. صفحه رو دوباره بارگذاری کن.");
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -88,7 +88,7 @@ export default function CustomerOrderDetailPage({ params }: PageProps) {
       const updated = await setReceiptStatus(order.id, { receipt_status: status });
       setOrder({ ...order, receipt_status: updated.receipt_status });
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "ذخیره نشد. دوباره امتحان کنید.");
+      setError(err instanceof ApiError ? err.message : "ذخیره نشد. دوباره امتحان کن.");
     } finally {
       setReceiptLoading(false);
     }
@@ -104,7 +104,7 @@ export default function CustomerOrderDetailPage({ params }: PageProps) {
       setComplaintMessage("");
       await refresh();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "شکایت ثبت نشد. دوباره امتحان کنید.");
+      setError(err instanceof ApiError ? err.message : "شکایت ثبت نشد. دوباره امتحان کن.");
     } finally {
       setComplaintLoading(false);
     }
@@ -130,9 +130,9 @@ export default function CustomerOrderDetailPage({ params }: PageProps) {
       setReviewImages(null);
       setReviewIsPublic(false);
       setReviewRating(5);
-      toast.success(reviewIsPublic ? "نظر شما ثبت شد و بعد از تایید نمایش داده می‌شود" : "نظر شما ذخیره شد");
+      toast.success(reviewIsPublic ? "نظرت ثبت شد و بعد از تایید نشون داده می‌شه" : "نظرت ذخیره شد");
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "نظر ذخیره نشد. دوباره امتحان کنید.");
+      setError(err instanceof ApiError ? err.message : "نظر ذخیره نشد. دوباره امتحان کن.");
     } finally {
       setReviewLoading(false);
     }
@@ -143,7 +143,7 @@ export default function CustomerOrderDetailPage({ params }: PageProps) {
     try {
       await downloadOrderInvoice(() => downloadInvoice(order.id), order.invoice_code);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "فاکتور دانلود نشد. دوباره امتحان کنید.");
+      setError(err instanceof ApiError ? err.message : "فاکتور دانلود نشد. دوباره امتحان کن.");
     }
   }
 
@@ -156,14 +156,14 @@ export default function CustomerOrderDetailPage({ params }: PageProps) {
       const full = await conversationsApi.getConversation(created.id);
       setConversation(full);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "گفتگو باز نشد. دوباره امتحان کنید.");
+      setError(err instanceof ApiError ? err.message : "گفتگو باز نشد. دوباره امتحان کن.");
     } finally {
       setOpeningChat(false);
     }
   }
 
   if (loading) {
-    return <LoadingState message="در حال بارگذاری سفارش…" />;
+    return <LoadingState message="داره سفارش بارگذاری می‌شه…" />;
   }
 
   if (!order) {
@@ -257,7 +257,7 @@ export default function CustomerOrderDetailPage({ params }: PageProps) {
               ) : (
                 <div className="p-6">
                     <p className="text-sm text-neutral-600">
-                      سؤالی درباره این خرید دارید؟ گفتگو با فروشنده را باز کنید.
+                      سؤالی درباره این خرید داری؟ گفتگو با فروشنده رو باز کن.
                     </p>
                 </div>
               )}
@@ -266,7 +266,7 @@ export default function CustomerOrderDetailPage({ params }: PageProps) {
 
           <Card>
             <CardHeader>
-              <CardTitle>سفارش به دستتان رسید؟</CardTitle>
+              <CardTitle>سفارش به دستت رسید؟</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-wrap gap-3">
               <Button
@@ -275,7 +275,7 @@ export default function CustomerOrderDetailPage({ params }: PageProps) {
                 loading={receiptLoading}
                 onClick={() => handleReceipt("RECEIVED")}
               >
-                بله، رسید
+                آره، رسید
               </Button>
               <Button
                 type="button"
@@ -295,7 +295,7 @@ export default function CustomerOrderDetailPage({ params }: PageProps) {
             <CardContent>
               <form onSubmit={handleComplaint} className="space-y-4">
                 <Textarea
-                  label="سفارش به دستم نرسیده؛ توضیح بدهید"
+                  label="سفارش به دستم نرسیده؛ توضیح بده"
                   value={complaintMessage}
                   onChange={(e) => setComplaintMessage(e.target.value)}
                   rows={4}
@@ -344,7 +344,7 @@ export default function CustomerOrderDetailPage({ params }: PageProps) {
                       checked={reviewIsPublic}
                       onChange={(e) => setReviewIsPublic(e.target.checked)}
                     />
-                    نظرم بعد از تایید، در صفحه فروشگاه نمایش داده شود
+                    نظرم بعد از تایید، تو صفحه فروشگاه نشون داده بشه
                   </label>
                   <Input
                     type="file"

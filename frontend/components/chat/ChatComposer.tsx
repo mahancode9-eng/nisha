@@ -67,7 +67,7 @@ export function ChatComposer({
       }
       setAttachmentPreview(null);
     } catch {
-      setError("پیام ارسال نشد. دوباره امتحان کنید.");
+      setError("پیام ارسال نشد. دوباره امتحان کن.");
     } finally {
       setUploading(false);
       setSending(false);
@@ -103,7 +103,7 @@ export function ChatComposer({
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="پیام خود را بنویسیدâ¦"
+          placeholder="پیامت رو بنویس…"
           rows={2}
           disabled={disabled || sending || uploading}
           className="resize-none"
@@ -144,7 +144,7 @@ export function ChatComposer({
           {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
           <div className="ms-auto">
             <Button type="submit" disabled={disabled || sending || uploading || !text.trim()}>
-              {uploading ? "در حال بارگذاریâ¦" : "ارسال پیام"}
+              {uploading ? "داره بارگذاری می‌شه…" : "ارسال پیام"}
             </Button>
           </div>
         </div>

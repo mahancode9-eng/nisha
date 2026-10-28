@@ -39,7 +39,7 @@ export default function SellerDashboardPage() {
   if (isLoading) {
     return (
       <div className="space-y-4 md:space-y-6">
-        <PageHeader description="وضعیت فروشگاه شما در یک نگاه" />
+        <PageHeader description="وضعیت فروشگاهت در یک نگاه" />
         <StatCardSkeleton count={6} />
         <TableSkeleton rows={3} columns={4} />
       </div>
@@ -49,8 +49,8 @@ export default function SellerDashboardPage() {
   if (error || !data) {
     return (
       <div className="space-y-4 md:space-y-6">
-        <PageHeader description="وضعیت فروشگاه شما در یک نگاه" />
-        <ErrorAlert message={error ?? "داشبورد باز نشد. صفحه را دوباره بارگذاری کنید."} />
+        <PageHeader description="وضعیت فروشگاهت در یک نگاه" />
+        <ErrorAlert message={error ?? "داشبورد باز نشد. صفحه رو دوباره باز کن."} />
       </div>
     );
   }
@@ -66,9 +66,9 @@ export default function SellerDashboardPage() {
       setData((current) =>
         current ? { ...current, onboarding_status: "SKIPPED" } : current,
       );
-      toast.success("باشد؛ هر وقت خواستید، از تنظیمات ادامه بدهید.");
+      toast.success("باشه؛ هر وقت خواستی، از تنظیمات ادامه بده.");
     } catch {
-      toast.error("انجام نشد. دوباره امتحان کنید.");
+      toast.error("انجام نشد. دوباره امتحان کن.");
     } finally {
       setSkipping(false);
     }
@@ -77,7 +77,7 @@ export default function SellerDashboardPage() {
   return (
     <div className="space-y-4 md:space-y-6">
       <PageHeader
-        description="سفارش‌ها و درآمد فروشگاه، یک‌جا"
+        description="سفارش‌ها و درآمد فروشگاهت، یک‌جا"
         action={
           <div className="flex flex-wrap items-center gap-2">
             {plan && (
@@ -103,7 +103,7 @@ export default function SellerDashboardPage() {
         <Card className="border-brand/20 bg-brand/5 shadow-sm">
           <CardContent className="flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0 space-y-1">
-              <p className="text-sm font-semibold text-foreground">راه‌اندازی فروشگاه هنوز تمام نشده</p>
+              <p className="text-sm font-semibold text-foreground">راه‌اندازی فروشگاهت هنوز تموم نشده</p>
               <p className="text-xs text-foreground-muted">
                 {readinessPercent}% تکمیل
                 {data.store_readiness_missing_tasks.length > 0
@@ -146,7 +146,7 @@ export default function SellerDashboardPage() {
           </CardHeader>
           <CardContent>
             {data.low_stock_products.length === 0 ? (
-              <EmptyState title="موجودی همه محصول‌ها کافی است" description="وقتی موجودی محصولی کم شود، اینجا خبر می‌دهیم." />
+              <EmptyState title="موجودی همه محصول‌ها کافی است" description="وقتی موجودی محصولی کم بشه، اینجا خبر می‌دیم." />
             ) : (
               <Table embedded>
                 <TableHead>
@@ -176,7 +176,7 @@ export default function SellerDashboardPage() {
           </CardHeader>
           <CardContent>
             {data.recent_orders.length === 0 ? (
-              <EmptyState title="هنوز سفارشی ندارید" description="لینک فروشگاه را برای مشتری‌ها بفرستید؛ سفارش‌ها اینجا می‌آیند." />
+              <EmptyState title="هنوز سفارشی نداری" description="لینک فروشگاهت رو برای مشتری‌ها بفرست؛ سفارش‌ها اینجا می‌آن." />
             ) : (
               <Table embedded>
                 <TableHead>

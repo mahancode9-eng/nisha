@@ -24,7 +24,7 @@ export default function CustomerDownloadsPage() {
       } catch {
         if (!cancelled) {
           setOrders([]);
-          toast.error("فهرست دانلودها باز نشد. صفحه را دوباره بارگذاری کنید.");
+          toast.error("فهرست دانلودها باز نشد. صفحه رو دوباره بارگذاری کن.");
         }
       }
     })();
@@ -43,12 +43,12 @@ export default function CustomerDownloadsPage() {
       a.click();
       window.URL.revokeObjectURL(url);
     } catch {
-      toast.error("فاکتور دانلود نشد. دوباره امتحان کنید.");
+      toast.error("فاکتور دانلود نشد. دوباره امتحان کن.");
     }
   }
 
   if (orders === null) {
-    return <LoadingState message="در حال بارگذاری…" />;
+    return <LoadingState message="داره بارگذاری می‌شه…" />;
   }
 
   return (
@@ -58,7 +58,7 @@ export default function CustomerDownloadsPage() {
       </CardHeader>
       <CardContent className="space-y-3">
         {orders.length === 0 ? (
-          <EmptyState title="دانلودی ندارید" description="فاکتور سفارش‌هایتان اینجا برای دانلود آماده می‌شود." />
+          <EmptyState title="دانلودی نداری" description="فاکتور سفارش‌هات اینجا برای دانلود آماده‌ست." />
         ) : (
           orders.map((order) => (
             <ListRow key={order.id} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

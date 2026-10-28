@@ -25,14 +25,14 @@ def get_current_user(
         if payload.get("role") == CUSTOMER_ROLE:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="نشست شما تمام شده است. دوباره وارد شوید.",
+                detail="نشستت تموم شده. دوباره وارد شو.",
                 headers={"WWW-Authenticate": "Bearer"},
             )
         user_id = int(payload.get("sub", ""))
     except (ValueError, TypeError):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="نشست شما تمام شده است. دوباره وارد شوید.",
+            detail="نشستت تموم شده. دوباره وارد شو.",
             headers={"WWW-Authenticate": "Bearer"},
         ) from None
 
@@ -44,7 +44,7 @@ def get_current_user(
     if user is None or not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="نشست شما تمام شده است. دوباره وارد شوید.",
+            detail="نشستت تموم شده. دوباره وارد شو.",
             headers={"WWW-Authenticate": "Bearer"},
         )
     return user
@@ -72,7 +72,7 @@ def require_admin(current_user: User = Depends(get_current_user)) -> User:
     if current_user.role != UserRole.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="این بخش فقط برای مدیران است.",
+            detail="این بخش فقط برای مدیره.",
         )
     return current_user
 
@@ -86,14 +86,14 @@ def get_current_customer(
         if payload.get("role") != CUSTOMER_ROLE:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="نشست شما تمام شده است. دوباره وارد شوید.",
+                detail="نشستت تموم شده. دوباره وارد شو.",
                 headers={"WWW-Authenticate": "Bearer"},
             )
         customer_id = int(payload.get("sub", ""))
     except (ValueError, TypeError):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="نشست شما تمام شده است. دوباره وارد شوید.",
+            detail="نشستت تموم شده. دوباره وارد شو.",
             headers={"WWW-Authenticate": "Bearer"},
         ) from None
 
@@ -101,7 +101,7 @@ def get_current_customer(
     if customer is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="نشست شما تمام شده است. دوباره وارد شوید.",
+            detail="نشستت تموم شده. دوباره وارد شو.",
             headers={"WWW-Authenticate": "Bearer"},
         )
     return customer
@@ -117,7 +117,7 @@ def require_any_user(request: Request, db: Session = Depends(get_db)):
     if not auth_header.startswith("Bearer "):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="نشست شما تمام شده است. دوباره وارد شوید.",
+            detail="نشستت تموم شده. دوباره وارد شو.",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
@@ -128,7 +128,7 @@ def require_any_user(request: Request, db: Session = Depends(get_db)):
     except (ValueError, TypeError):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="نشست شما تمام شده است. دوباره وارد شوید.",
+            detail="نشستت تموم شده. دوباره وارد شو.",
             headers={"WWW-Authenticate": "Bearer"},
         ) from None
 
@@ -139,7 +139,7 @@ def require_any_user(request: Request, db: Session = Depends(get_db)):
         if customer is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="نشست شما تمام شده است. دوباره وارد شوید.",
+                detail="نشستت تموم شده. دوباره وارد شو.",
                 headers={"WWW-Authenticate": "Bearer"},
             )
         return customer, "customer"
@@ -152,7 +152,7 @@ def require_any_user(request: Request, db: Session = Depends(get_db)):
         if user is None or not user.is_active:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="نشست شما تمام شده است. دوباره وارد شوید.",
+                detail="نشستت تموم شده. دوباره وارد شو.",
                 headers={"WWW-Authenticate": "Bearer"},
             )
         return user, "seller"

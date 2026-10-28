@@ -29,7 +29,7 @@ def verify_google_id_token(token: str) -> dict:
     client_id = (settings.GOOGLE_CLIENT_ID or "").strip()
     if not client_id:
         raise AuthError(
-            "ورود با گوگل فعلاً فعال نیست. از ایمیل و رمز استفاده کنید.",
+            "ورود با گوگل فعلاً فعال نیست. از ایمیل و رمز استفاده کن.",
             status_code=503,
         )
     try:
@@ -40,17 +40,17 @@ def verify_google_id_token(token: str) -> dict:
             clock_skew_in_seconds=10,
         )
     except ValueError as exc:
-        raise AuthError("ورود با گوگل تایید نشد. دوباره امتحان کنید.", status_code=401) from exc
+        raise AuthError("ورود با گوگل تایید نشد. دوباره امتحان کن.", status_code=401) from exc
 
     if info.get("iss") not in {"accounts.google.com", "https://accounts.google.com"}:
-        raise AuthError("ورود با گوگل تایید نشد. دوباره امتحان کنید.", status_code=401)
+        raise AuthError("ورود با گوگل تایید نشد. دوباره امتحان کن.", status_code=401)
     if not info.get("email") or not info.get("email_verified"):
         raise AuthError(
-            "گوگل ایمیل تایید‌شده نداد. حساب دیگری را امتحان کنید یا با ایمیل ثبت‌نام کنید.",
+            "گوگل ایمیل تایید‌شده نداد. حساب دیگه‌ای امتحان کن یا با ایمیل ثبت‌نام کن.",
             status_code=400,
         )
     if not info.get("sub"):
-        raise AuthError("ورود با گوگل تایید نشد. دوباره امتحان کنید.", status_code=401)
+        raise AuthError("ورود با گوگل تایید نشد. دوباره امتحان کن.", status_code=401)
     return info
 
 
@@ -72,7 +72,7 @@ def authenticate_or_create_customer_with_google(db: Session, *, id_token_str: st
     if existing is not None:
         if existing.google_sub and existing.google_sub != google_sub:
             raise AuthError(
-                "این ایمیل به حساب گوگل دیگری وصل است. با همان حساب وارد شوید.",
+                "این ایمیل به حساب گوگل دیگه‌ای وصله. با همون حساب وارد شو.",
                 status_code=409,
             )
         existing.google_sub = google_sub
@@ -97,7 +97,7 @@ def authenticate_or_create_customer_with_google(db: Session, *, id_token_str: st
         db.commit()
     except IntegrityError as exc:
         db.rollback()
-        raise AuthError("این حساب از قبل وجود دارد. وارد شوید.", status_code=409) from exc
+        raise AuthError("این حساب از قبل هست. وارد شو.", status_code=409) from exc
     db.refresh(customer)
     return customer
 
@@ -112,11 +112,11 @@ def authenticate_or_create_seller_with_google(db: Session, *, id_token_str: str)
     if user is not None:
         if user.role != UserRole.SELLER:
             raise AuthError(
-                "این حساب گوگل برای ورود فروشنده نیست. از صفحه ورود مربوط به نقش خودتان استفاده کنید.",
+                "این حساب گوگل برای ورود فروشنده نیست. از صفحه ورود مربوط به نقش خودت استفاده کن.",
                 status_code=403,
             )
         if not user.is_active:
-            raise AuthError("این حساب غیرفعال است. با پشتیبانی تماس بگیرید.", status_code=403)
+            raise AuthError("این حساب غیرفعاله. با پشتیبانی تماس بگیر.", status_code=403)
         if user.email_verified_at is None:
             user.email_verified_at = datetime.now(UTC)
             db.commit()
@@ -127,16 +127,16 @@ def authenticate_or_create_seller_with_google(db: Session, *, id_token_str: str)
     if existing is not None:
         if existing.role != UserRole.SELLER:
             raise AuthError(
-                "این ایمیل برای نقش دیگری ثبت شده است و نمی‌تواند با گوگل به‌عنوان فروشنده وارد شود.",
+                "این ایمیل برای نقش دیگه‌ای ثبت شده و نمی‌تونه با گوگل به‌عنوان فروشنده وارد بشه.",
                 status_code=403,
             )
         if existing.google_sub and existing.google_sub != google_sub:
             raise AuthError(
-                "این ایمیل به حساب گوگل دیگری وصل است. با همان حساب وارد شوید.",
+                "این ایمیل به حساب گوگل دیگه‌ای وصله. با همون حساب وارد شو.",
                 status_code=409,
             )
         if not existing.is_active:
-            raise AuthError("این حساب غیرفعال است. با پشتیبانی تماس بگیرید.", status_code=403)
+            raise AuthError("این حساب غیرفعاله. با پشتیبانی تماس بگیر.", status_code=403)
         existing.google_sub = google_sub
         if existing.email_verified_at is None:
             existing.email_verified_at = datetime.now(UTC)
@@ -172,7 +172,7 @@ def authenticate_or_create_seller_with_google(db: Session, *, id_token_str: str)
         db.commit()
     except IntegrityError as exc:
         db.rollback()
-        raise AuthError("این حساب از قبل وجود دارد. وارد شوید.", status_code=409) from exc
+        raise AuthError("این حساب از قبل هست. وارد شو.", status_code=409) from exc
 
     return db.scalar(
         select(User)

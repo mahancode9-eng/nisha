@@ -27,7 +27,7 @@ function OrderRow({ order }: { order: CustomerOrderListItem }) {
       await downloadOrderInvoice(() => downloadInvoice(order.id), order.invoice_code);
       toast.success("فاکتور دانلود شد");
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "فاکتور دانلود نشد. دوباره امتحان کنید.");
+      toast.error(err instanceof ApiError ? err.message : "فاکتور دانلود نشد. دوباره امتحان کن.");
     } finally {
       setDownloading(false);
     }
@@ -86,7 +86,7 @@ export default function CustomerOrdersPage() {
         if (!cancelled) {
           setOrders([]);
           setActiveOrders([]);
-          toast.error("سفارش‌ها باز نشد. صفحه را دوباره بارگذاری کنید.");
+          toast.error("سفارش‌ها باز نشد. صفحه رو دوباره بارگذاری کن.");
         }
       }
     })();
@@ -117,14 +117,14 @@ export default function CustomerOrdersPage() {
   }
 
   if (!orders || !activeOrders) {
-    return <LoadingState message="در حال بارگذاری سفارش‌ها…" />;
+    return <LoadingState message="داره سفارش‌ها بارگذاری می‌شن…" />;
   }
 
   return (
     <div className="page-stack">
       <Card>
         <CardHeader>
-          <CardTitle>افزودن سفارش قبلی به حساب</CardTitle>
+          <CardTitle>سفارش قبلی رو به حسابت اضافه کن</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleClaim} className="grid gap-4 md:grid-cols-[1fr_1fr_auto]">
@@ -161,7 +161,7 @@ export default function CustomerOrdersPage() {
         </CardHeader>
         <CardContent className="space-y-3">
           {activeOrders.length === 0 ? (
-            <EmptyState title="سفارش در جریانی ندارید" description="همه سفارش‌هایتان تحویل شده یا بسته شده‌اند." />
+            <EmptyState title="سفارش در جریانی نداری" description="همه سفارش‌هات تحویل شدن یا بسته‌ان." />
           ) : (
             activeOrders.map((order) => <OrderRow key={order.id} order={order} />)
           )}
@@ -174,7 +174,7 @@ export default function CustomerOrdersPage() {
         </CardHeader>
         <CardContent className="space-y-3">
           {orders.length === 0 ? (
-            <EmptyState title="هنوز سفارشی ندارید" description="بعد از اولین خرید، سفارش‌ها اینجا نمایش داده می‌شوند." />
+            <EmptyState title="هنوز سفارشی نداری" description="بعد از اولین خرید، سفارش‌ها اینجا میان." />
           ) : (
             orders.map((order) => <OrderRow key={order.id} order={order} />)
           )}

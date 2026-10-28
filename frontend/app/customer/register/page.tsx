@@ -48,7 +48,7 @@ export default function CustomerRegisterPage() {
       if (err instanceof ApiError && err.status === 409) {
         setShowLoginHint(true);
       }
-      setError(err instanceof ApiError ? err.message : "ثبت‌نام انجام نشد. دوباره امتحان کنید.");
+      setError(err instanceof ApiError ? err.message : "ثبت‌نام نشد. دوباره امتحان کن.");
     } finally {
       setSubmitting(false);
     }
@@ -70,9 +70,9 @@ export default function CustomerRegisterPage() {
     <AuthPageFrame>
       <Card className="mx-auto w-full max-w-md">
         <CardHeader>
-          <CardTitle>ساخت حساب مشتری</CardTitle>
+          <CardTitle>حساب مشتری بساز</CardTitle>
           <p className="mt-1 text-sm text-foreground-muted">
-            اختیاری است؛ بدون حساب هم می‌توانید خرید کنید
+            اختیاریه؛ بدون حساب هم می‌تونی خرید کنی
           </p>
         </CardHeader>
         <CardContent>
@@ -83,13 +83,13 @@ export default function CustomerRegisterPage() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="ایمیل یا تلفن؛ یکی کافی است"
+            placeholder="ایمیل یا تلفن؛ یکی کافیه"
           />
           <Input
             label="تلفن"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            placeholder="ایمیل یا تلفن؛ یکی کافی است"
+            placeholder="ایمیل یا تلفن؛ یکی کافیه"
           />
           <Input
             label="کد پستی"
@@ -112,9 +112,9 @@ export default function CustomerRegisterPage() {
           )}
           {showLoginHint && (
             <p className="text-center text-sm text-foreground-muted">
-              این ایمیل قبلاً تایید شده است.{" "}
+              این ایمیل قبلاً تایید شده.{" "}
               <Link href={paths.customer.login} className="font-medium text-brand-deep hover:underline">
-                وارد شوید
+                وارد شو
               </Link>
             </p>
           )}
@@ -137,7 +137,7 @@ export default function CustomerRegisterPage() {
                 setError(
                   err instanceof ApiError
                     ? err.message
-                    : "ورود با گوگل انجام نشد. دوباره امتحان کنید.",
+                    : "ورود با گوگل نشد. دوباره امتحان کن.",
                 );
               } finally {
                 setSubmitting(false);
@@ -146,7 +146,7 @@ export default function CustomerRegisterPage() {
           />
         </form>
         <p className="mt-4 text-center text-sm text-foreground-muted">
-          حساب دارید؟{" "}
+          حساب داری؟{" "}
           <Link href={paths.customer.login} className="font-medium text-brand-deep hover:underline">
             ورود
           </Link>

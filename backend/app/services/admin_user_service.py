@@ -99,17 +99,17 @@ def update_user(
 
     if user.id == admin.id:
         if update_data.get("is_active") is False:
-            raise ServiceError("نمی‌توانید حساب خود را غیرفعال کنید", status_code=422)
+            raise ServiceError("نمی‌تونی حساب خودت رو غیرفعال کنی", status_code=422)
         if update_data.get("role") is not None and update_data["role"] != UserRole.ADMIN:
-            raise ServiceError("نمی‌توانید نقش خود را تغییر دهید", status_code=422)
+            raise ServiceError("نمی‌تونی نقش خودت رو عوض کنی", status_code=422)
 
     if user.role == UserRole.ADMIN and update_data.get("is_active") is False:
         if _count_active_admins(db, exclude_user_id=user.id) == 0:
-            raise ServiceError("دست‌کم یک مدیر فعال باید باقی بماند.", status_code=422)
+            raise ServiceError("دست‌کم یک مدیر فعال باید بمونه.", status_code=422)
 
     if update_data.get("role") is not None and user.role == UserRole.ADMIN and update_data["role"] != UserRole.ADMIN:
         if _count_active_admins(db, exclude_user_id=user.id) == 0 and user.is_active:
-            raise ServiceError("دست‌کم یک مدیر فعال باید باقی بماند.", status_code=422)
+            raise ServiceError("دست‌کم یک مدیر فعال باید بمونه.", status_code=422)
 
     for field, value in update_data.items():
         setattr(user, field, value)

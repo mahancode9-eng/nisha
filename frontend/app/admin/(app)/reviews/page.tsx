@@ -44,7 +44,7 @@ export default function AdminReviewsPage() {
       }
       await refetch();
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "به‌روزرسانی نظر انجام نشد. دوباره امتحان کنید.");
+      toast.error(err instanceof ApiError ? err.message : "به‌روزرسانی نظر انجام نشد. دوباره امتحان کن.");
     } finally {
       setActionId(null);
     }
@@ -55,7 +55,7 @@ export default function AdminReviewsPage() {
   return (
     <div className="page-stack">
       <PageHeader
-        description="نظرات خریداران را پیش از عمومی شدن بررسی کنید."
+        description="نظرات خریداران رو پیش از عمومی شدن بررسی کن."
         action={
           <label className="flex items-center gap-2 text-sm text-foreground">
             <input

@@ -67,6 +67,8 @@ jobs:
 
       - name: Validate docker-compose files
         run: |
+          # Local compose references backend/.env; CI supplies vars via env below.
+          touch backend/.env
           docker compose -f docker-compose.yml config -q
           docker compose -f docker-compose.prod.yml config -q
         env:

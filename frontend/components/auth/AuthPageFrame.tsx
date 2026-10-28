@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { BrandMark } from "@/components/layout/chrome/BrandMark";
+import { ThemeModeToggle } from "@/components/theme/GlobalThemeToggle";
 import { paths } from "@/lib/auth/paths";
 
 /** Shared auth chrome — landing-matched atmosphere for login/register/recover. */
@@ -26,14 +27,17 @@ export function AuthPageFrame({ children }: { children: ReactNode }) {
         />
       </div>
 
-      <header className="relative z-10 mx-auto flex w-full max-w-lg items-center justify-between px-4 pt-6">
+      <header className="relative z-10 mx-auto flex w-full max-w-lg items-center justify-between gap-3 px-4 pt-6">
         <BrandMark />
-        <Link
-          href={paths.home}
-          className="text-sm text-foreground-muted transition-colors hover:text-foreground"
-        >
-          بازگشت به خانه
-        </Link>
+        <div className="flex items-center gap-2">
+          <ThemeModeToggle />
+          <Link
+            href={paths.home}
+            className="text-sm text-foreground-muted transition-colors hover:text-foreground"
+          >
+            برگرد خونه
+          </Link>
+        </div>
       </header>
 
       <div className="relative z-10 flex flex-1 items-center justify-center px-4 py-10">

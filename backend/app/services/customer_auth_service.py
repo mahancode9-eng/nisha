@@ -38,7 +38,7 @@ def register_customer(
     normalized_phone = normalize_phone(phone) if phone else None
 
     if not normalized_email and not normalized_phone:
-        raise AuthError("ایمیل یا شماره تلفن را وارد کنید؛ یکی کافی است.", status_code=422)
+        raise AuthError("ایمیل یا شماره تلفن رو وارد کن؛ یکی کافیه.", status_code=422)
 
     if normalized_email:
         existing = get_customer_by_email(db, normalized_email)
@@ -60,11 +60,11 @@ def register_customer(
                     db.commit()
                 except IntegrityError as exc:
                     db.rollback()
-                    raise AuthError("این حساب از قبل وجود دارد. وارد شوید.", status_code=409) from exc
-            raise AuthError("با این ایمیل قبلاً حساب ساخته شده است. وارد شوید یا رمز را بازیابی کنید.", status_code=409)
+                    raise AuthError("این حساب از قبل هست. وارد شو.", status_code=409) from exc
+            raise AuthError("با این ایمیل قبلاً حساب ساخته شده. وارد شو یا رمز رو بازیابی کن.", status_code=409)
 
     if normalized_phone and get_customer_by_phone(db, normalized_phone) is not None:
-        raise AuthError("با این شماره قبلاً حساب ساخته شده است. وارد شوید یا رمز را بازیابی کنید.", status_code=409)
+        raise AuthError("با این شماره قبلاً حساب ساخته شده. وارد شو یا رمز رو بازیابی کن.", status_code=409)
 
     customer = CustomerAccount(
         email=normalized_email,
@@ -92,7 +92,7 @@ def register_customer(
         db.commit()
     except IntegrityError as exc:
         db.rollback()
-        raise AuthError("این حساب از قبل وجود دارد. وارد شوید.", status_code=409) from exc
+        raise AuthError("این حساب از قبل هست. وارد شو.", status_code=409) from exc
 
     db.refresh(customer)
     return customer

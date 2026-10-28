@@ -25,8 +25,8 @@ export default function SellerConversationsPage() {
 
       {!isLoading && data?.length === 0 && (
         <EmptyState
-          title="هنوز پیامی ندارید"
-          description="وقتی مشتری‌ای از فروشگاه پیام بدهد، اینجا می‌بینید."
+          title="هنوز پیامی نداری"
+          description="وقتی مشتری‌ای از فروشگاه پیام بده، اینجا می‌بینی."
         />
       )}
 

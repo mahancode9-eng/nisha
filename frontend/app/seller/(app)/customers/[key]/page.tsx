@@ -36,7 +36,7 @@ export default function SellerCustomerDetailPage({ params }: PageProps) {
   );
 
   if (isLoading) {
-    return <LoadingState message="در حال بارگذاری مشتری…" />;
+    return <LoadingState message="داره مشتری رو بارگذاری می‌کنه…" />;
   }
 
   if (error || !data) {
@@ -44,7 +44,7 @@ export default function SellerCustomerDetailPage({ params }: PageProps) {
       <div className="space-y-4">
         <ErrorAlert message={error ?? "مشتری پیدا نشد"} />
         <Link href={paths.seller.customers}>
-          <Button variant="secondary">بازگشت به مشتری‌ها</Button>
+          <Button variant="secondary">برگرد به مشتری‌ها</Button>
         </Link>
       </div>
     );
@@ -68,7 +68,7 @@ export default function SellerCustomerDetailPage({ params }: PageProps) {
         <div className="flex flex-wrap gap-2">
           {data.conversation_id ? (
             <Link href={paths.seller.conversationDetail(data.conversation_id)}>
-              <Button variant="secondary">مشاهده گفتگو</Button>
+              <Button variant="secondary">دیدن گفتگو</Button>
             </Link>
           ) : null}
           <Link href={paths.seller.customers}>
@@ -131,7 +131,7 @@ export default function SellerCustomerDetailPage({ params }: PageProps) {
         </CardHeader>
         <CardContent>
           {data.orders.length === 0 ? (
-            <EmptyState title="سفارشی ندارد" description="این مشتری هنوز سفارشی ثبت نکرده است." />
+            <EmptyState title="سفارشی ندارد" description="این مشتری هنوز سفارشی ثبت نکرده." />
           ) : (
             <Table embedded>
               <TableHead>

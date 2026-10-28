@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { PointerEvent } from "react";
 import { cn } from "@/lib/cn";
 import { prefersReducedMotion, toFa, useInView } from "@/components/landing/useInView";
 
@@ -16,8 +15,8 @@ const products = [
 const STAGES = [
   { toast: null, product: -1 },
   { toast: { title: "سفارش تازه", body: "کیف چرمی · ۱٬۱۹۰٬۰۰۰ تومان", tone: "violet" }, product: 1 },
-  { toast: { title: "رسید کارت‌به‌کارت رسید", body: "مشتری رسید واریز را فرستاد", tone: "sky" }, product: 1 },
-  { toast: { title: "پرداخت تایید شد", body: "سفارش آماده ارسال است", tone: "emerald" }, product: -1 },
+  { toast: { title: "رسید اومد", body: "عکس واریز رو فرستاد", tone: "sky" }, product: 1 },
+  { toast: { title: "تایید شد", body: "می‌تونی بفرستی", tone: "emerald" }, product: -1 },
 ] as const;
 
 const toneClasses = {
@@ -63,7 +62,6 @@ type LandingMockupProps = {
 /** Wide product preview for the hero: a small dashboard that plays one card-to-card sale. */
 export function LandingMockup({ className }: LandingMockupProps) {
   const [viewRef, inView] = useInView<HTMLDivElement>(0.25);
-  const tiltRef = useRef<HTMLDivElement | null>(null);
   const [stage, setStage] = useState(0);
   const [cycles, setCycles] = useState(0);
 
@@ -93,38 +91,9 @@ export function LandingMockup({ className }: LandingMockupProps) {
 
   const current = STAGES[stage];
 
-  function onPointerMove(event: PointerEvent<HTMLDivElement>) {
-    const node = tiltRef.current;
-    if (!node || event.pointerType !== "mouse" || prefersReducedMotion()) return;
-    const rect = node.getBoundingClientRect();
-    const x = (event.clientX - rect.left) / rect.width - 0.5;
-    const y = (event.clientY - rect.top) / rect.height - 0.5;
-    node.style.setProperty("--tilt-x", `${(-y * 5).toFixed(2)}deg`);
-    node.style.setProperty("--tilt-y", `${(x * 7).toFixed(2)}deg`);
-    node.style.setProperty("--glare-x", `${((x + 0.5) * 100).toFixed(1)}%`);
-    node.style.setProperty("--glare-y", `${((y + 0.5) * 100).toFixed(1)}%`);
-  }
-
-  function onPointerLeave() {
-    const node = tiltRef.current;
-    if (!node) return;
-    node.style.setProperty("--tilt-x", "0deg");
-    node.style.setProperty("--tilt-y", "0deg");
-  }
-
   return (
-    <div
-      ref={viewRef}
-      className={cn("landing-tilt-stage relative mx-auto w-full max-w-5xl", className)}
-      onPointerMove={onPointerMove}
-      onPointerLeave={onPointerLeave}
-    >
-      <div
-        ref={tiltRef}
-        className="landing-tilt landing-glow-ring relative overflow-hidden rounded-xl border border-white/10 bg-[#0c0c0f]"
-      >
-        <div aria-hidden className="landing-glare pointer-events-none absolute inset-0 z-20" />
-
+    <div ref={viewRef} className={cn("relative mx-auto w-full max-w-5xl", className)}>
+      <div className="landing-glow-ring relative overflow-hidden rounded-xl border border-white/10 bg-[#0c0c0f]">
         {/* Window chrome */}
         <div className="flex items-center gap-2 border-b border-white/10 bg-white/[0.03] px-4 py-3">
           <span className="h-2.5 w-2.5 rounded-full bg-rose-400/60" />
@@ -174,10 +143,7 @@ export function LandingMockup({ className }: LandingMockupProps) {
                 <p className="text-xs text-zinc-500">فروشگاه آنلاین</p>
                 <h3 className="flex items-center gap-2 text-lg font-semibold text-white">
                   ویترین زنده
-                  <span className="relative flex h-2 w-2">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-50 motion-reduce:animate-none" />
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
-                  </span>
+                  <span className="h-2 w-2 rounded-full bg-emerald-400" />
                 </h3>
               </div>
               <span className="rounded-md border border-violet-400/30 bg-violet-500/15 px-2.5 py-1 text-xs font-medium text-violet-200">
@@ -207,16 +173,13 @@ export function LandingMockup({ className }: LandingMockupProps) {
                 <div
                   key={product.name}
                   className={cn(
-                    "overflow-hidden rounded-md border bg-black/25 transition-all duration-500",
+                    "overflow-hidden rounded-md border bg-black/25 transition-colors duration-300",
                     current.product === index
-                      ? "-translate-y-0.5 border-violet-400/60 shadow-[0_0_24px_rgba(139,92,246,0.35)]"
+                      ? "border-violet-400/55 bg-violet-500/5"
                       : "border-white/10",
                   )}
                 >
-                  <div
-                    className="landing-product-art relative h-12 overflow-hidden bg-gradient-to-br sm:h-14"
-                    style={{ animationDelay: `${index * 450}ms` }}
-                  >
+                  <div className="relative h-12 overflow-hidden bg-gradient-to-br sm:h-14">
                     <div className={cn("absolute inset-0 bg-gradient-to-br", product.tone)} />
                   </div>
                   <div className="space-y-0.5 p-1.5 sm:p-2">

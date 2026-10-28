@@ -14,7 +14,7 @@ export function ConversationListItemRow({
   subtitle,
 }: ConversationListItemProps) {
   const initial = item.store_name.charAt(0).toUpperCase();
-  const preview = item.last_message_body ?? "هنوز پیامی ثبت نشده";
+  const preview = item.last_message_body ?? "هنوز پیامی نیست";
   const time = item.last_message_at ?? item.updated_at;
 
   return (

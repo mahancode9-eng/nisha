@@ -14,6 +14,10 @@ export type Store = {
   whatsapp: string | null;
   instagram: string | null;
   bale: string | null;
+  telegram_chat_id?: string | null;
+  bale_chat_id?: string | null;
+  telegram_linked_at?: string | null;
+  bale_linked_at?: string | null;
   website: string | null;
   support_contact: string | null;
   is_active: boolean;

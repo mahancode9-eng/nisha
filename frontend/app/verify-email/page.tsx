@@ -24,11 +24,11 @@ function VerifyEmailContent() {
     verifyEmail(token, kind)
       .then(() => {
         setStatus("success");
-        setMessage("ایمیل شما تایید شد. حالا می‌توانید وارد شوید.");
+        setMessage("ایمیلت تایید شد. حالا می‌تونی وارد شی.");
       })
       .catch((err) => {
         setStatus("error");
-        setMessage(err instanceof ApiError ? err.message : "ایمیل تایید نشد. دوباره از لینک داخل ایمیل امتحان کنید.");
+        setMessage(err instanceof ApiError ? err.message : "ایمیل تایید نشد. دوباره از لینک داخل ایمیل امتحان کن.");
       });
   }, [token, kind]);
 

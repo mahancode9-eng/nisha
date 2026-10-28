@@ -17,7 +17,7 @@ def test_seller_cannot_access_admin_dashboard(
 ) -> None:
     response = client.get("/api/v1/admin/dashboard", headers=seller_headers)
     assert response.status_code == 403
-    assert response.json()["detail"] == "این بخش فقط برای مدیران است."
+    assert response.json()["detail"] == "این بخش فقط برای مدیره."
 
 
 def test_admin_activate_deactivate_store(
@@ -65,7 +65,7 @@ def test_seller_cannot_list_admin_orders(
 ) -> None:
     response = client.get("/api/v1/admin/orders", headers=seller_headers)
     assert response.status_code == 403
-    assert response.json()["detail"] == "این بخش فقط برای مدیران است."
+    assert response.json()["detail"] == "این بخش فقط برای مدیره."
 
 
 def test_admin_order_detail(

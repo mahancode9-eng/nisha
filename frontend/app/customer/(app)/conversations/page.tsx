@@ -23,8 +23,8 @@ export default function CustomerConversationsPage() {
         <StartChatHandler />
       </Suspense>
       <div>
-        <h1 className="text-2xl font-bold text-neutral-900">گفتگوهای شما</h1>
-        <p className="mt-1 text-sm text-neutral-600">پیام‌های شما با فروشنده‌ها، درباره سفارش یا هر سؤال دیگر.</p>
+        <h1 className="text-2xl font-bold text-neutral-900">گفتگوهات</h1>
+        <p className="mt-1 text-sm text-neutral-600">پیام‌هات با فروشنده‌ها، درباره سفارش یا هر سؤال دیگه.</p>
       </div>
 
       {isLoading && !data && <TableSkeleton rows={4} columns={1} />}
@@ -33,8 +33,8 @@ export default function CustomerConversationsPage() {
 
       {data && data.length === 0 && (
         <EmptyState
-          title="هنوز گفتگویی ندارید"
-          description="از صفحه هر فروشگاه می‌توانید به فروشنده پیام بدهید."
+          title="هنوز گفتگویی نداری"
+          description="از صفحه هر فروشگاه می‌تونی به فروشنده پیام بدی."
         />
       )}
 

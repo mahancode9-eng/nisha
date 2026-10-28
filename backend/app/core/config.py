@@ -60,6 +60,8 @@ class Settings(BaseSettings):
     SUBSCRIPTION_PROOF_SUBDIR: str = "subscription-proofs"
     ORDER_RESERVATION_MINUTES: int = 20
     PAYMENT_REVIEW_HOLD_MINUTES: int = 1440
+    # Send unpaid-order SMS once when this many minutes remain before reservation expiry.
+    PAYMENT_REMINDER_MINUTES_BEFORE_EXPIRY: int = 10
     PRIVATE_UPLOAD_DIR: str = "./private_uploads"
     ALLOW_DEMO_SEED: bool = False
     RESERVATION_CLEANUP_ENABLED: bool = True
@@ -68,6 +70,16 @@ class Settings(BaseSettings):
     # Client secret is unused for the GIS ID-token flow but kept for future server OAuth.
     GOOGLE_CLIENT_ID: str = ""
     GOOGLE_CLIENT_SECRET: str = ""
+    # Platform bots for seller order/receipt alerts (optional).
+    TELEGRAM_BOT_TOKEN: str = ""
+    TELEGRAM_BOT_USERNAME: str = ""
+    TELEGRAM_WEBHOOK_SECRET: str = ""
+    BALE_BOT_TOKEN: str = ""
+    BALE_BOT_USERNAME: str = ""
+    BALE_WEBHOOK_SECRET: str = ""
+    # Public base URL of this API (for Telegram to fetch private media). e.g. https://api.example.com
+    API_PUBLIC_BASE_URL: str = ""
+    MESSENGER_LINK_TOKEN_EXPIRE_MINUTES: int = 30
 
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod

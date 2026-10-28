@@ -38,9 +38,7 @@
 }
 
 [data-landing] .landing-glass {
-  background: rgba(17, 17, 19, 0.72);
-  backdrop-filter: blur(20px) saturate(1.2);
-  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  background: rgba(17, 17, 19, 0.94);
   border: 1px solid var(--landing-border);
   border-radius: 14px;
   box-shadow:
@@ -51,37 +49,30 @@
 [data-landing] .landing-glow-ring {
   box-shadow:
     0 0 0 1px rgba(139, 92, 246, 0.28),
-    0 0 80px rgba(139, 92, 246, 0.18),
-    0 30px 80px rgba(0, 0, 0, 0.45);
+    0 0 48px rgba(139, 92, 246, 0.12),
+    0 24px 56px rgba(0, 0, 0, 0.4);
 }
 
 [data-landing] .landing-header {
   border-bottom: 1px solid transparent;
   background: transparent;
   transition:
-    background-color 240ms ease,
-    border-color 240ms ease,
-    backdrop-filter 240ms ease;
+    background-color 200ms ease,
+    border-color 200ms ease;
 }
 
 [data-landing] .landing-header.is-scrolled {
   border-bottom-color: var(--landing-border);
-  background: rgba(9, 9, 11, 0.72);
-  backdrop-filter: blur(16px) saturate(1.3);
-  -webkit-backdrop-filter: blur(16px) saturate(1.3);
+  background: rgba(9, 9, 11, 0.92);
 }
 
 [data-landing] [role="dialog"] {
-  background: rgba(17, 17, 19, 0.92);
+  background: rgba(17, 17, 19, 0.96);
   border-color: var(--landing-border);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
 }
 
 [data-landing] .landing-pricing article {
-  background: rgba(17, 17, 19, 0.8);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(17, 17, 19, 0.94);
   border-color: var(--landing-border);
   border-radius: 14px;
 }
@@ -126,8 +117,7 @@
 }
 
 [data-landing] .landing-marquee-track {
-  animation: landing-marquee 40s linear infinite;
-  will-change: transform;
+  animation: landing-marquee 48s linear infinite;
 }
 
 /* Fade the edges with a mask so it works over the moving backdrop. */
@@ -184,100 +174,24 @@
 
 /* ---------- Motion layer ---------- */
 
-@keyframes landing-drift-a {
-  0%, 100% { translate: -50% 0; scale: 1; }
-  50% { translate: -46% 6vh; scale: 1.08; }
-}
-@keyframes landing-drift-b {
-  0%, 100% { translate: 0 0; }
-  50% { translate: 8vw -6vh; }
-}
-@keyframes landing-drift-c {
-  0%, 100% { translate: 0 0; }
-  50% { translate: -6vw -8vh; }
-}
-
-/* blob-a is centred with translate (not transform) so the drift can move it. */
-[data-landing] .landing-blob-a {
-  transform: none;
-  translate: -50% 0;
-  animation: landing-drift-a 18s ease-in-out infinite;
-}
-[data-landing] .landing-blob-b { animation: landing-drift-b 22s ease-in-out infinite; }
-[data-landing] .landing-blob-c { animation: landing-drift-c 26s ease-in-out infinite; }
-
-/* Moving gradient on a headline phrase. */
-@keyframes landing-gradient-pan {
-  to { background-position: 200% center; }
-}
+/* Static gradient on a headline phrase (no continuous repaint). */
 [data-landing] .landing-gradient-text {
-  background: linear-gradient(90deg, #c4b5fd, #f0abfc, #7dd3fc, #c4b5fd);
-  background-size: 200% auto;
+  background: linear-gradient(90deg, #c4b5fd, #f0abfc, #7dd3fc);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  animation: landing-gradient-pan 6s linear infinite;
 }
 
-/* Light sweep across the primary button. */
-@keyframes landing-shine {
-  0%, 70% { transform: translateX(-120%) skewX(-20deg); }
-  100% { transform: translateX(220%) skewX(-20deg); }
-}
+/* Primary CTA: hover shine only, no infinite loop. */
 [data-landing] .landing-shine {
   position: relative;
   overflow: hidden;
   isolation: isolate;
-}
-[data-landing] .landing-shine::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  width: 40%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
-  animation: landing-shine 4.5s ease-in-out infinite;
-  pointer-events: none;
-  z-index: 1;
+  transition: box-shadow 200ms ease, transform 200ms ease;
 }
 [data-landing] .landing-shine:hover {
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25), 0 12px 44px rgba(168, 85, 247, 0.55);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25), 0 12px 44px rgba(168, 85, 247, 0.45);
   transform: translateY(-1px);
-}
-
-/* Hero dashboard: pointer tilt + glare. */
-[data-landing] .landing-tilt-stage {
-  perspective: 1400px;
-}
-[data-landing] .landing-tilt {
-  transform: rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
-  transform-style: preserve-3d;
-  transition: transform 400ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-[data-landing] .landing-glare {
-  opacity: 0;
-  transition: opacity 400ms ease;
-  background: radial-gradient(
-    600px circle at var(--glare-x, 50%) var(--glare-y, 0%),
-    rgba(255, 255, 255, 0.07),
-    transparent 45%
-  );
-}
-[data-landing] .landing-tilt-stage:hover .landing-glare {
-  opacity: 1;
-}
-
-/* Product thumbnails shimmer one after another. */
-@keyframes landing-shimmer {
-  0%, 60% { transform: translateX(-130%); }
-  100% { transform: translateX(130%); }
-}
-[data-landing] .landing-product-art::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.12) 50%, transparent 70%);
-  animation: landing-shimmer 3.6s ease-in-out infinite;
-  animation-delay: inherit;
 }
 
 /* Cards that glow under the cursor (see SpotlightGroup). */
@@ -303,17 +217,8 @@
 [data-landing] .landing-spotlight:hover::before {
   opacity: 1;
 }
-[data-landing] .landing-spotlight:hover {
-  transform: translateY(-3px);
-}
 [data-landing] .landing-spotlight {
-  transition: transform 300ms ease, border-color 300ms ease, background-color 300ms ease;
-}
-[data-landing] .landing-spotlight .landing-icon {
-  transition: transform 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-[data-landing] .landing-spotlight:hover .landing-icon {
-  transform: scale(1.12) rotate(-6deg);
+  transition: border-color 200ms ease, background-color 200ms ease;
 }
 
 /* Payment flow progress line. */
@@ -327,73 +232,148 @@
   }
 }
 
-/* Final CTA: slowly turning gradient border. */
-@property --landing-angle {
-  syntax: "<angle>";
-  initial-value: 0deg;
-  inherits: false;
-}
-@keyframes landing-spin {
-  to { --landing-angle: 360deg; }
-}
+/* Final CTA: static soft border (no continuous conic spin). */
 [data-landing] .landing-border-spin {
   position: relative;
-  border-color: transparent;
-}
-[data-landing] .landing-border-spin::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  padding: 1px;
-  border-radius: inherit;
-  background: conic-gradient(
-    from var(--landing-angle),
-    transparent 0deg,
-    rgba(196, 181, 253, 0.9) 60deg,
-    rgba(240, 171, 252, 0.6) 120deg,
-    transparent 180deg,
-    transparent 360deg
-  );
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  animation: landing-spin 6s linear infinite;
-  pointer-events: none;
-}
-
-/* Gentle float for decorative chips. */
-@keyframes landing-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
-}
-[data-landing] .landing-float {
-  animation: landing-float 5s ease-in-out infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  [data-landing] .landing-blob-a,
-  [data-landing] .landing-blob-b,
-  [data-landing] .landing-blob-c,
-  [data-landing] .landing-gradient-text,
-  [data-landing] .landing-shine::after,
-  [data-landing] .landing-product-art::after,
-  [data-landing] .landing-border-spin::before,
-  [data-landing] .landing-float {
-    animation: none !important;
-  }
-  [data-landing] .landing-tilt,
-  [data-landing] .landing-spotlight:hover,
-  [data-landing] .landing-spotlight:hover .landing-icon {
-    transform: none !important;
-  }
+  box-shadow:
+    0 0 0 1px rgba(196, 181, 253, 0.35),
+    0 0 40px rgba(139, 92, 246, 0.12);
 }
 
 [data-landing] .landing-reveal-mobile {
-  transition-duration: 900ms;
+  transition-duration: 500ms;
+}
+
+/* ---------- How it works: scroll-driven 3D phone ----------
+   --how-p runs 0…3 with scroll (set in HowItWorks.tsx); everything below derives from it. */
+
+[data-landing] .how-stage {
+  --how-p: 0;
+  perspective: 1500px;
+  perspective-origin: 50% 40%;
+}
+
+[data-landing] .how-phone {
+  transform-style: preserve-3d;
+  transform: rotateX(calc(9deg - var(--how-p) * 1.5deg)) rotateY(calc(-22deg + var(--how-p) * 14.6deg))
+    rotateZ(calc(-2deg + var(--how-p) * 1.2deg));
+  /* Smooths out coarse wheel steps without lagging behind the page. */
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+[data-landing] .how-phone-edge {
+  transform: translateZ(var(--d));
+  background: linear-gradient(90deg, #3b3846, #1d1c23 40%, #2c2a35);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+[data-landing] .how-phone-face {
+  transform: translateZ(0.5px);
+  background: linear-gradient(150deg, #4a4658 0%, #24222c 35%, #17161c 70%, #3a3747 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.14),
+    inset 0 2px 0 rgba(255, 255, 255, 0.12);
+}
+
+[data-landing] .how-phone-button {
+  transform: translateZ(-6px);
+  background: linear-gradient(180deg, #4a4658, #2a2833);
+}
+
+/* Light sweeping across the glass as the phone turns. */
+[data-landing] .how-phone-glare {
+  background: linear-gradient(
+    115deg,
+    transparent calc(8% + var(--how-p) * 18%),
+    rgba(255, 255, 255, 0.09) calc(16% + var(--how-p) * 18%),
+    transparent calc(30% + var(--how-p) * 18%)
+  );
+  mix-blend-mode: screen;
+}
+
+[data-landing] .how-glow {
+  background: radial-gradient(
+    ellipse at calc(40% + var(--how-p) * 7%) 50%,
+    rgba(139, 92, 246, 0.32),
+    rgba(217, 70, 239, 0.12) 40%,
+    transparent 70%
+  );
+  filter: blur(10px);
+}
+
+[data-landing] .how-floor {
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.75), transparent 70%);
+  transform: translateX(calc(-14px + var(--how-p) * 9px)) scaleX(calc(1.1 - var(--how-p) * 0.05));
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Cards pop out of the screen toward the viewer for the current step. */
+[data-landing] .how-pop {
+  opacity: 0;
+  transform: translateZ(0) scale(0.9);
+  transition:
+    opacity 420ms ease,
+    transform 650ms cubic-bezier(0.34, 1.4, 0.64, 1);
+  pointer-events: none;
+  white-space: nowrap;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+[data-landing] .how-pop[data-on="true"] {
+  opacity: 1;
+  transform: translateZ(var(--z, 80px)) scale(1);
+  transition-delay: 120ms;
+}
+
+[data-landing] .how-root {
+  --how-p: 0;
+}
+[data-landing] .how-rail {
+  height: calc(var(--how-p) / 3 * 76%);
+  background: linear-gradient(to bottom, #a78bfa, #e879f9);
+  box-shadow: 0 0 10px rgba(192, 132, 252, 0.7);
+}
+/* On mobile --how-p jumps a whole step per swipe, so the turn eases over longer. */
+[data-landing] .how-stage-m .how-phone {
+  transition-duration: 800ms;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-landing] .how-phone {
+    transform: rotateX(6deg) rotateY(-10deg);
+    transition: none;
+  }
+  [data-landing] .how-pop,
+  [data-landing] .how-floor {
+    transition: none;
+  }
+}
+
+/* DM thread bubble stagger. */
+[data-landing] .landing-bubble {
+  opacity: 0;
+  transform: translate3d(0, 8px, 0);
+  transition:
+    opacity 350ms ease,
+    transform 350ms ease;
+}
+[data-landing] .is-playing .landing-bubble {
+  opacity: 1;
+  transform: none;
 }
 
 @media (max-width: 767px) {
   [data-landing] .landing-reveal-mobile {
     transform: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-landing] .landing-bubble {
+    opacity: 1;
+    transform: none;
+    transition: none;
   }
 }

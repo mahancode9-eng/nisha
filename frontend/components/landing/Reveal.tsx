@@ -62,7 +62,7 @@ export function Reveal({
       ref={ref}
       style={style}
       className={cn(
-        "landing-reveal-mobile transition-all duration-700 ease-out will-change-transform motion-reduce:transition-none motion-reduce:transform-none",
+        "landing-reveal-mobile transition-[opacity,transform] duration-500 ease-out motion-reduce:transition-none motion-reduce:transform-none",
         visible ? "translate-x-0 translate-y-0 opacity-100" : cn("opacity-0", hiddenTransform),
         className,
       )}

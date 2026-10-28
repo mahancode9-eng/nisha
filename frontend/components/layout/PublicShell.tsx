@@ -7,6 +7,8 @@ import { ChromeFooter } from "@/components/layout/chrome/ChromeFooter";
 import { ChromeHeader } from "@/components/layout/chrome/ChromeHeader";
 import { ChromeMobileDrawer, MobileNavLink } from "@/components/layout/chrome/ChromeMobileDrawer";
 import { ChromeNav, type ChromeNavItem } from "@/components/layout/chrome/ChromeNav";
+import { ThemeModeToggle } from "@/components/theme/GlobalThemeToggle";
+import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 import { paths } from "@/lib/auth/paths";
 import { Button } from "@/components/ui/Button";
 
@@ -92,6 +94,10 @@ export function PublicShell({
           {item.label}
         </MobileNavLink>
       ))}
+      <div className="mt-2 border-t border-border/70 pt-3">
+        <p className="mb-2 px-1 text-xs font-medium text-foreground-muted">حالت رنگ</p>
+        <ThemeSwitcher variant="group" />
+      </div>
     </>
   );
 
@@ -115,7 +121,12 @@ export function PublicShell({
         title={title}
         subtitle={subtitle}
         actions={headerActions}
-        mobileActions={mobileActions}
+        mobileActions={
+          <>
+            <ThemeModeToggle />
+            {mobileActions}
+          </>
+        }
         secondaryNav={
           navItems.length > 0 ? (
             <div className="hidden border-t border-border bg-surface-muted/60 md:block">

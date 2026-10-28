@@ -96,7 +96,7 @@ export default function SellerOrdersPage() {
       await downloadOrderInvoice(() => ordersApi.downloadInvoice(orderId), invoiceCode);
       toast.success("فاکتور دانلود شد");
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "فاکتور دانلود نشد. دوباره امتحان کنید.");
+      toast.error(err instanceof ApiError ? err.message : "فاکتور دانلود نشد. دوباره امتحان کن.");
     } finally {
       setDownloadingId(null);
     }
@@ -108,7 +108,7 @@ export default function SellerOrdersPage() {
       await exportsApi.downloadCsv(() => exportsApi.exportOrdersCsv(), "orders.csv");
       toast.success("فایل اکسل سفارش‌ها دانلود شد");
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "فایل خروجی ساخته نشد. دوباره امتحان کنید.");
+      toast.error(err instanceof ApiError ? err.message : "فایل خروجی ساخته نشد. دوباره امتحان کن.");
     } finally {
       setExporting(false);
     }
@@ -117,7 +117,7 @@ export default function SellerOrdersPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        description="اول پرداخت‌ها را بررسی کنید، بعد سفارش‌ها را آماده و ارسال کنید"
+        description="اول پرداخت‌ها رو چک کن، بعد سفارش‌ها رو آماده و ارسال کن"
         action={
           canExport ? (
             <Button type="button" variant="secondary" loading={exporting} onClick={() => void handleExport()}>
@@ -151,13 +151,13 @@ export default function SellerOrdersPage() {
         <ErrorAlert message={!isLoading && error ? error : ""} />
 
         {!isLoading && !error && data && data.total === 0 && (
-          <EmptyState title="سفارشی پیدا نشد" description="عبارت دیگری جستجو کنید." />
+          <EmptyState title="سفارشی پیدا نشد" description="عبارت دیگه‌ای جستجو کن." />
         )}
 
         {!isLoading && visibleItems.length === 0 && data && data.total > 0 && (
           <EmptyState
-            title="فعلاً سفارشی در این بخش نیست"
-            description="سفارش‌های جدید که برسند، اینجا نمایش داده می‌شوند."
+            title="فعلاً سفارشی تو این بخش نیست"
+            description="سفارش‌های جدید که برسن، اینجا نشون داده می‌شن."
           />
         )}
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/lib/cn";
 import { useTheme } from "@/contexts/ThemeContext";
 
 function SunIcon() {
@@ -19,7 +20,12 @@ function MoonIcon() {
   );
 }
 
-export function GlobalThemeToggle() {
+type ThemeModeToggleProps = {
+  className?: string;
+};
+
+/** Compact light/dark control for headers and menus — not a floating FAB. */
+export function ThemeModeToggle({ className }: ThemeModeToggleProps) {
   const { resolvedTheme, toggleTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
   const nextLabel = isDark ? "روشن" : "تیره";
@@ -30,9 +36,17 @@ export function GlobalThemeToggle() {
       onClick={toggleTheme}
       aria-label={`تغییر به حالت ${nextLabel}`}
       title={`حالت ${nextLabel}`}
-      className="fixed bottom-[calc(5.75rem+env(safe-area-inset-bottom))] start-4 z-50 flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-surface/90 text-foreground shadow-md backdrop-blur transition hover:bg-surface-muted print:hidden lg:bottom-4"
+      className={cn(
+        "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border/70 bg-surface/80 text-foreground transition hover:bg-surface-muted print:hidden",
+        className,
+      )}
     >
       {isDark ? <SunIcon /> : <MoonIcon />}
     </button>
   );
+}
+
+/** @deprecated Use ThemeModeToggle in chrome instead of a global float. */
+export function GlobalThemeToggle() {
+  return <ThemeModeToggle />;
 }

@@ -51,17 +51,16 @@ export function OrderSuccessPanel({ order }: OrderSuccessPanelProps) {
   return (
     <div className="space-y-6">
       <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-6">
-        <h2 className="text-xl font-bold text-emerald-900 dark:text-emerald-100">سفارش شما ثبت شد</h2>
+        <h2 className="text-xl font-bold text-emerald-900 dark:text-emerald-100">سفارشت ثبت شد</h2>
         <p className="mt-2 text-sm text-emerald-800 dark:text-emerald-200">
-          کد و رمز فاکتور را همین حالا جایی یادداشت کنید. برای پیگیری سفارش و فرستادن رسید پرداخت
-          به آن‌ها نیاز دارید.
+          کد و رمز فاکتور رو همین حالا یه جا یادداشت کن. برای پیگیری سفارش و فرستادن رسید پرداخت بهشون نیاز داری.
         </p>
       </div>
 
       <div className="rounded-xl border-2 border-red-500/20 bg-red-500/10 p-4">
-        <p className="font-semibold text-red-900 dark:text-red-100">مهم: رمز را همین حالا ذخیره کنید</p>
+        <p className="font-semibold text-red-900 dark:text-red-100">مهم: رمز رو همین حالا ذخیره کن</p>
         <p className="mt-1 text-sm text-red-800 dark:text-red-200">
-          رمز فاکتور فقط همین یک بار نمایش داده می‌شود و بعداً قابل بازیابی نیست.
+          رمز فاکتور فقط همین یه بار نشون داده می‌شه و بعداً برنمی‌گرده.
         </p>
         <div className="mt-4 space-y-3">
           <CopyField label="کد فاکتور" value={order.invoice_code} />

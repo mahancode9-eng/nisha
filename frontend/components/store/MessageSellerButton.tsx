@@ -83,7 +83,7 @@ export function MessageSellerButton({
         className={iconClass}
         disabled={loading}
         onClick={() => void handleClick()}
-        aria-label={loading ? "در حال باز کردن گفتگو…" : "گفتگو با فروشنده"}
+        aria-label={loading ? "داره گفتگو رو باز می‌کنه…" : "گفتگو با فروشنده"}
         title="گفتگو"
       >
         <ChatIcon className="h-5 w-5" />

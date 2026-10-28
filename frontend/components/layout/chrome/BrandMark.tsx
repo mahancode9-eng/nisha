@@ -35,7 +35,7 @@ export function BrandMark({ showTagline = false, compact = false, className }: B
         <span className="min-w-0 leading-tight">
           <span className="block text-base font-semibold text-foreground max-md:text-sm">نیشا</span>
           {showTagline ? (
-            <span className="hidden text-xs text-foreground-muted sm:block">فروشگاه‌ساز برای فروشندگان</span>
+            <span className="hidden text-xs text-foreground-muted sm:block">فروشگاه‌ساز برای فروشنده‌ها</span>
           ) : null}
         </span>
       ) : null}

@@ -39,7 +39,7 @@ export function UserRecoverForm({ title, loginHref, afterVerifyHref }: UserRecov
       setHint(res.delivery_hint);
       setDebugCode(res.debug_code);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "کد بازیابی ارسال نشد. دوباره امتحان کنید.");
+      setError(err instanceof ApiError ? err.message : "کد بازیابی فرستاده نشد. دوباره امتحان کن.");
     } finally {
       setLoading(false);
     }
@@ -57,12 +57,12 @@ export function UserRecoverForm({ title, loginHref, afterVerifyHref }: UserRecov
         new_password: newPassword,
       });
       if (!res.access_token || !res.user) {
-        throw new Error("رمز تغییر نکرد. دوباره امتحان کنید.");
+        throw new Error("رمز عوض نشد. دوباره امتحان کن.");
       }
       setSession(res.access_token, res.user, res.refresh_token);
       router.replace(afterVerifyHref);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "رمز تغییر نکرد. کد را دوباره بررسی کنید.");
+      setError(err instanceof ApiError ? err.message : "رمز عوض نشد. کد رو دوباره چک کن.");
     } finally {
       setLoading(false);
     }
@@ -74,7 +74,7 @@ export function UserRecoverForm({ title, loginHref, afterVerifyHref }: UserRecov
         <div className="text-center">
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h1>
           <p className="mt-1 text-sm text-foreground-muted">
-            کد بازیابی را به ایمیل شما می‌فرستیم.
+            کد بازیابی رو به ایمیلت می‌فرستیم.
           </p>
         </div>
         <Card>
@@ -124,7 +124,7 @@ export function UserRecoverForm({ title, loginHref, afterVerifyHref }: UserRecov
             )}
             <p className="text-center text-sm text-foreground-muted">
               <Link href={loginHref} className="font-medium text-brand-deep hover:underline">
-                بازگشت به ورود
+                برگرد به ورود
               </Link>
             </p>
           </CardContent>

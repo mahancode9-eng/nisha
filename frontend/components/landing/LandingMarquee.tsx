@@ -55,7 +55,7 @@ export function LandingMarquee() {
   return (
     <section className="landing-marquee space-y-5 py-2" aria-label="نمونه ویترین‌ها">
       <p className="text-center text-xs font-medium tracking-[0.2em] text-zinc-500 sm:text-sm">
-        نمونه ویترین‌هایی که با نیشا می‌شود ساخت
+        چند تا فروشگاه روی نیشا
       </p>
       <div className="landing-marquee-mask relative overflow-hidden">
         <div ref={trackRef} className="landing-marquee-track flex w-max">

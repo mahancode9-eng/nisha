@@ -198,7 +198,7 @@ export default function CheckoutPage({ params }: PageProps) {
           setPaymentMethodId(store.payment_methods[0].id);
         }
       } catch {
-        if (!cancelled) setError("فروشگاه باز نشد. صفحه را دوباره بارگذاری کنید.");
+        if (!cancelled) setError("فروشگاه باز نشد. صفحه رو دوباره باز کن.");
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -320,7 +320,7 @@ export default function CheckoutPage({ params }: PageProps) {
       toast.success("کد تخفیف اعمال شد");
     } catch (err) {
       setAppliedDiscount(null);
-      setDiscountError(err instanceof ApiError ? err.message : "کد تخفیف بررسی نشد. دوباره امتحان کنید.");
+      setDiscountError(err instanceof ApiError ? err.message : "کد تخفیف بررسی نشد. دوباره امتحان کن.");
     } finally {
       setDiscountChecking(false);
     }
@@ -348,7 +348,7 @@ export default function CheckoutPage({ params }: PageProps) {
       });
     } catch (err) {
       updateFieldState(productId, fieldKey, { uploading: false });
-      const msg = err instanceof ApiError ? err.message : "فایل بارگذاری نشد. دوباره امتحان کنید.";
+      const msg = err instanceof ApiError ? err.message : "فایل بارگذاری نشد. دوباره امتحان کن.";
       setError(msg);
       toast.error(msg);
     } finally {
@@ -380,7 +380,7 @@ export default function CheckoutPage({ params }: PageProps) {
       for (const field of product.form_fields) {
         const draft = drafts[field.field_key];
         if (field.is_required && !isFieldComplete(field, draft)) {
-          errors[`${item.productId}-${field.field_key}`] = `«${field.label}» را تکمیل کنید`;
+          errors[`${item.productId}-${field.field_key}`] = `«${field.label}» رو پر کن`;
         }
       }
     }
@@ -392,19 +392,19 @@ export default function CheckoutPage({ params }: PageProps) {
     e.preventDefault();
     setError(null);
     if (items.length === 0) {
-      toast.error("سبد خرید شما خالی است");
+      toast.error("سبدت خالیه");
       return;
     }
     if (!paymentMethodId) {
-      setError("یک روش پرداخت انتخاب کنید.");
+      setError("یه روش پرداخت انتخاب کن.");
       return;
     }
     if (!customer && !guestCheckoutEnabled) {
-      setError("برای ثبت سفارش، اول وارد حساب کاربری شوید.");
+      setError("برای ثبت سفارش، اول وارد حساب شو.");
       return;
     }
     if (!validateFields()) {
-      toast.error("چند مورد ضروری هنوز خالی است.");
+      toast.error("چند مورد ضروری هنوز خالیه.");
       return;
     }
     setSubmitting(true);
@@ -438,7 +438,7 @@ export default function CheckoutPage({ params }: PageProps) {
 
       clearCart();
       setSuccessOrder(order);
-      toast.success("سفارش شما ثبت شد");
+      toast.success("سفارشت ثبت شد");
 
       if (customer && saveAddress) {
         try {
@@ -455,11 +455,11 @@ export default function CheckoutPage({ params }: PageProps) {
             is_default: false,
           });
         } catch {
-          toast.warning("سفارش ثبت شد، ولی آدرس در حساب شما ذخیره نشد.");
+          toast.warning("سفارش ثبت شد، ولی آدرس تو حسابت ذخیره نشد.");
         }
       }
     } catch (err) {
-      const msg = err instanceof ApiError ? err.message : err instanceof Error ? err.message : "سفارش ثبت نشد. دوباره امتحان کنید.";
+      const msg = err instanceof ApiError ? err.message : err instanceof Error ? err.message : "سفارش ثبت نشد. دوباره امتحان کن.";
       setError(msg);
       toast.error(msg);
       try {
@@ -474,7 +474,7 @@ export default function CheckoutPage({ params }: PageProps) {
   }
 
   if ((!cartHydrated || loading || customerLoading) && !successOrder) {
-    return <LoadingState message="در حال آماده‌کردن صفحه پرداخت…" />;
+    return <LoadingState message="داره صفحه پرداخت رو آماده می‌کنه…" />;
   }
 
   if (successOrder) {
@@ -488,13 +488,13 @@ export default function CheckoutPage({ params }: PageProps) {
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground max-md:text-xl">تکمیل خرید</h1>
+        <h1 className="text-2xl font-bold text-foreground max-md:text-xl">ثبت سفارش</h1>
         <p className="mt-1 text-foreground-muted">
           {customer
-            ? "از آدرس‌های ذخیره‌شده خود استفاده کنید یا سفارش را برای گیرنده دیگری ثبت کنید."
+            ? "از آدرس‌های ذخیره‌شده‌ت استفاده کن یا سفارش رو برای یه گیرنده دیگه ثبت کن."
             : guestCheckoutEnabled
-              ? "چند مشخصه کوتاه کافی است؛ حساب کاربری لازم نیست."
-              : "برای خرید از این فروشگاه باید وارد حساب کاربری شوید."}
+              ? "چند مشخصه کوتاه کافیه؛ حساب لازم نیست."
+              : "برای خرید از این فروشگاه باید وارد حساب بشی."}
         </p>
       </div>
 
@@ -502,9 +502,9 @@ export default function CheckoutPage({ params }: PageProps) {
         <Card className="border-amber-500/30 bg-amber-500/5">
           <CardContent className="flex flex-col gap-4 py-5 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-1">
-              <p className="font-semibold text-foreground">برای تکمیل خرید باید وارد شوید.</p>
+              <p className="font-semibold text-foreground">برای ثبت سفارش باید وارد بشی.</p>
               <p className="text-sm text-foreground-muted">
-                این فروشگاه خرید بدون حساب را نمی‌پذیرد. وارد شوید یا یک حساب بسازید.
+                این فروشگاه خرید بدون حساب نمی‌گیره. وارد شو یا یه حساب بساز.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -523,9 +523,9 @@ export default function CheckoutPage({ params }: PageProps) {
         <Card className="border-brand/20 bg-brand/5">
           <CardContent className="flex flex-col gap-4 py-5 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-1">
-              <p className="font-semibold text-foreground">حساب کاربری دارید؟ وارد شوید تا این خرید در حسابتان بماند.</p>
+              <p className="font-semibold text-foreground">حساب داری؟ وارد شو تا این خرید تو حسابت بمونه.</p>
               <p className="text-sm text-foreground-muted">
-                بدون ورود هم می‌توانید خرید کنید، ولی با ورود، سفارش و گفتگوهایتان در حسابتان ذخیره می‌شود.
+                بدون ورود هم می‌تونی بخری، ولی با ورود، سفارش و گفتگوهات تو حسابت می‌مونه.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -639,7 +639,7 @@ export default function CheckoutPage({ params }: PageProps) {
                   <div key={item.productId} className="space-y-4 rounded-2xl border border-border p-4">
                     <div>
                       <h3 className="font-semibold text-foreground">{product.title}</h3>
-                      <p className="text-sm text-foreground-muted">گزینه‌های ضروری این کالا را انتخاب کنید.</p>
+                      <p className="text-sm text-foreground-muted">گزینه‌های ضروری این کالا رو انتخاب کن.</p>
                     </div>
                     <div className="grid gap-4 md:grid-cols-2">
                       {product.form_fields.map((field) => {
@@ -698,7 +698,7 @@ export default function CheckoutPage({ params }: PageProps) {
                                 }}
                                 required={field.is_required}
                               >
-                                <option value="">یک گزینه را انتخاب کنید</option>
+                                <option value="">یه گزینه انتخاب کن</option>
                                 {(field.options ?? []).map((option) => (
                                   <option key={option.value} value={option.value}>
                                     {option.label}
@@ -747,7 +747,7 @@ export default function CheckoutPage({ params }: PageProps) {
                                   />
                                   انتخاب فایل
                                 </label>
-                                {draft.uploading && <Badge variant="warning">در حال بارگذاری</Badge>}
+                                {draft.uploading && <Badge variant="warning">داره بارگذاری می‌شه</Badge>}
                                 {draft.fileUrl && <Badge variant="success">فایل پیوست شد</Badge>}
                               </div>
                             </div>
@@ -787,7 +787,7 @@ export default function CheckoutPage({ params }: PageProps) {
                 </label>
               ) : (
                 <p className="text-sm text-foreground-muted">
-                  هنوز آدرسی ذخیره نکرده‌اید. فرم زیر را پر کنید؛ اگر خواستید، برای دفعه بعد ذخیره‌اش کنید.
+                  هنوز آدرسی ذخیره نکردی. فرم زیر رو پر کن؛ اگر خواستی، برای دفعه بعد ذخیره‌اش کن.
                 </p>
               )}
               <label className="flex items-center gap-2 text-sm text-foreground">
@@ -796,7 +796,7 @@ export default function CheckoutPage({ params }: PageProps) {
                   checked={saveAddress}
                   onChange={(e) => setSaveAddress(e.target.checked)}
                 />
-                این آدرس برای خریدهای بعدی ذخیره شود
+                این آدرس برای خریدهای بعدی ذخیره بشه
               </label>
             </CardContent>
           </Card>
@@ -804,7 +804,7 @@ export default function CheckoutPage({ params }: PageProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle>{customer ? "مشخصات گیرنده" : "مشخصات شما"}</CardTitle>
+            <CardTitle>{customer ? "مشخصات گیرنده" : "مشخصاتت"}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <Input label="نام کامل" value={buyerName} onChange={(e) => setBuyerName(e.target.value)} required />
@@ -832,7 +832,7 @@ export default function CheckoutPage({ params }: PageProps) {
               required
               pattern="09[0-9]{9}"
               placeholder="09123456789"
-              title="شماره موبایل ۱۱ رقمی که با ۰۹ شروع می‌شود"
+              title="شماره موبایل ۱۱ رقمی که با ۰۹ شروع می‌شه"
             />
             <Textarea
               label="آدرس تحویل"

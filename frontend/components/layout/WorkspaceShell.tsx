@@ -11,6 +11,8 @@ import {
   type NavIconName,
 } from "@/components/layout/chrome/NavIcons";
 import { PanelAtmosphere } from "@/components/theme/PanelAtmosphere";
+import { ThemeModeToggle } from "@/components/theme/GlobalThemeToggle";
+import { ThemeSwitcher } from "@/components/theme/ThemeSwitcher";
 import { useTheme } from "@/contexts/ThemeContext";
 import { paths } from "@/lib/auth/paths";
 import { cn } from "@/lib/cn";
@@ -308,7 +310,8 @@ export function WorkspaceShell({
               />
             </Link>
 
-            <div className="flex min-w-0 shrink-0 items-center justify-end gap-2 justify-self-end">
+            <div className="flex min-w-0 shrink-0 items-center justify-end gap-1.5 justify-self-end sm:gap-2">
+              <ThemeModeToggle />
               <div className="hidden lg:block xl:hidden">{topActions}</div>
               {identityLabel ? (
                 <HeaderIdentity
@@ -460,11 +463,17 @@ export function WorkspaceShell({
               })}
             </ul>
 
-            {topActions ? (
-              <div className="mt-4 space-y-2 border-t border-border pt-4" onClick={closeMore}>
-                {topActions}
+            <div className="mt-4 space-y-3 border-t border-border pt-4">
+              <div>
+                <p className="mb-2 text-xs font-medium text-foreground-muted">حالت رنگ</p>
+                <ThemeSwitcher variant="group" />
               </div>
-            ) : null}
+              {topActions ? (
+                <div className="space-y-2" onClick={closeMore}>
+                  {topActions}
+                </div>
+              ) : null}
+            </div>
 
             <Button
               variant="ghost"

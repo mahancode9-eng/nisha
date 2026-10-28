@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from copy import deepcopy
 from datetime import datetime, timezone
 from typing import Any
@@ -22,15 +21,25 @@ DEFAULT_ENTITLEMENTS: dict[str, Any] = {
     "max_product_images": 3,
     "product_video": False,
     "custom_fields": False,
-    "discounts": False,
+    "discounts": True,
+    "max_active_discount_codes": 1,
+    "timed_discounts": False,
     "analytics_max_days": 7,
-    "guest_checkout": False,
+    "guest_checkout": True,
+    "messenger_receipt_actions": False,
     "badge_trust": False,
     "badge_premium": False,
     "store_theme": False,
     "excel_export": False,
     "store_pages": False,
     "priority_support": False,
+}
+
+_PAID_DISCOUNT_ENTITLEMENTS: dict[str, Any] = {
+    "discounts": True,
+    "max_active_discount_codes": None,
+    "timed_discounts": True,
+    "messenger_receipt_actions": True,
 }
 
 PLAN_SEEDS: list[dict[str, Any]] = [
@@ -56,12 +65,11 @@ PLAN_SEEDS: list[dict[str, Any]] = [
         "sort_order": 2,
         "entitlements": {
             **DEFAULT_ENTITLEMENTS,
+            **_PAID_DISCOUNT_ENTITLEMENTS,
             "max_products": 200,
             "max_product_images": 8,
             "custom_fields": True,
-            "discounts": True,
             "analytics_max_days": 30,
-            "guest_checkout": True,
         },
     },
     {
@@ -74,13 +82,12 @@ PLAN_SEEDS: list[dict[str, Any]] = [
         "sort_order": 3,
         "entitlements": {
             **DEFAULT_ENTITLEMENTS,
+            **_PAID_DISCOUNT_ENTITLEMENTS,
             "max_products": None,
             "max_product_images": 8,
             "product_video": True,
             "custom_fields": True,
-            "discounts": True,
             "analytics_max_days": 90,
-            "guest_checkout": True,
             "badge_trust": True,
             "store_theme": True,
             "excel_export": True,
@@ -97,13 +104,12 @@ PLAN_SEEDS: list[dict[str, Any]] = [
         "sort_order": 4,
         "entitlements": {
             **DEFAULT_ENTITLEMENTS,
+            **_PAID_DISCOUNT_ENTITLEMENTS,
             "max_products": None,
             "max_product_images": 8,
             "product_video": True,
             "custom_fields": True,
-            "discounts": True,
             "analytics_max_days": 90,
-            "guest_checkout": True,
             "badge_trust": True,
             "badge_premium": True,
             "store_theme": True,
@@ -113,6 +119,42 @@ PLAN_SEEDS: list[dict[str, Any]] = [
         },
     },
 ]
+
+
+def _sync_plan_entitlements(plan: SubscriptionPlan, seed_entitlements: dict[str, Any]) -> bool:
+    """Merge new entitlement keys / Phase-1 policy into an existing plan row."""
+    current = dict(plan.entitlements or {})
+    changed = False
+    for key, value in seed_entitlements.items():
+        if key not in current or current.get(key) != value:
+            # Only force-sync policy keys that Phase 1 redefined; leave unrelated overrides alone
+            # except for the keys we explicitly manage below.
+            pass
+
+    # Always enforce Phase-1 policy keys from seeds.
+    policy_keys = (
+        "guest_checkout",
+        "discounts",
+        "max_active_discount_codes",
+        "timed_discounts",
+        "messenger_receipt_actions",
+    )
+    for key in policy_keys:
+        if key not in seed_entitlements:
+            continue
+        if current.get(key) != seed_entitlements[key]:
+            current[key] = seed_entitlements[key]
+            changed = True
+
+    # Backfill any brand-new keys missing from old JSON blobs.
+    for key, value in seed_entitlements.items():
+        if key not in current:
+            current[key] = value
+            changed = True
+
+    if changed:
+        plan.set_entitlements(current)
+    return changed
 
 
 def ensure_plans_seeded(db: Session) -> None:
@@ -138,13 +180,8 @@ def ensure_plans_seeded(db: Session) -> None:
             if getattr(plan, "quarterly_price_toman", None) in (None, 0) and seed["quarterly_price_toman"]:
                 plan.quarterly_price_toman = seed["quarterly_price_toman"]
                 created = True
-            # Keep free plan guest checkout off even if an older DB row had it enabled.
-            if seed["code"] == PLAN_FREE:
-                entitlements = dict(plan.entitlements or {})
-                if entitlements.get("guest_checkout") is not False:
-                    entitlements["guest_checkout"] = False
-                    plan.set_entitlements(entitlements)
-                    created = True
+            if _sync_plan_entitlements(plan, seed["entitlements"]):
+                created = True
     if created:
         db.commit()
 
@@ -229,7 +266,7 @@ def require_entitlement(db: Session, seller_user_id: int, key: str, *, message: 
     entitlements = get_seller_entitlements(db, seller_user_id)
     if not entitlements.get(key):
         raise ServiceError(
-            message or "این قابلیت در پلن فعلی شما فعال نیست. لطفاً پلن خود را ارتقا دهید.",
+            message or "این قابلیت تو پلن فعلی‌ت فعال نیست. پلن رو ارتقا بده.",
             status_code=403,
         )
     return entitlements
@@ -248,3 +285,18 @@ def get_max_product_images(entitlements: dict[str, Any]) -> int:
 
 def get_analytics_max_days(entitlements: dict[str, Any]) -> int:
     return int(entitlements.get("analytics_max_days") or 7)
+
+
+def get_max_active_discount_codes(entitlements: dict[str, Any]) -> int | None:
+    """None = unlimited active codes."""
+    if not entitlements.get("discounts"):
+        return 0
+    value = entitlements.get("max_active_discount_codes", 1)
+    if value is None:
+        return None
+    return int(value)
+
+
+def can_use_timed_discounts(entitlements: dict[str, Any]) -> bool:
+    """Basic+ can set expires_at; Free cannot."""
+    return bool(entitlements.get("timed_discounts"))

@@ -17,7 +17,7 @@ def _require_export(db: Session, store: Store) -> None:
         db,
         store.owner_id,
         "excel_export",
-        message="خروجی اکسل در پلن فعلی شما فعال نیست.",
+        message="خروجی اکسل تو پلن فعلی‌ت فعال نیست.",
     )
 
 

@@ -26,18 +26,18 @@ export default function SellerStorePage() {
   if (isLoading) {
     return (
       <div className="page-stack">
-        <PageHeader description="آنچه مشتری‌ها در صفحه فروشگاه شما می‌بینند" />
+        <PageHeader description="چی مشتری‌ها تو صفحه فروشگاهت می‌بینن" />
         <AppearancePanel />
-        <LoadingState message="در حال بارگذاری فروشگاه…" />
+        <LoadingState message="داره فروشگاه رو بارگذاری می‌کنه…" />
       </div>
     );
   }
   if (error || !data) {
     return (
       <div className="page-stack">
-        <PageHeader description="آنچه مشتری‌ها در صفحه فروشگاه شما می‌بینند" />
+        <PageHeader description="چی مشتری‌ها تو صفحه فروشگاهت می‌بینن" />
         <AppearancePanel />
-        <ErrorAlert message={error ?? "تنظیمات باز نشد. صفحه را دوباره بارگذاری کنید."} />
+        <ErrorAlert message={error ?? "تنظیمات باز نشد. صفحه رو دوباره باز کن."} />
       </div>
     );
   }
@@ -45,10 +45,10 @@ export default function SellerStorePage() {
   return (
     <div className="page-stack">
       <PageHeader
-        description="آنچه مشتری‌ها در صفحه فروشگاه شما می‌بینند"
+        description="چی مشتری‌ها تو صفحه فروشگاهت می‌بینن"
         action={
           <Link href={paths.store(data.slug)} target="_blank" rel="noopener noreferrer">
-            <Button variant="secondary">مشاهده فروشگاه</Button>
+            <Button variant="secondary">دیدن فروشگاه</Button>
           </Link>
         }
       />

@@ -105,7 +105,7 @@ export default function AdminOrdersPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader description="تمام سفارش‌های پلتفرم را جستجو و مدیریت کنید" />
+      <PageHeader description="همه سفارش‌های پلتفرم رو جستجو و مدیریت کن" />
 
       <Card>
         <CardContent>

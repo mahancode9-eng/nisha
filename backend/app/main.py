@@ -17,6 +17,7 @@ from app.api.v1 import (
     media_router,
     public_router,
     seller_router,
+    webhooks_router,
     ws_router,
 )
 from app.core.config import settings
@@ -58,6 +59,17 @@ async def lifespan(app: FastAPI):
         alembic_cfg.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
         alembic_cfg.attributes["configure_logger"] = False
         alembic_upgrade(alembic_cfg, "head")
+
+    if (
+        settings.ENVIRONMENT == "production"
+        and settings.SMS_PROVIDER == "console"
+    ):
+        import logging
+
+        logging.getLogger(__name__).warning(
+            "SMS_PROVIDER=console in production — SMS will only be logged, not sent. "
+            "Set SMS_PROVIDER=kavenegar and KAVENEGAR_API_KEY to deliver SMS."
+        )
 
     notification_stop = asyncio.Event()
     notification_task = None
@@ -124,6 +136,7 @@ app.include_router(public_router, prefix="/api/v1")
 app.include_router(admin_router, prefix="/api/v1")
 app.include_router(customer_router, prefix="/api/v1")
 app.include_router(media_router, prefix="/api/v1")
+app.include_router(webhooks_router, prefix="/api/v1")
 app.include_router(ws_router, prefix="/api/v1")
 
 upload_dir = Path(settings.UPLOAD_DIR)

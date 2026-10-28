@@ -62,7 +62,7 @@ def verification_email_html(*, full_name: str, verify_link: str) -> str:
     body = f"""
 <p style="margin:0 0 16px;font-size:16px;">سلام {safe_name}،</p>
 <p style="margin:0 0 24px;color:{_MUTED_COLOR};">
-  ممنون که در نیشا ثبت‌نام کردید. برای فعال شدن حساب، ایمیل خود را تایید کنید.
+  ممنون که تو نیشا ثبت‌نام کردی. برای فعال شدن حساب، ایمیلت رو تایید کن.
 </p>
 <table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 0 28px;">
   <tr>
@@ -75,13 +75,13 @@ def verification_email_html(*, full_name: str, verify_link: str) -> str:
   </tr>
 </table>
 <p style="margin:0 0 8px;font-size:13px;color:{_MUTED_COLOR};">
-  اگر دکمه کار نکرد، این لینک را در مرورگر خود باز کنید:
+  اگر دکمه کار نکرد، این لینک رو تو مرورگرت باز کن:
 </p>
 <p style="margin:0 0 24px;font-size:13px;word-break:break-all;">
   <a href="{safe_link}" style="color:{_BRAND_COLOR};">{safe_link}</a>
 </p>
 <p style="margin:0;font-size:12px;color:{_MUTED_COLOR};">
-  این لینک تا {expire_hours} ساعت معتبر است. اگر شما این درخواست را نداده‌اید، این ایمیل را نادیده بگیرید.
+  این لینک تا {expire_hours} ساعت معتبره. اگر تو این درخواست رو ندادی، این ایمیل رو نادیده بگیر.
 </p>"""
     return layout(title="تایید ایمیل نیشا", body_html=body)
 
@@ -91,7 +91,7 @@ def password_recovery_html(*, code: str) -> str:
     body = f"""
 <p style="margin:0 0 16px;font-size:16px;">سلام،</p>
 <p style="margin:0 0 24px;color:{_MUTED_COLOR};">
-  درخواست بازیابی رمز عبور برای حساب شما در نیشا ثبت شد. کد زیر را در صفحه بازیابی وارد کنید:
+  درخواست بازیابی رمز برای حسابت تو نیشا ثبت شد. کد زیر رو تو صفحه بازیابی وارد کن:
 </p>
 <p style="margin:0 0 28px;text-align:center;">
   <span style="display:inline-block;padding:16px 32px;font-size:28px;font-weight:bold;letter-spacing:6px;
@@ -100,7 +100,7 @@ def password_recovery_html(*, code: str) -> str:
   </span>
 </p>
 <p style="margin:0;font-size:12px;color:{_MUTED_COLOR};">
-  این کد محدود به زمان است. اگر شما این درخواست را نداده‌اید، رمز عبور خود را تغییر دهید و با پشتیبانی تماس بگیرید.
+  این کد محدود به زمانه. اگر تو این درخواست رو ندادی، رمز عبورت رو عوض کن و با پشتیبانی تماس بگیر.
 </p>"""
     return layout(title="بازیابی رمز عبور نیشا", body_html=body)
 

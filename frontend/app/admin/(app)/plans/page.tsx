@@ -25,7 +25,7 @@ export default function AdminPlansPage() {
     try {
       setPlans(await plansApi.listPlans());
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "بارگذاری پلن‌ها انجام نشد. دوباره امتحان کنید.");
+      setError(err instanceof ApiError ? err.message : "بارگذاری پلن‌ها انجام نشد. دوباره امتحان کن.");
     } finally {
       setLoading(false);
     }
@@ -51,17 +51,17 @@ export default function AdminPlansPage() {
       toast.success("پلن ذخیره شد");
       await load();
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "ذخیره پلن انجام نشد. دوباره امتحان کنید.");
+      toast.error(err instanceof ApiError ? err.message : "ذخیره پلن انجام نشد. دوباره امتحان کن.");
     } finally {
       setSavingId(null);
     }
   }
 
-  if (loading) return <LoadingState message="در حال بارگذاری پلن‌هاâ¦" />;
+  if (loading) return <LoadingState message="در حال بارگذاری پلن‌ها…" />;
 
   return (
     <div className="space-y-6">
-      <PageHeader title="پلن‌های اشتراک" description="قیمت و وضعیت پلن‌های پلتفرم را مدیریت کنید" />
+      <PageHeader title="پلن‌های اشتراک" description="قیمت و وضعیت پلن‌های پلتفرم رو مدیریت کن" />
       {error && <ErrorAlert message={error} />}
       <div className="grid gap-4 lg:grid-cols-2">
         {plans.map((plan) => (

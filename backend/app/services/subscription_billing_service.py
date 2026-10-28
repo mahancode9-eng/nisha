@@ -100,7 +100,7 @@ def update_plan(
         plan.sort_order = sort_order
     if is_active is not None:
         if plan.code == entitlement_service.PLAN_FREE and not is_active:
-            raise ServiceError("پلن رایگان را نمی‌توان غیرفعال کرد", status_code=400)
+            raise ServiceError("پلن رایگان رو نمی‌شه غیرفعال کرد", status_code=400)
         plan.is_active = is_active
     if entitlements is not None:
         plan.set_entitlements(entitlements)
@@ -123,7 +123,7 @@ def get_seller_subscription_detail(db: Session, seller_user_id: int) -> dict:
 
 def _amount_for_period(plan: SubscriptionPlan, period: BillingPeriod) -> int:
     if plan.code == entitlement_service.PLAN_FREE:
-        raise ServiceError("پلن رایگان نیاز به پرداخت ندارد", status_code=400)
+        raise ServiceError("پلن رایگان نیاز به پرداخت نداره", status_code=400)
     if period == BillingPeriod.YEARLY:
         return plan.yearly_price_toman
     if period == BillingPeriod.QUARTERLY:
@@ -143,7 +143,7 @@ def checkout(
     if not plan.is_active:
         raise ServiceError("این پلن فعال نیست", status_code=400)
     if plan.code == entitlement_service.PLAN_FREE:
-        raise ServiceError("برای بازگشت به پلن رایگان نیازی به پرداخت نیست", status_code=400)
+        raise ServiceError("برای برگشت به پلن رایگان نیازی به پرداخت نیست", status_code=400)
 
     open_invoice = db.scalar(
         select(SubscriptionInvoice)
@@ -160,7 +160,7 @@ def checkout(
     )
     if open_invoice is not None:
         raise ServiceError(
-            "یک فاکتور پرداخت‌نشده دارید. اول آن را پرداخت یا لغو کنید.",
+            "یک فاکتور پرداخت‌نشده داری. اول اون رو پرداخت کن یا لغو کن.",
             status_code=409,
         )
 
@@ -236,7 +236,7 @@ async def upload_invoice_proof(
         SubscriptionInvoiceStatus.PENDING_PAYMENT,
         SubscriptionInvoiceStatus.PROOF_UPLOADED,
     }:
-        raise ServiceError("برای این فاکتور دیگر نمی‌توانید رسید بفرستید.", status_code=400)
+        raise ServiceError("برای این فاکتور دیگه نمی‌تونی رسید بفرستی.", status_code=400)
 
     media = await save_uploaded_media(
         file,
@@ -261,7 +261,7 @@ def cancel_open_invoice(db: Session, seller_user_id: int, invoice_id: int) -> Su
         SubscriptionInvoiceStatus.PENDING_PAYMENT,
         SubscriptionInvoiceStatus.PROOF_UPLOADED,
     }:
-        raise ServiceError("این فاکتور قابل لغو نیست", status_code=400)
+        raise ServiceError("این فاکتور رو نمی‌شه لغو کرد", status_code=400)
     invoice.status = SubscriptionInvoiceStatus.CANCELLED
     db.commit()
     return get_seller_invoice(db, seller_user_id, invoice_id)
@@ -307,7 +307,7 @@ def confirm_invoice(db: Session, invoice_id: int, *, admin_note: str | None = No
         SubscriptionInvoiceStatus.PENDING_PAYMENT,
         SubscriptionInvoiceStatus.PROOF_UPLOADED,
     }:
-        raise ServiceError("این فاکتور قابل تایید نیست", status_code=400)
+        raise ServiceError("این فاکتور رو نمی‌شه تایید کرد", status_code=400)
 
     now = _now()
     sub = entitlement_service.ensure_seller_subscription(db, invoice.seller_user_id)
@@ -343,7 +343,7 @@ def reject_invoice(db: Session, invoice_id: int, *, admin_note: str | None = Non
         SubscriptionInvoiceStatus.PENDING_PAYMENT,
         SubscriptionInvoiceStatus.PROOF_UPLOADED,
     }:
-        raise ServiceError("این فاکتور قابل رد نیست", status_code=400)
+        raise ServiceError("این فاکتور رو نمی‌شه رد کرد", status_code=400)
     invoice.status = SubscriptionInvoiceStatus.REJECTED
     if admin_note:
         invoice.admin_note = admin_note

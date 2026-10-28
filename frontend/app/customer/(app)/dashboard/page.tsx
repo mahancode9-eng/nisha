@@ -24,7 +24,7 @@ export default function CustomerDashboardPage() {
         const summary = await getDashboard();
         if (!cancelled) setData(summary);
       } catch {
-        if (!cancelled) setError("اطلاعات حساب باز نشد. صفحه را دوباره بارگذاری کنید.");
+        if (!cancelled) setError("اطلاعات حساب باز نشد. صفحه رو دوباره بارگذاری کن.");
       }
     })();
     return () => {
@@ -37,7 +37,7 @@ export default function CustomerDashboardPage() {
   }
 
   if (!data) {
-    return <LoadingState message="در حال بارگذاری…" />;
+    return <LoadingState message="داره بارگذاری می‌شه…" />;
   }
 
   return (
@@ -62,8 +62,8 @@ export default function CustomerDashboardPage() {
           <CardContent className="space-y-4">
             {data.recent_orders.length === 0 ? (
               <EmptyState
-                title="هنوز سفارشی ندارید"
-                description="سفارش‌هایی که با این حساب ثبت کنید، اینجا می‌آیند. سفارش قدیمی را هم می‌توانید با کد فاکتور اضافه کنید."
+                title="هنوز سفارشی نداری"
+                description="سفارش‌هایی که با این حساب ثبت کنی، اینجا میان. سفارش قدیمی رو هم می‌تونی با کد فاکتور اضافه کنی."
               />
             ) : (
               data.recent_orders.map((order) => (
@@ -114,7 +114,7 @@ export default function CustomerDashboardPage() {
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               {data.addresses.length === 0 ? (
-                <p className="text-foreground-muted">هنوز آدرس ذخیره‌شده‌ای ندارید.</p>
+                <p className="text-foreground-muted">هنوز آدرس ذخیره‌شده‌ای نداری.</p>
               ) : (
                 data.addresses.slice(0, 3).map((address) => (
                   <div key={address.id} className="rounded-lg border border-border p-3">
@@ -137,7 +137,7 @@ export default function CustomerDashboardPage() {
               <CardTitle>پیام‌ها</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm text-foreground">
-              <p>{data.chats} گفتگو با فروشنده‌ها دارید.</p>
+              <p>{data.chats} گفتگو با فروشنده‌ها داری.</p>
               <Link href={paths.customer.conversations} className="inline-block text-brand hover:underline">
                 دیدن پیام‌ها
               </Link>

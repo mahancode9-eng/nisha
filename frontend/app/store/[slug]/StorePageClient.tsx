@@ -108,7 +108,7 @@ export function StorePageClient({ slug, initialData, initialError }: StorePageCl
           reconcileWithProducts(store.products);
         }
       } catch {
-        if (!cancelled) setError("فروشگاه پیدا نشد یا در دسترس نیست.");
+        if (!cancelled) setError("فروشگاه پیدا نشد یا الان در دسترس نیست.");
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -145,7 +145,7 @@ export function StorePageClient({ slug, initialData, initialError }: StorePageCl
   if (loading) {
     return (
       <div className="flex min-h-[50vh] flex-col items-center justify-center gap-6 py-16">
-        <OrbLoader state="weaving" size={64} label="در حال باز کردن فروشگاه…" />
+        <OrbLoader state="weaving" size={64} label="داره فروشگاه رو باز می‌کنه…" />
         <div className="grid w-full max-w-3xl grid-cols-2 gap-2 opacity-40 sm:grid-cols-3 lg:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className="aspect-square w-full rounded-lg" />
@@ -160,7 +160,7 @@ export function StorePageClient({ slug, initialData, initialError }: StorePageCl
   }
 
   if (!data) {
-    return <EmptyState title="فروشگاه پیدا نشد" description="این فروشگاه وجود ندارد یا فعلاً بسته است." />;
+    return <EmptyState title="فروشگاه پیدا نشد" description="این فروشگاه وجود نداره یا فعلاً بسته‌ست." />;
   }
 
   const { store, products, categories, review_summary } = data;
@@ -211,7 +211,7 @@ export function StorePageClient({ slug, initialData, initialError }: StorePageCl
             <p className={store.about_text ? "text-foreground-muted" : undefined}>{store.description}</p>
           ) : null}
           {!store.about_text && !store.description ? (
-            <p className="text-foreground-muted">فروشنده هنوز معرفی‌ای ننوشته است.</p>
+            <p className="text-foreground-muted">فروشنده هنوز معرفی‌ای ننوشته.</p>
           ) : null}
 
           {(store.phone || store.website) && (
@@ -308,7 +308,7 @@ export function StorePageClient({ slug, initialData, initialError }: StorePageCl
         {review_summary.recent_reviews.length === 0 ? (
           <EmptyState
             title="هنوز نظری نیامده"
-            description="اولین خریدارها که نظر بدهند، اینجا نمایش داده می‌شود."
+            description="اولین خریدارها که نظر بدن، اینجا نشون داده می‌شه."
           />
         ) : (
           <div className="space-y-3">

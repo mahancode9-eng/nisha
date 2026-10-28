@@ -7,6 +7,7 @@ import * as storesApi from "@/lib/api/public/stores";
 import { CartDrawer } from "@/components/store/CartDrawer";
 import { StoreChromeProvider, useStoreChrome } from "@/components/store/StoreChromeContext";
 import { StoreHamburgerMenu } from "@/components/store/StoreHamburgerMenu";
+import { ThemeModeToggle } from "@/components/theme/GlobalThemeToggle";
 import { PanelAtmosphere } from "@/components/theme/PanelAtmosphere";
 import { SectionTravelProvider } from "@/components/ui/SectionTravel";
 import { CartProvider, useCart } from "@/contexts/CartContext";
@@ -165,6 +166,7 @@ function StoreShellInner({
                 پیگیری سفارش
               </Button>
             </Link>
+            <ThemeModeToggle className="hidden sm:inline-flex" />
             <StoreAuthButton storeSlug={slug} />
             <div className="lg:hidden">
               <StoreCartButton onClick={() => setCartOpen(true)} />

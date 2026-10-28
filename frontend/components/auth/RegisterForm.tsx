@@ -39,7 +39,7 @@ export function RegisterForm({ onSubmit, onGoogleCredential, footer, loginHref }
       if (err instanceof ApiError && err.status === 409) {
         setShowLoginHint(true);
       }
-      setError(err instanceof ApiError ? err.message : "ثبت‌نام انجام نشد. دوباره امتحان کنید.");
+      setError(err instanceof ApiError ? err.message : "ثبت‌نام نشد. دوباره امتحان کن.");
     } finally {
       setLoading(false);
     }
@@ -50,7 +50,7 @@ export function RegisterForm({ onSubmit, onGoogleCredential, footer, loginHref }
       <CardHeader>
         <CardTitle>ساخت حساب فروشنده</CardTitle>
         <p className="mt-1 text-sm text-foreground-muted">
-          رایگان شروع کنید؛ فروشگاه را بسازید و با کارت‌به‌کارت بفروشید.
+          رایگان شروع کن؛ فروشگاهت رو بساز و با کارت‌به‌کارت بفروش.
         </p>
       </CardHeader>
       <CardContent>
@@ -58,9 +58,9 @@ export function RegisterForm({ onSubmit, onGoogleCredential, footer, loginHref }
           <ErrorAlert message={error ?? ""} />
           {showLoginHint && loginHref && (
             <p className="text-center text-sm text-foreground-muted">
-              این ایمیل قبلاً تایید شده است.{" "}
+              این ایمیل قبلاً تایید شده.{" "}
               <Link href={loginHref} className="font-medium text-brand hover:underline">
-                وارد شوید
+                وارد شو
               </Link>
             </p>
           )}
@@ -110,7 +110,7 @@ export function RegisterForm({ onSubmit, onGoogleCredential, footer, loginHref }
                   setError(
                     err instanceof ApiError
                       ? err.message
-                      : "ورود با گوگل انجام نشد. دوباره امتحان کنید.",
+                      : "ورود با گوگل نشد. دوباره امتحان کن.",
                   );
                 } finally {
                   setLoading(false);

@@ -64,7 +64,7 @@ export function OrderTrackDetails({ order, password, onUpdated }: OrderTrackDeta
       setEditing(false);
       toast.success("تغییرات ذخیره شد");
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "تغییرات ذخیره نشد. دوباره امتحان کنید.");
+      toast.error(err instanceof ApiError ? err.message : "تغییرات ذخیره نشد. دوباره امتحان کن.");
     } finally {
       setSaving(false);
     }
@@ -78,7 +78,7 @@ export function OrderTrackDetails({ order, password, onUpdated }: OrderTrackDeta
       });
       onUpdated(refreshed);
     } catch {
-      toast.error("اطلاعات سفارش به‌روز نشد. صفحه را دوباره باز کنید.");
+      toast.error("اطلاعات سفارش به‌روز نشد. صفحه رو دوباره باز کن.");
     }
   }
 

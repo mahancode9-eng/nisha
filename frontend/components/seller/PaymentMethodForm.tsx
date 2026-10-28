@@ -47,7 +47,7 @@ export function PaymentMethodForm({ initial, onSubmit, onCancel }: PaymentMethod
     e.preventDefault();
     setError(null);
     if (!displayName.trim()) {
-      setError("برای روش پرداخت یک نام بنویسید؛ مثلاً «کارت ملت».");
+      setError("برای روش پرداخت یه اسم بنویس؛ مثلاً «کارت ملت».");
       return;
     }
     setLoading(true);
@@ -81,7 +81,7 @@ export function PaymentMethodForm({ initial, onSubmit, onCancel }: PaymentMethod
         await onSubmit(create);
       }
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "ذخیره نشد. دوباره امتحان کنید.");
+      setError(err instanceof ApiError ? err.message : "ذخیره نشد. دوباره امتحان کن.");
     } finally {
       setLoading(false);
     }

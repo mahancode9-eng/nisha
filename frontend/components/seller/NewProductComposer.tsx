@@ -77,7 +77,7 @@ export function NewProductComposer({ onPublish }: NewProductComposerProps) {
 
     const remaining = maxImages - images.length;
     if (remaining <= 0) {
-      setError(`حداکثر ${maxImages} عکس می‌توانید بگذارید.`);
+      setError(`حداکثر ${maxImages} عکس می‌تونی بذاری.`);
       event.target.value = "";
       return;
     }
@@ -102,10 +102,10 @@ export function NewProductComposer({ onPublish }: NewProductComposerProps) {
       );
       setImages((prev) => [...prev, ...uploaded]);
       if (files.length > remaining) {
-        setError(`فقط ${remaining} عکس دیگر جا داشت.`);
+        setError(`فقط ${remaining} تا عکس دیگه جا داشت.`);
       }
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "عکس بارگذاری نشد. دوباره امتحان کنید.");
+      setError(err instanceof ApiError ? err.message : "عکس بارگذاری نشد. دوباره امتحان کن.");
     } finally {
       setUploading(false);
       event.target.value = "";
@@ -138,13 +138,13 @@ export function NewProductComposer({ onPublish }: NewProductComposerProps) {
   }
 
   function validateDetails(): string | null {
-    if (!title.trim()) return "عنوان محصول را بنویسید.";
+    if (!title.trim()) return "عنوان محصول رو بنویس.";
     const priceNum = moneyInputToNumber(price);
     if (!parseMoneyInput(price) || Number.isNaN(priceNum) || priceNum <= 0) {
-      return "قیمت باید بیشتر از صفر باشد.";
+      return "قیمت باید بیشتر از صفر باشه.";
     }
     const stockNum = parseInt(stock, 10);
-    if (Number.isNaN(stockNum) || stockNum < 0) return "موجودی نمی‌تواند منفی باشد.";
+    if (Number.isNaN(stockNum) || stockNum < 0) return "موجودی نمی‌تونه منفی باشه.";
     return null;
   }
 
@@ -152,7 +152,7 @@ export function NewProductComposer({ onPublish }: NewProductComposerProps) {
     setError(null);
     if (step === "photos") {
       if (images.length === 0 && !skippedPhotos) {
-        setError("دست‌کم یک عکس انتخاب کنید یا بدون عکس ادامه بدهید.");
+        setError("دست‌کم یه عکس انتخاب کن یا بدون عکس ادامه بده.");
         return;
       }
       setStep("details");
@@ -207,7 +207,7 @@ export function NewProductComposer({ onPublish }: NewProductComposerProps) {
     try {
       await onPublish(buildPayload(), mode);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "محصول منتشر نشد. دوباره امتحان کنید.");
+      setError(err instanceof ApiError ? err.message : "محصول منتشر نشد. دوباره امتحان کن.");
     } finally {
       setPublishing(false);
     }
@@ -284,7 +284,7 @@ export function NewProductComposer({ onPublish }: NewProductComposerProps) {
               <div>
                 <h2 className="text-base font-semibold text-foreground sm:text-lg">عکس محصول</h2>
                 <p className="mt-0.5 text-sm text-foreground-muted">
-                  عکس اول، عکس اصلی محصول می‌شود. اگر دارید، چند عکس از زاویه‌های مختلف بگذارید.
+                  عکس اول، عکس اصلی محصول می‌شه. اگر داری، چند تا عکس از زاویه‌های مختلف بذار.
                 </p>
               </div>
 
@@ -302,9 +302,9 @@ export function NewProductComposer({ onPublish }: NewProductComposerProps) {
                     +
                   </span>
                   <span className="text-sm font-semibold text-foreground">
-                    {uploading ? "در حال بارگذاری…" : "انتخاب از گالری"}
+                    {uploading ? "داره بارگذاری می‌شه…" : "انتخاب از گالری"}
                   </span>
-                  <span className="text-xs text-foreground-muted">می‌توانید چند عکس را با هم انتخاب کنید</span>
+                  <span className="text-xs text-foreground-muted">می‌تونی چند تا عکس رو با هم انتخاب کنی</span>
                 </button>
               ) : (
                 <div className="space-y-3">
@@ -382,7 +382,7 @@ export function NewProductComposer({ onPublish }: NewProductComposerProps) {
                   className="w-full text-center text-sm text-foreground-muted underline-offset-2 hover:text-foreground hover:underline"
                   onClick={skipPhotos}
                 >
-                  فعلاً بدون عکس ادامه می‌دهید؟
+                  فعلاً بدون عکس ادامه می‌دی؟
                 </button>
               ) : null}
             </div>
@@ -403,7 +403,7 @@ export function NewProductComposer({ onPublish }: NewProductComposerProps) {
                 </div>
               ) : (
                 <p className="rounded-xl border border-dashed border-border px-3 py-2 text-xs text-foreground-muted">
-                  بدون عکس؛ بعداً از صفحه ویرایش اضافه کنید.
+                  بدون عکس؛ بعداً از صفحه ویرایش اضافه کن.
                 </p>
               )}
 
@@ -446,8 +446,8 @@ export function NewProductComposer({ onPublish }: NewProductComposerProps) {
           {step === "review" ? (
             <div className="space-y-4">
               <div>
-                <h2 className="text-base font-semibold text-foreground sm:text-lg">آماده انتشار؟</h2>
-                <p className="mt-0.5 text-sm text-foreground-muted">یک بار مرور کنید و منتشر کنید.</p>
+                <h2 className="text-base font-semibold text-foreground sm:text-lg">آماده‌ای منتشر کنی؟</h2>
+                <p className="mt-0.5 text-sm text-foreground-muted">یه بار مرور کن و منتشر کن.</p>
               </div>
 
               <div className="overflow-hidden rounded-xl border border-border">

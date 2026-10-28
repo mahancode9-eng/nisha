@@ -150,7 +150,8 @@ def test_admin_platform_settings(client, admin_headers, db):
     )
 
 
-def test_guest_order_blocked_on_free_plan(client, seller_headers, db):
+def test_guest_order_allowed_on_free_plan(client, seller_headers, db):
+    """Phase 1: Free plan includes guest checkout (no order cap)."""
     from app.models.enums import BillingPeriod
     from app.models.user import User
     from app.services import subscription_billing_service
@@ -172,23 +173,15 @@ def test_guest_order_blocked_on_free_plan(client, seller_headers, db):
         headers=seller_headers,
         json={"guest_checkout_enabled": True},
     )
-    assert enable.status_code == 403
+    assert enable.status_code == 200
 
     store = client.get("/api/v1/seller/store", headers=seller_headers)
     assert store.status_code == 200
     slug = store.json()["slug"]
 
-    # Even if the store flag was previously on, free plan must not expose guest checkout.
-    from app.models.store import Store
-
-    store_row = db.scalar(select(Store).where(Store.slug == slug))
-    assert store_row is not None
-    store_row.guest_checkout_enabled = True
-    db.commit()
-
     public = client.get(f"/api/v1/public/stores/{slug}")
     assert public.status_code == 200
-    assert public.json()["store"]["guest_checkout_enabled"] is False
+    assert public.json()["store"]["guest_checkout_enabled"] is True
 
     payment = client.post(
         "/api/v1/seller/payment-methods",
@@ -224,6 +217,4 @@ def test_guest_order_blocked_on_free_plan(client, seller_headers, db):
             "items": [{"product_id": product.json()["id"], "quantity": 1}],
         },
     )
-    assert order.status_code == 403
-    detail = order.json()["detail"]
-    assert "خرید مهمان" in detail or "بدون حساب" in detail
+    assert order.status_code == 201

@@ -119,13 +119,13 @@ export default function AdminOrderDetailPage({ params }: PageProps) {
       toast.success("سفارش به‌روزرسانی شد");
       await refetch();
     } catch {
-      toast.error("به‌روزرسانی سفارش انجام نشد. دوباره امتحان کنید.");
+      toast.error("به‌روزرسانی سفارش انجام نشد. دوباره امتحان کن.");
     } finally {
       setSaving(false);
     }
   }
 
-  if (isLoading) return <LoadingState message="در حال بارگذاری سفارشâ¦" />;
+  if (isLoading) return <LoadingState message="در حال بارگذاری سفارش…" />;
 
   if (error || !data || !draft) {
     return (

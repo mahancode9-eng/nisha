@@ -22,7 +22,7 @@ export function SellerAuthGuard({ children }: { children: React.ReactNode }) {
   }, [user, isLoading, router]);
 
   if (isLoading || !user || user.role !== "SELLER") {
-    return <LoadingState message="در حال بارگذاری پنل فروشنده…" />;
+    return <LoadingState message="داریم پنل فروشنده رو می‌آریم…" />;
   }
 
   return <>{children}</>;
