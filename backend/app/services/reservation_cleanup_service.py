@@ -104,6 +104,7 @@ async def reservation_cleanup_worker_loop(stop_event: asyncio.Event, interval_se
     from app.db.session import SessionLocal
     from app.services.low_stock_alert_service import send_due_low_stock_alerts
     from app.services.order_notification_service import send_due_payment_reminders
+    from app.services.payment_proof_chase_service import send_due_payment_proof_chases
 
     while not stop_event.is_set():
         try:
@@ -111,6 +112,7 @@ async def reservation_cleanup_worker_loop(stop_event: asyncio.Event, interval_se
                 send_due_payment_reminders(db)
                 expire_stale_reservations(db)
                 send_due_low_stock_alerts(db)
+                send_due_payment_proof_chases(db)
         except Exception:  # noqa: BLE001 - keep worker alive
             logger.exception("Reservation cleanup failed")
         try:

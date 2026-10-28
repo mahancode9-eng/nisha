@@ -13,6 +13,7 @@ from app.models.notification import NotificationOutbox
 from app.models.product import Product
 from app.models.store import Store
 from app.services import notification_service
+from app.services.messenger_service import channel_configured
 
 logger = logging.getLogger(__name__)
 
@@ -92,6 +93,9 @@ def send_due_low_stock_alerts(db: Session, *, limit: int = 50) -> int:
             notification_service.enqueue_email(
                 db, owner.email, LOW_STOCK_TEMPLATE, payload
             )
+            _enqueue_messenger_low_stock(
+                db, store=store, product_count=len(products)
+            )
             sent += 1
         except Exception:  # noqa: BLE001
             logger.exception(
@@ -101,3 +105,32 @@ def send_due_low_stock_alerts(db: Session, *, limit: int = 50) -> int:
         db.commit()
         logger.info("Enqueued %s low-stock seller alert(s)", sent)
     return sent
+
+
+def _enqueue_messenger_low_stock(
+    db: Session, *, store: Store, product_count: int
+) -> None:
+    text = (
+        f"{product_count} محصول موجودی کم داره\n"
+        f"{_products_url()}"
+    )
+    payload = {
+        "text": text,
+        "order_url": _products_url(),
+        "include_actions": False,
+        "photo_url": "",
+    }
+    targets: list[tuple[str, str | None]] = [
+        ("telegram", store.telegram_chat_id),
+        ("bale", store.bale_chat_id),
+    ]
+    for channel, chat_id in targets:
+        if not chat_id or not channel_configured(channel):  # type: ignore[arg-type]
+            continue
+        notification_service.enqueue_messenger(
+            db,
+            channel=channel,  # type: ignore[arg-type]
+            chat_id=chat_id,
+            template="seller_messenger_order",
+            payload=payload,
+        )
