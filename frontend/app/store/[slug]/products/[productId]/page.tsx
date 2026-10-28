@@ -31,7 +31,7 @@ type ProductSeo = {
 
 type ProductSeoData = {
   product?: ProductSeo | null;
-  store?: { name?: string | null } | null;
+  store?: { name?: string | null; hide_nisha_branding?: boolean } | null;
 };
 
 const PRODUCT_MISSING = "missing" as const;
@@ -47,7 +47,9 @@ function firstProductImage(product: ProductSeo | null | undefined): string | nul
 async function fetchProductSeo(
   slug: string,
   productId: string,
-): Promise<(ProductSeo & { storeName?: string | null }) | typeof PRODUCT_MISSING | null> {
+): Promise<
+  (ProductSeo & { storeName?: string | null; hideBranding?: boolean }) | typeof PRODUCT_MISSING | null
+> {
   try {
     const res = await fetch(
       API_BASE +
@@ -62,7 +64,11 @@ async function fetchProductSeo(
     const data = (await res.json()) as ProductSeoData;
     const product = data.product ?? null;
     if (!product) return null;
-    return { ...product, storeName: data.store?.name ?? null };
+    return {
+      ...product,
+      storeName: data.store?.name ?? null,
+      hideBranding: Boolean(data.store?.hide_nisha_branding),
+    };
   } catch {
     return null;
   }
@@ -82,7 +88,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const descriptionParts = [
     priceLabel,
     storeName ? `از ${storeName}` : null,
-    shortDesc || `خرید آنلاین ${title} در نیشا`,
+    shortDesc || (product?.hideBranding ? `خرید آنلاین ${title}` : `خرید آنلاین ${title} در نیشا`),
   ].filter(Boolean);
   const description = descriptionParts.join(" · ");
   const canonical = SITE_URL + "/store/" + slug + "/products/" + productId;
@@ -98,7 +104,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description,
       url: canonical,
       type: "website",
-      siteName: storeName || "نیشا",
+      siteName: storeName || (product?.hideBranding ? undefined : "نیشا"),
       locale: "fa_IR",
       ...(image
         ? {
