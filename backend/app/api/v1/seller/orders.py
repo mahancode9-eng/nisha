@@ -17,6 +17,7 @@ from app.schemas.seller_order import (
     SellerOrderItemResponse,
     SellerOrderListItem,
     SellerOrderStatusUpdate,
+    SellerOrderTrackingUpdate,
 )
 from app.services import seller_order_service
 from app.services.exceptions import ServiceError
@@ -93,6 +94,7 @@ def get_order(
         receipt_status=order.receipt.status if order.receipt else None,
         complaint_count=len(order.complaints),
         stock_restored=order.stock_restored,
+        tracking_code=order.tracking_code,
         created_at=order.created_at,
         updated_at=order.updated_at,
         items=[seller_order_item_response(item) for item in order.items],
@@ -138,6 +140,7 @@ def confirm_payment(
         message="پرداخت تایید شد",
         order_id=order.id,
         status=order.status,
+        tracking_code=order.tracking_code,
     )
 
 
@@ -156,6 +159,7 @@ def reject_payment(
         message="پرداخت رد شد",
         order_id=order.id,
         status=order.status,
+        tracking_code=order.tracking_code,
     )
 
 
@@ -175,6 +179,7 @@ def update_order_status(
             seller,
             target_status=OrderStatus(payload.status),
             note=payload.note,
+            tracking_code=payload.tracking_code,
         )
     except ServiceError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
@@ -182,4 +187,31 @@ def update_order_status(
         message="وضعیت سفارش به‌روزرسانی شد",
         order_id=order.id,
         status=order.status,
+        tracking_code=order.tracking_code,
+    )
+
+
+@router.patch("/{order_id}/tracking", response_model=SellerOrderActionResponse)
+def update_tracking_code(
+    order_id: int,
+    payload: SellerOrderTrackingUpdate,
+    store: Store = Depends(get_seller_store),
+    seller: User = Depends(require_seller),
+    db: Session = Depends(get_db),
+) -> SellerOrderActionResponse:
+    del seller  # auth only
+    try:
+        order = seller_order_service.update_tracking_code(
+            db,
+            store,
+            order_id,
+            tracking_code=payload.tracking_code,
+        )
+    except ServiceError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+    return SellerOrderActionResponse(
+        message="کد پیگیری ذخیره شد",
+        order_id=order.id,
+        status=order.status,
+        tracking_code=order.tracking_code,
     )

@@ -93,6 +93,7 @@ class Order(TimestampMixin, Base):
         DateTime(timezone=True),
         nullable=True,
     )
+    tracking_code: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
 
     store: Mapped["Store"] = relationship("Store", back_populates="orders")
     customer: Mapped[Optional["CustomerAccount"]] = relationship(

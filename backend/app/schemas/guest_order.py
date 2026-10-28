@@ -84,6 +84,7 @@ class OrderTrackResponse(BaseModel):
     discount_amount: Decimal = Decimal("0")
     shipping_amount: Decimal = Decimal("0")
     total_amount: Decimal
+    tracking_code: str | None = None
     created_at: datetime
     items: list[OrderTrackItemResponse]
     payment_proofs: list[PaymentProofResponse]

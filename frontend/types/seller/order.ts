@@ -57,6 +57,7 @@ export type SellerOrderDetail = {
   receipt_status: "RECEIVED" | "NOT_RECEIVED" | null;
   complaint_count: number;
   stock_restored: boolean;
+  tracking_code?: string | null;
   created_at: string;
   updated_at: string;
   items: SellerOrderItem[];
@@ -69,6 +70,7 @@ export type SellerOrderActionResponse = {
   message: string;
   order_id: number;
   status: OrderStatus;
+  tracking_code?: string | null;
 };
 
 export type OrderStatusPatch = "PREPARING" | "SHIPPED" | "DELIVERED" | "CANCELLED";

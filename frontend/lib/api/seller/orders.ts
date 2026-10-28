@@ -42,9 +42,18 @@ export function rejectPayment(id: number): Promise<SellerOrderActionResponse> {
 
 export function patchOrderStatus(
   id: number,
-  body: { status: OrderStatusPatch; note?: string | null },
+  body: { status: OrderStatusPatch; note?: string | null; tracking_code?: string | null },
 ): Promise<SellerOrderActionResponse> {
   return apiPatch<SellerOrderActionResponse>(`/api/v1/seller/orders/${id}/status`, body);
+}
+
+export function updateTrackingCode(
+  id: number,
+  tracking_code: string,
+): Promise<SellerOrderActionResponse> {
+  return apiPatch<SellerOrderActionResponse>(`/api/v1/seller/orders/${id}/tracking`, {
+    tracking_code,
+  });
 }
 
 export function downloadInvoice(orderId: number): Promise<Blob> {

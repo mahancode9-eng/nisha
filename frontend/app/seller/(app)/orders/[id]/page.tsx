@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import * as ordersApi from "@/lib/api/seller/orders";
 import { paths } from "@/lib/auth/paths";
@@ -21,13 +21,22 @@ import { OrderActions } from "@/components/seller/OrderActions";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { OrderItemsPanel } from "@/components/orders/OrderItemsPanel";
+import type { OrderStatus } from "@/types/order";
 
 type PageProps = {
   params: Promise<{ id: string }>;
 };
+
+const TRACKING_STATUSES: OrderStatus[] = [
+  "PAYMENT_CONFIRMED",
+  "PREPARING",
+  "SHIPPED",
+  "DELIVERED",
+];
 
 export default function SellerOrderDetailPage({ params }: PageProps) {
   const { id } = use(params);
@@ -36,11 +45,17 @@ export default function SellerOrderDetailPage({ params }: PageProps) {
   const [actionLoading, setActionLoading] = useState(false);
   const [pendingAction, setPendingAction] = useState<OrderAction | null>(null);
   const [downloadLoading, setDownloadLoading] = useState(false);
+  const [trackingCode, setTrackingCode] = useState("");
+  const [trackingLoading, setTrackingLoading] = useState(false);
 
   const { data, error, isLoading, refetch } = useSellerFetch(
     () => ordersApi.getOrder(orderId),
     [orderId],
   );
+
+  useEffect(() => {
+    setTrackingCode(data?.tracking_code ?? "");
+  }, [data?.tracking_code]);
 
   async function executeAction(action: OrderAction) {
     setActionLoading(true);
@@ -67,11 +82,11 @@ export default function SellerOrderDetailPage({ params }: PageProps) {
   }
 
   function handleAction(action: OrderAction) {
-    if (isDestructiveAction(action)) {
+    if (action === "confirm_payment" || isDestructiveAction(action)) {
       setPendingAction(action);
-    } else {
-      void executeAction(action);
+      return;
     }
+    void executeAction(action);
   }
 
   async function handleDownload() {
@@ -84,6 +99,25 @@ export default function SellerOrderDetailPage({ params }: PageProps) {
       toast.error(err instanceof ApiError ? err.message : "فاکتور دانلود نشد. دوباره امتحان کن.");
     } finally {
       setDownloadLoading(false);
+    }
+  }
+
+  async function handleTrackingSave(e: FormEvent) {
+    e.preventDefault();
+    const cleaned = trackingCode.trim();
+    if (!cleaned) {
+      toast.error("کد پیگیری رو وارد کن.");
+      return;
+    }
+    setTrackingLoading(true);
+    try {
+      await ordersApi.updateTrackingCode(orderId, cleaned);
+      toast.success("کد پیگیری ذخیره شد");
+      await refetch();
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : "کد پیگیری ذخیره نشد. دوباره امتحان کن.");
+    } finally {
+      setTrackingLoading(false);
     }
   }
 
@@ -102,11 +136,18 @@ export default function SellerOrderDetailPage({ params }: PageProps) {
   }
 
   const confirmTitle =
-    pendingAction === "reject_payment" ? "رد پرداخت" : "لغو سفارش";
+    pendingAction === "confirm_payment"
+      ? "تایید پرداخت"
+      : pendingAction === "reject_payment"
+        ? "رد پرداخت"
+        : "لغو سفارش";
   const confirmMessage =
-    pendingAction === "reject_payment"
-      ? "به مشتری خبر می‌دیم که دوباره پرداخت کنه و موجودی کالا برمی‌گرده."
-      : "سفارش لغو می‌شه و موجودی کالاها به انبار برمی‌گرده.";
+    pendingAction === "confirm_payment"
+      ? "مطمئنی پرداخت این سفارش تایید بشه؟"
+      : pendingAction === "reject_payment"
+        ? "به مشتری خبر می‌دیم که دوباره پرداخت کنه و موجودی کالا برمی‌گرده."
+        : "سفارش لغو می‌شه و موجودی کالاها به انبار برمی‌گرده.";
+  const canEditTracking = TRACKING_STATUSES.includes(data.status);
 
   return (
     <div className="page-stack">
@@ -128,7 +169,30 @@ export default function SellerOrderDetailPage({ params }: PageProps) {
         <CardHeader>
           <CardTitle>کار بعدی</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          {data.payment_proofs.length > 0 && (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {data.payment_proofs.map((proof) => (
+                <div key={proof.id} className="space-y-2">
+                  <a
+                    href={resolveMediaUrl(proof.image_url)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={resolveMediaUrl(proof.image_url)}
+                      alt="رسید پرداخت"
+                      className="max-h-64 rounded-lg border border-neutral-200 object-contain"
+                    />
+                  </a>
+                  <p className="text-xs text-neutral-500">
+                    بارگذاری شده در {formatDateTime(proof.uploaded_at)}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
           <OrderActions
             status={data.status}
             loading={actionLoading}
@@ -210,33 +274,26 @@ export default function SellerOrderDetailPage({ params }: PageProps) {
         </CardContent>
       </Card>
 
-      {data.payment_proofs.length > 0 && (
+      {canEditTracking && (
         <Card>
           <CardHeader>
-            <CardTitle>رسیدهای پرداخت</CardTitle>
+            <CardTitle>کد پیگیری پست</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {data.payment_proofs.map((proof) => (
-                <div key={proof.id} className="space-y-2">
-                  <a
-                    href={resolveMediaUrl(proof.image_url)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={resolveMediaUrl(proof.image_url)}
-                      alt="رسید پرداخت"
-                      className="max-h-64 rounded-lg border border-neutral-200 object-contain"
-                    />
-                  </a>
-                  <p className="text-xs text-neutral-500">
-                    بارگذاری شده در {formatDateTime(proof.uploaded_at)}
-                  </p>
-                </div>
-              ))}
-            </div>
+            <form onSubmit={handleTrackingSave} className="flex flex-col gap-3 sm:flex-row sm:items-end">
+              <div className="flex-1">
+                <Input
+                  label="کد پیگیری"
+                  value={trackingCode}
+                  onChange={(e) => setTrackingCode(e.target.value)}
+                  placeholder="مثلاً ۲۴ رقم پست"
+                  dir="ltr"
+                />
+              </div>
+              <Button type="submit" loading={trackingLoading}>
+                ذخیره کد پیگیری
+              </Button>
+            </form>
           </CardContent>
         </Card>
       )}
@@ -276,6 +333,7 @@ export default function SellerOrderDetailPage({ params }: PageProps) {
         title={confirmTitle}
         message={confirmMessage}
         confirmLabel={pendingAction ? ORDER_ACTION_LABELS[pendingAction] : "تایید"}
+        confirmVariant={pendingAction === "confirm_payment" ? "primary" : "danger"}
         loading={actionLoading}
         onConfirm={() => pendingAction && executeAction(pendingAction)}
         onClose={() => setPendingAction(null)}

@@ -207,6 +207,7 @@ class CustomerOrderDetailResponse(BaseModel):
     receipt_status: CustomerReceiptStatus | None
     complaint_count: int = 0
     stock_restored: bool
+    tracking_code: str | None = None
     created_at: datetime
     updated_at: datetime
     items: list[CustomerOrderItemResponse]

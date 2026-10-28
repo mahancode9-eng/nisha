@@ -152,6 +152,7 @@ def update_order_status(
     *,
     target_status: OrderStatus,
     note: str | None = None,
+    tracking_code: str | None = None,
 ) -> Order:
     order = get_order_for_store(db, store, order_id)
     order_transitions.validate_patch_transition(order.status, target_status)
@@ -159,6 +160,11 @@ def update_order_status(
     if target_status == OrderStatus.CANCELLED:
         stock_service.restore_order_stock(db, order)
         order.reservation_expires_at = None
+
+    if tracking_code is not None:
+        cleaned = tracking_code.strip()
+        if cleaned:
+            order.tracking_code = cleaned
 
     old_status = order.status
     order.status = target_status
@@ -170,6 +176,36 @@ def update_order_status(
         changed_by_user=seller,
         note=note,
     )
+    db.commit()
+    db.refresh(order)
+    return order
+
+
+_TRACKING_ALLOWED_STATUSES = {
+    OrderStatus.PAYMENT_CONFIRMED,
+    OrderStatus.PREPARING,
+    OrderStatus.SHIPPED,
+    OrderStatus.DELIVERED,
+}
+
+
+def update_tracking_code(
+    db: Session,
+    store: Store,
+    order_id: int,
+    *,
+    tracking_code: str,
+) -> Order:
+    order = get_order_for_store(db, store, order_id)
+    if order.status not in _TRACKING_ALLOWED_STATUSES:
+        raise ServiceError(
+            "کد پیگیری فقط بعد از تایید پرداخت ثبت می‌شه.",
+            status_code=422,
+        )
+    cleaned = tracking_code.strip()
+    if not cleaned:
+        raise ServiceError("کد پیگیری رو وارد کن.", status_code=422)
+    order.tracking_code = cleaned
     db.commit()
     db.refresh(order)
     return order

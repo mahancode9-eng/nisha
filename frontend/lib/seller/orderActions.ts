@@ -16,7 +16,13 @@ const PATCH_FROM: Record<Exclude<OrderAction, "confirm_payment" | "reject_paymen
   preparing: ["PAYMENT_CONFIRMED"],
   shipped: ["PREPARING"],
   delivered: ["SHIPPED"],
-  cancel: ["PAYMENT_CONFIRMED", "PREPARING", "SHIPPED"],
+  cancel: [
+    "PENDING_PAYMENT",
+    "PAYMENT_UPLOADED",
+    "PAYMENT_CONFIRMED",
+    "PREPARING",
+    "SHIPPED",
+  ],
 };
 
 export function getAvailableOrderActions(status: OrderStatus): OrderAction[] {

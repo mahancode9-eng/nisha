@@ -6,7 +6,7 @@ const statusConfig: Record<
   { label: string; variant: "neutral" | "success" | "warning" | "danger" | "info" }
 > = {
   PENDING_PAYMENT: { label: "در انتظار پرداخت", variant: "warning" },
-  PAYMENT_UPLOADED: { label: "رسید پرداخت ثبت شد", variant: "info" },
+  PAYMENT_UPLOADED: { label: "رسید دریافت شد؛ منتظر تایید فروشنده", variant: "info" },
   PAYMENT_CONFIRMED: { label: "پرداخت تایید شد", variant: "success" },
   PAYMENT_REJECTED: { label: "پرداخت رد شد", variant: "danger" },
   PREPARING: { label: "در حال آماده‌سازی", variant: "info" },
