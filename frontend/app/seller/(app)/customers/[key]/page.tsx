@@ -36,7 +36,7 @@ export default function SellerCustomerDetailPage({ params }: PageProps) {
   const { key: rawKey } = use(params);
   const key = decodeURIComponent(rawKey);
   const toast = useToast();
-  const { entitlements } = useSellerEntitlements();
+  const { entitlements, isLoading: entitlementsLoading } = useSellerEntitlements();
   const canTags = Boolean(entitlements.customer_tags);
 
   const { data, error, isLoading, refetch } = useSellerFetch(
@@ -93,7 +93,7 @@ export default function SellerCustomerDetailPage({ params }: PageProps) {
     }
   }
 
-  if (isLoading) {
+  if (isLoading || entitlementsLoading) {
     return <LoadingState message="داره مشتری رو بارگذاری می‌کنه…" />;
   }
 

@@ -8,12 +8,14 @@ import * as productsApi from "@/lib/api/seller/products";
 import * as paymentMethodsApi from "@/lib/api/seller/payment-methods";
 import { paths } from "@/lib/auth/paths";
 import { formatMoney } from "@/lib/format";
+import { normalizeDigits } from "@/lib/moneyInput";
 import { ApiError } from "@/lib/api/errors";
 import { useToast } from "@/contexts/ToastContext";
 import { useSellerFetch } from "@/hooks/useSellerFetch";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { Button } from "@/components/ui/Button";
+import { Button, buttonClassName } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { Input } from "@/components/ui/Input";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { Select } from "@/components/ui/Select";
@@ -93,7 +95,7 @@ export default function SellerManualOrderPage() {
     try {
       const created = await ordersApi.createManualOrder({
         buyer_name: buyerName.trim(),
-        buyer_phone: buyerPhone.trim(),
+        buyer_phone: normalizeDigits(buyerPhone.trim()),
         buyer_address: buyerAddress.trim(),
         buyer_note: buyerNote.trim() || null,
         payment_method_id: parseInt(paymentMethodId, 10),
@@ -123,15 +125,30 @@ export default function SellerManualOrderPage() {
             <p className="text-sm text-foreground-muted">
               رمز ویرایش فاکتور رو همین الان به خریدار بده؛ دوباره نشون داده نمی‌شه.
             </p>
-            <p className="rounded-xl border border-border bg-surface-muted px-3 py-2 font-mono text-lg" dir="ltr">
-              {createdPassword}
-            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="rounded-xl border border-border bg-surface-muted px-3 py-2 font-mono text-lg" dir="ltr">
+                {createdPassword}
+              </p>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  void navigator.clipboard.writeText(createdPassword).then(
+                    () => toast.success("رمز کپی شد"),
+                    () => toast.error("کپی نشد. دستی کپی کن."),
+                  );
+                }}
+              >
+                کپی رمز
+              </Button>
+            </div>
             <div className="flex flex-wrap gap-2">
               <Button onClick={() => router.push(paths.seller.orderDetail(createdOrderId))}>
                 دیدن سفارش
               </Button>
-              <Link href={paths.seller.orders}>
-                <Button variant="secondary">برگرد به سفارش‌ها</Button>
+              <Link href={paths.seller.orders} className={buttonClassName({ variant: "secondary" })}>
+                برگرد به سفارش‌ها
               </Link>
             </div>
           </CardContent>
@@ -143,13 +160,45 @@ export default function SellerManualOrderPage() {
   const activePayments = (paymentMethods ?? []).filter((method) => method.is_active);
   const activeProducts = (products?.items ?? []).filter((product) => product.is_active);
 
+  if (activePayments.length === 0 || activeProducts.length === 0) {
+    return (
+      <div className="page-stack">
+        <PageHeader description="سفارشی که تو اینستاگرام یا حضوری گرفتی رو اینجا ثبت کن" />
+        <EmptyState
+          title={
+            activeProducts.length === 0
+              ? "اول یه محصول فعال لازم داری"
+              : "اول یه روش پرداخت فعال لازم داری"
+          }
+          description={
+            activeProducts.length === 0
+              ? "محصول فعال بساز، بعد برگرد و سفارش دستی ثبت کن."
+              : "روش پرداخت فعال اضافه کن، بعد برگرد و سفارش دستی ثبت کن."
+          }
+          action={
+            <Link
+              href={
+                activeProducts.length === 0
+                  ? paths.seller.productNew
+                  : paths.seller.paymentMethods
+              }
+              className={buttonClassName()}
+            >
+              {activeProducts.length === 0 ? "افزودن محصول" : "روش پرداخت"}
+            </Link>
+          }
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="page-stack">
       <PageHeader
         description="سفارشی که تو اینستاگرام یا حضوری گرفتی رو اینجا ثبت کن"
         action={
-          <Link href={paths.seller.orders}>
-            <Button variant="secondary">انصراف</Button>
+          <Link href={paths.seller.orders} className={buttonClassName({ variant: "secondary" })}>
+            انصراف
           </Link>
         }
       />
