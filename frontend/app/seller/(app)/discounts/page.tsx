@@ -27,6 +27,7 @@ import {
   expiresAtFromDays,
   type DiscountTemplate,
 } from "@/lib/seller/discountTemplates";
+import { toastApiFailure } from "@/lib/seller/upgrade";
 import type { DiscountCode, DiscountType } from "@/types/seller/discount";
 import Link from "next/link";
 
@@ -133,7 +134,7 @@ export default function SellerDiscountsPage() {
       if (err instanceof ApiError && err.upgradeRequired) {
         setUpgradeHint(err.message);
       }
-      toast.error(err instanceof ApiError ? err.message : "کد تخفیف ساخته نشد. دوباره امتحان کن.");
+      toastApiFailure(toast, err, "کد تخفیف ساخته نشد. دوباره امتحان کن.");
     } finally {
       setSubmitting(false);
     }
@@ -179,11 +180,19 @@ export default function SellerDiscountsPage() {
       {error && <ErrorAlert message={error} />}
 
       {!entitlementsLoading && !canManageDiscounts && (
-        <UpgradeGate description="کد تخفیف تو پلن فعلی‌ت فعال نیست. پلن رو ارتقا بده." />
+        <UpgradeGate
+          feature="discounts"
+          suggestedPlan="basic"
+          description="کد تخفیف تو پلن فعلی‌ت فعال نیست. پلن رو ارتقا بده."
+        />
       )}
 
       {!entitlementsLoading && canManageDiscounts && atActiveCap && maxActive === 1 && (
-        <UpgradeGate description="تو پلن رایگان فقط یک کد تخفیف فعال می‌تونی داشته باشی. برای کدهای بیشتر پلن رو ارتقا بده." />
+        <UpgradeGate
+          feature="discounts"
+          suggestedPlan="basic"
+          description="تو پلن رایگان فقط یک کد تخفیف فعال می‌تونی داشته باشی. برای کدهای بیشتر پلن رو ارتقا بده."
+        />
       )}
 
       {canManageDiscounts && (
@@ -199,7 +208,13 @@ export default function SellerDiscountsPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           {upgradeHint ? (
-            <UpgradeGate compact description={upgradeHint} ctaLabel="ارتقا بده" />
+            <UpgradeGate
+              compact
+              feature="discounts"
+              suggestedPlan="basic"
+              description={upgradeHint}
+              ctaLabel="ارتقا بده"
+            />
           ) : null}
           <div className="space-y-2">
             <p className="text-sm font-medium text-foreground">قالب آماده</p>

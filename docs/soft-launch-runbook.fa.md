@@ -76,6 +76,7 @@ alembic upgrade head
 - [ ] `PRIVATE_UPLOAD_DIR` برای رسید پرداخت/اشتراک (عمومی نیست؛ از `/api/v1/media/private/...` با توکن کوتاه‌عمر سرو می‌شود)
 - [ ] `ORDER_RESERVATION_MINUTES` (پیش‌فرض ۲۰) — موجودی سفارش‌های پرداخت‌نشده بعد از انقضا برمی‌گردد
 - [ ] `ALLOW_DEMO_SEED` فقط در صورت نیاز به seed دمو در پروداکشن؛ پیش‌فرض خاموش. seed دیگر پسورد ادمین موجود را عوض نمی‌کند
+- [ ] اگر دامنه اختصاصی فروشنده می‌فروشی: `CUSTOM_DOMAIN_CNAME_TARGET` (و در صورت نیاز `CUSTOM_DOMAIN_IPV4` / `CUSTOM_DOMAIN_RESERVED`) + پروکسی/TLS برای هاست فروشنده به فرانت
 
 ## ۵.۱) نکات امنیتی Wave 1
 

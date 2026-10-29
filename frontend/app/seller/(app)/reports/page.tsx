@@ -50,7 +50,11 @@ export default function SellerReportsPage() {
     return (
       <div className="page-stack">
         <PageHeader description="خلاصه فروش، سفارش دستی و خریدارهای تکراری" />
-        <UpgradeGate description="گزارش فروش از پلن پایه به بالا فعاله." />
+        <UpgradeGate
+          feature="sales_report"
+          suggestedPlan="basic"
+          description="گزارش فروش از پلن پایه به بالا فعاله."
+        />
       </div>
     );
   }

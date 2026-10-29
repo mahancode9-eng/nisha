@@ -128,6 +128,7 @@ export default function SellerProductsPage() {
       {atProductLimit ? (
         <UpgradeGate
           compact
+          suggestedPlan="basic"
           title={`سقف ${maxProducts} محصول پلن فعلی پر شده`}
           description="با ارتقا به پلن بالاتر می‌تونی محصولات بیشتری اضافه کنی و فروشگاهت رو کامل‌تر کنی."
           ctaLabel="دیدن پلن‌ها و ارتقا"
@@ -137,6 +138,7 @@ export default function SellerProductsPage() {
       {importExhausted ? (
         <UpgradeGate
           compact
+          suggestedPlan="pro"
           title="سقف ایمپورت اینستاگرام پر شده"
           description={`تو پلن فعلی ${Number(importLimit).toLocaleString("fa-IR")} بار می‌تونی از اینستاگرام بیاری. برای بیشتر، پلن رو ارتقا بده.`}
           ctaLabel="دیدن پلن‌ها"

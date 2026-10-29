@@ -5,6 +5,7 @@ import * as productsApi from "@/lib/api/seller/products";
 import { uploadPublicImage } from "@/lib/api/public/uploads";
 import { moneyInputToNumber, parseMoneyInput } from "@/lib/moneyInput";
 import { ApiError } from "@/lib/api/errors";
+import { toastApiFailure } from "@/lib/seller/upgrade";
 import { useToast } from "@/contexts/ToastContext";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -79,7 +80,7 @@ export function InstagramImportModal({ open, onClose, onImported }: InstagramImp
       onImported(product.id);
       onClose();
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "وارد نشد. دوباره امتحان کن.");
+      toastApiFailure(toast, err, "وارد نشد. دوباره امتحان کن.");
     } finally {
       setSaving(false);
     }

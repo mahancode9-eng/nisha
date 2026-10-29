@@ -1,11 +1,18 @@
 "use client";
 
+import Link from "next/link";
 import { cn } from "@/lib/cn";
+
+export type ToastAction = {
+  label: string;
+  href: string;
+};
 
 type ToastItem = {
   id: number;
   message: string;
   variant: "success" | "error" | "warning";
+  action?: ToastAction;
 };
 
 type ToastContainerProps = {
@@ -49,7 +56,18 @@ function ToastCard({
       role={toast.variant === "error" ? "alert" : undefined}
     >
       <div className="flex items-start justify-between gap-3">
-        <p>{toast.message}</p>
+        <div className="min-w-0 space-y-1.5">
+          <p>{toast.message}</p>
+          {toast.action ? (
+            <Link
+              href={toast.action.href}
+              className="inline-flex font-medium text-brand underline-offset-2 hover:underline"
+              onClick={() => onDismiss(toast.id)}
+            >
+              {toast.action.label}
+            </Link>
+          ) : null}
+        </div>
         <button
           type="button"
           className="shrink-0 text-foreground-muted hover:text-foreground"
