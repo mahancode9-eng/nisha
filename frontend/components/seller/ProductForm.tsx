@@ -736,6 +736,8 @@ export function ProductForm({
         {!canVideo ? (
           <UpgradeGate
             compact
+            feature="product_video"
+            suggestedPlan="pro"
             title="ویدیو محصول در پلن حرفه‌ای فعال است"
             description="با ویدیو، خریدار محصول رو بهتر می‌بینه و احتمال خرید بالاتر می‌ره."
             ctaLabel="ارتقا به حرفه‌ای"
@@ -854,6 +856,8 @@ export function ProductForm({
         {!canCustomFields ? (
           <UpgradeGate
             compact
+            feature="custom_fields"
+            suggestedPlan="basic"
             title="سؤال‌های سفارشی از پلن پایه به بالا"
             description="مثلاً سایز، رنگ یا متن حکاکی رو موقع خرید از مشتری بپرس."
             ctaLabel="ارتقا به پایه"

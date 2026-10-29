@@ -92,6 +92,9 @@ services:
       JWT_REFRESH_TOKEN_EXPIRE_DAYS: 7
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      CUSTOM_DOMAIN_CNAME_TARGET: ${CUSTOM_DOMAIN_CNAME_TARGET:-}
+      CUSTOM_DOMAIN_IPV4: ${CUSTOM_DOMAIN_IPV4:-}
+      CUSTOM_DOMAIN_RESERVED: ${CUSTOM_DOMAIN_RESERVED:-}
     volumes:
       - backend_uploads:/app/uploads
       - backend_private_uploads:/app/private_uploads

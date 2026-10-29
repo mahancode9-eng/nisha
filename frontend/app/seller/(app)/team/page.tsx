@@ -155,6 +155,8 @@ export default function SellerTeamPage() {
           {!canTeam ? (
             <UpgradeGate
               compact
+              feature="store_team"
+              suggestedPlan="enterprise"
               description="دعوت همکار از پلن سازمانی فعاله."
             />
           ) : (
@@ -224,6 +226,8 @@ export default function SellerTeamPage() {
           {!canDomain ? (
             <UpgradeGate
               compact
+              feature="custom_domain"
+              suggestedPlan="enterprise"
               description="دامنه اختصاصی از پلن سازمانی فعاله."
             />
           ) : (

@@ -86,6 +86,26 @@ Align:
 - `NEXT_PUBLIC_API_URL` / `NEXT_PUBLIC_SITE_URL` / `FRONTEND_BASE_URL` with public HTTPS URLs
 - `CORS_ORIGINS` with the public frontend origin
 
+### Custom seller domains (Enterprise)
+
+Sellers on Enterprise can attach a hostname. Ownership is proven with TXT
+`_nisha-verify.<domain>`; production also checks CNAME/A when configured.
+
+Set in root `.env` (passed through `docker-compose.prod.yml`):
+
+| Variable | Purpose |
+|---|---|
+| `CUSTOM_DOMAIN_CNAME_TARGET` | Hostname sellers should CNAME to (e.g. `stores.example.com`) |
+| `CUSTOM_DOMAIN_IPV4` | Optional comma-separated A records accepted instead of CNAME |
+| `CUSTOM_DOMAIN_RESERVED` | Extra hosts sellers must not claim (site/API hosts are always reserved) |
+
+Proxy those seller hostnames (wildcard or per-store) to the **frontend**
+(`127.0.0.1:3000`) with `Host` preserved. Next middleware calls
+`/api/v1/public/domains/resolve?host=…` and rewrites to `/store/{slug}`.
+
+Smoke: set domain in `/seller/team` → add TXT (+ CNAME) → Verify → open the
+custom host and confirm the storefront loads.
+
 ## 5. Data, uploads, and backups
 
 Persisted by Compose:

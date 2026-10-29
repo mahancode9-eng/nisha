@@ -221,6 +221,8 @@ export default function SellerCustomerDetailPage({ params }: PageProps) {
             {!canTags ? (
               <UpgradeGate
                 compact
+                feature="customer_tags"
+                suggestedPlan="pro"
                 description="برچسب مشتری از پلن حرفه‌ای به بالا فعاله."
               />
             ) : (

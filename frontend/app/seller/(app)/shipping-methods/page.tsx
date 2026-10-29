@@ -126,7 +126,11 @@ export default function SellerShippingMethodsPage() {
       />
 
       {!canManage ? (
-        <UpgradeGate description="روش‌های ارسال نام‌دار از پلن پایه به بالا فعاله." />
+        <UpgradeGate
+          feature="named_shipping_methods"
+          suggestedPlan="basic"
+          description="روش‌های ارسال نام‌دار از پلن پایه به بالا فعاله."
+        />
       ) : null}
 
       {error ? <ErrorAlert message={error} /> : null}

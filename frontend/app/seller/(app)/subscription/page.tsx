@@ -1,9 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import * as subscriptionApi from "@/lib/api/seller/subscription";
 import { ApiError } from "@/lib/api/errors";
 import { formatToman } from "@/lib/pricing/planCatalog";
+import {
+  featureTitle,
+  planLabel,
+  suggestedPlanFor,
+} from "@/lib/seller/upgrade";
 import { useToast } from "@/contexts/ToastContext";
 import { PlanPricingGrid } from "@/components/pricing/PlanPricingGrid";
 import { PricingPeriodToggle } from "@/components/pricing/PricingPeriodToggle";
@@ -38,7 +44,19 @@ function invoiceStatusLabel(status: SubscriptionInvoice["status"]) {
 }
 
 export default function SellerSubscriptionPage() {
+  return (
+    <Suspense fallback={<LoadingState message="داره پلن‌ها رو بارگذاری می‌کنه…" />}>
+      <SellerSubscriptionPageInner />
+    </Suspense>
+  );
+}
+
+function SellerSubscriptionPageInner() {
   const toast = useToast();
+  const searchParams = useSearchParams();
+  const featureParam = searchParams.get("feature");
+  const featureName = featureTitle(featureParam);
+  const featurePlan = featureParam ? suggestedPlanFor(featureParam) : null;
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [detail, setDetail] = useState<SellerSubscriptionDetail | null>(null);
   const [invoices, setInvoices] = useState<SubscriptionInvoice[]>([]);
@@ -162,6 +180,11 @@ export default function SellerSubscriptionPage() {
             )}
           </p>
         )}
+        {featureName && featurePlan ? (
+          <p className="rounded-xl border border-brand/25 bg-brand/5 px-3.5 py-3 text-sm text-foreground">
+            برای «{featureName}» معمولاً پلن {planLabel(featurePlan)} کافیه. پایین پلن مناسب رو انتخاب کن.
+          </p>
+        ) : null}
       </div>
 
       {error && <ErrorAlert message={error} />}

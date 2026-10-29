@@ -8,7 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { ToastContainer } from "@/components/ui/Toast";
+import { ToastContainer, type ToastAction } from "@/components/ui/Toast";
 
 type ToastVariant = "success" | "error" | "warning";
 
@@ -16,11 +16,12 @@ type ToastItem = {
   id: number;
   message: string;
   variant: ToastVariant;
+  action?: ToastAction;
 };
 
 type ToastContextValue = {
   success: (message: string) => void;
-  error: (message: string) => void;
+  error: (message: string, action?: ToastAction) => void;
   warning: (message: string) => void;
 };
 
@@ -35,16 +36,19 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  const addToast = useCallback((message: string, variant: ToastVariant) => {
-    const id = ++toastId;
-    setToasts((prev) => [...prev, { id, message, variant }]);
-    setTimeout(() => dismiss(id), 4000);
-  }, [dismiss]);
+  const addToast = useCallback(
+    (message: string, variant: ToastVariant, action?: ToastAction) => {
+      const id = ++toastId;
+      setToasts((prev) => [...prev, { id, message, variant, action }]);
+      setTimeout(() => dismiss(id), action ? 7000 : 4000);
+    },
+    [dismiss],
+  );
 
   const value = useMemo(
     () => ({
       success: (message: string) => addToast(message, "success"),
-      error: (message: string) => addToast(message, "error"),
+      error: (message: string, action?: ToastAction) => addToast(message, "error", action),
       warning: (message: string) => addToast(message, "warning"),
     }),
     [addToast],
