@@ -263,6 +263,11 @@ export default function SellerOrderDetailPage({ params }: PageProps) {
           {data.payment_method.instructions && (
             <p className="text-neutral-600">{data.payment_method.instructions}</p>
           )}
+          {data.shipping_method_name ? (
+            <p>
+              <span className="text-neutral-500">روش ارسال:</span> {data.shipping_method_name}
+            </p>
+          ) : null}
         </CardContent>
       </Card>
 

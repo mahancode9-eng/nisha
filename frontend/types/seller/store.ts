@@ -33,8 +33,12 @@ export type Store = {
   payment_reminder_minutes?: number | null;
   sms_quota_month?: string | null;
   sms_sent_count?: number;
+  instagram_import_count?: number;
   custom_domain?: string | null;
   custom_domain_verified_at?: string | null;
+  custom_domain_txt_name?: string | null;
+  custom_domain_txt_value?: string | null;
+  custom_domain_cname_target?: string | null;
   social_links: StoreSocialLink[];
   dm_reply_templates?: { title: string; body: string }[];
   created_at: string;

@@ -83,6 +83,10 @@ class Settings(BaseSettings):
     # Public base URL of this API (for Telegram to fetch private media). e.g. https://api.example.com
     API_PUBLIC_BASE_URL: str = ""
     MESSENGER_LINK_TOKEN_EXPIRE_MINUTES: int = 30
+    # Custom domains (production DNS). Leave empty in local/dev; verify still auto-passes there.
+    CUSTOM_DOMAIN_CNAME_TARGET: str = ""
+    CUSTOM_DOMAIN_IPV4: str = ""
+    CUSTOM_DOMAIN_RESERVED: str = ""
 
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod

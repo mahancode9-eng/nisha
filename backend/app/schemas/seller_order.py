@@ -65,6 +65,8 @@ class SellerOrderDetailResponse(BaseModel):
     stock_restored: bool
     tracking_code: str | None = None
     is_manual: bool = False
+    shipping_method_id: int | None = None
+    shipping_method_name: str | None = None
     created_at: datetime
     updated_at: datetime
     items: list[SellerOrderItemResponse]

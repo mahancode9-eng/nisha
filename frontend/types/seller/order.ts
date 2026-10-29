@@ -66,6 +66,8 @@ export type SellerOrderDetail = {
   stock_restored: boolean;
   tracking_code?: string | null;
   is_manual?: boolean;
+  shipping_method_id?: number | null;
+  shipping_method_name?: string | null;
   created_at: string;
   updated_at: string;
   items: SellerOrderItem[];

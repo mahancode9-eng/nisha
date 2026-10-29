@@ -119,6 +119,8 @@ def get_order(
         stock_restored=order.stock_restored,
         tracking_code=order.tracking_code,
         is_manual=bool(getattr(order, "is_manual", False)),
+        shipping_method_id=order.shipping_method_id,
+        shipping_method_name=order.shipping_method_name,
         created_at=order.created_at,
         updated_at=order.updated_at,
         items=[seller_order_item_response(item) for item in order.items],
