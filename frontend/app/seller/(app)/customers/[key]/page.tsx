@@ -10,6 +10,7 @@ import { ApiError } from "@/lib/api/errors";
 import { useToast } from "@/contexts/ToastContext";
 import { useSellerEntitlements } from "@/hooks/useSellerEntitlements";
 import { useSellerFetch } from "@/hooks/useSellerFetch";
+import { ConfirmModal } from "@/components/seller/ConfirmModal";
 import { UpgradeGate } from "@/components/seller/UpgradeGate";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -50,6 +51,9 @@ export default function SellerCustomerDetailPage({ params }: PageProps) {
 
   const [newTagName, setNewTagName] = useState("");
   const [tagBusy, setTagBusy] = useState(false);
+  const [editingTagId, setEditingTagId] = useState<number | null>(null);
+  const [editingTagName, setEditingTagName] = useState("");
+  const [deleteTagId, setDeleteTagId] = useState<number | null>(null);
 
   const selectedIds = useMemo(
     () => new Set((data?.tags ?? []).map((tag) => tag.id)),
@@ -88,6 +92,42 @@ export default function SellerCustomerDetailPage({ params }: PageProps) {
       await refetch();
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : "برچسب ذخیره نشد. دوباره امتحان کن.");
+    } finally {
+      setTagBusy(false);
+    }
+  }
+
+  async function handleRenameTag() {
+    if (editingTagId === null) return;
+    const name = editingTagName.trim();
+    if (!name) {
+      toast.error("اسم برچسب رو بنویس.");
+      return;
+    }
+    setTagBusy(true);
+    try {
+      await tagsApi.updateCustomerTag(editingTagId, { name });
+      toast.success("برچسب عوض شد");
+      setEditingTagId(null);
+      setEditingTagName("");
+      await Promise.all([refetch(), refetchTags()]);
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : "برچسب عوض نشد. دوباره امتحان کن.");
+    } finally {
+      setTagBusy(false);
+    }
+  }
+
+  async function handleDeleteTag() {
+    if (deleteTagId === null) return;
+    setTagBusy(true);
+    try {
+      await tagsApi.deleteCustomerTag(deleteTagId);
+      toast.success("برچسب حذف شد");
+      setDeleteTagId(null);
+      await Promise.all([refetch(), refetchTags()]);
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : "برچسب حذف نشد. دوباره امتحان کن.");
     } finally {
       setTagBusy(false);
     }
@@ -201,26 +241,74 @@ export default function SellerCustomerDetailPage({ params }: PageProps) {
                 {!allTags?.length ? (
                   <p className="text-sm text-foreground-muted">هنوز برچسبی نساختی.</p>
                 ) : (
-                  <div className="flex flex-wrap gap-2">
+                  <ul className="space-y-2">
                     {allTags.map((tag) => {
                       const active = selectedIds.has(tag.id);
+                      const editing = editingTagId === tag.id;
                       return (
-                        <button
+                        <li
                           key={tag.id}
-                          type="button"
-                          disabled={tagBusy}
-                          onClick={() => void toggleTag(tag.id)}
-                          className={
-                            active
-                              ? "rounded-full border border-brand bg-brand/10 px-3 py-1 text-sm text-foreground"
-                              : "rounded-full border border-border px-3 py-1 text-sm text-foreground-muted hover:border-brand/40"
-                          }
+                          className="flex flex-wrap items-center gap-2 rounded-xl border border-border px-3 py-2"
                         >
-                          {tag.name}
-                        </button>
+                          {editing ? (
+                            <>
+                              <Input
+                                value={editingTagName}
+                                onChange={(e) => setEditingTagName(e.target.value)}
+                                className="min-w-[8rem] flex-1"
+                              />
+                              <Button size="sm" loading={tagBusy} onClick={() => void handleRenameTag()}>
+                                ذخیره
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => {
+                                  setEditingTagId(null);
+                                  setEditingTagName("");
+                                }}
+                              >
+                                انصراف
+                              </Button>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                type="button"
+                                disabled={tagBusy}
+                                onClick={() => void toggleTag(tag.id)}
+                                className={
+                                  active
+                                    ? "rounded-full border border-brand bg-brand/10 px-3 py-1 text-sm text-foreground"
+                                    : "rounded-full border border-border px-3 py-1 text-sm text-foreground-muted hover:border-brand/40"
+                                }
+                              >
+                                {tag.name}
+                              </button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => {
+                                  setEditingTagId(tag.id);
+                                  setEditingTagName(tag.name);
+                                }}
+                              >
+                                ویرایش
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="text-red-600"
+                                onClick={() => setDeleteTagId(tag.id)}
+                              >
+                                حذف
+                              </Button>
+                            </>
+                          )}
+                        </li>
                       );
                     })}
-                  </div>
+                  </ul>
                 )}
               </>
             )}
@@ -268,6 +356,16 @@ export default function SellerCustomerDetailPage({ params }: PageProps) {
           )}
         </CardContent>
       </Card>
+
+      <ConfirmModal
+        open={deleteTagId !== null}
+        title="حذف برچسب"
+        message="این برچسب از همه مشتری‌ها برداشته می‌شه. مطمئنی؟"
+        confirmLabel="حذف"
+        loading={tagBusy}
+        onConfirm={() => void handleDeleteTag()}
+        onClose={() => setDeleteTagId(null)}
+      />
     </div>
   );
 }

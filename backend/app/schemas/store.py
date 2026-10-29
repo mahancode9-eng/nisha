@@ -64,8 +64,12 @@ class StoreResponse(BaseModel):
     payment_reminder_minutes: int | None = None
     sms_quota_month: str | None = None
     sms_sent_count: int = 0
+    instagram_import_count: int = 0
     custom_domain: str | None = None
     custom_domain_verified_at: datetime | None = None
+    custom_domain_txt_name: str | None = None
+    custom_domain_txt_value: str | None = None
+    custom_domain_cname_target: str | None = None
     social_links: list[StoreSocialLinkResponse] = Field(default_factory=list)
     dm_reply_templates: list[dict[str, Any]] = Field(default_factory=list)
     created_at: datetime
@@ -80,6 +84,9 @@ class StoreResponse(BaseModel):
             payload["badge_labels"] = list(getattr(data, "badge_labels", []) or [])
             payload["social_links"] = list(getattr(data, "social_links", []) or [])
             payload["dm_reply_templates"] = _decode_templates(raw)
+            from app.services import custom_domain_service
+
+            payload.update(custom_domain_service.dns_instruction_fields(data))
             return payload
         if isinstance(data, dict) and "dm_reply_templates_json" in data:
             data = dict(data)

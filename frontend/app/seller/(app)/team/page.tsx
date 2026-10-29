@@ -234,8 +234,56 @@ export default function SellerTeamPage() {
                 onChange={(e) => setDomain(e.target.value)}
                 placeholder="shop.example.com"
                 dir="ltr"
-                hint="دامنه رو بدون https وارد کن. تایید کامل DNS به‌زودی میاد؛ فعلاً فقط برای تست محلی (مثل shop.localhost) تایید می‌شه."
+                hint="دامنه رو بدون https وارد کن. بعد از ذخیره، رکوردهای DNS رو بزن و تایید کن."
               />
+              {store?.custom_domain && store.custom_domain_txt_name && store.custom_domain_txt_value ? (
+                <div className="space-y-2 rounded-xl border border-border bg-surface-muted/40 p-3 text-sm">
+                  <p className="font-medium text-foreground">۱) رکورد TXT مالکیت</p>
+                  <p className="text-foreground-muted">
+                    Host:{" "}
+                    <span className="font-mono" dir="ltr">
+                      {store.custom_domain_txt_name}
+                    </span>
+                  </p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="font-mono break-all" dir="ltr">
+                      {store.custom_domain_txt_value}
+                    </p>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => {
+                        void navigator.clipboard.writeText(store.custom_domain_txt_value ?? "").then(
+                          () => toast.success("مقدار TXT کپی شد"),
+                          () => toast.error("کپی نشد"),
+                        );
+                      }}
+                    >
+                      کپی
+                    </Button>
+                  </div>
+                  {store.custom_domain_cname_target ? (
+                    <>
+                      <p className="mt-2 font-medium text-foreground">۲) CNAME به نیشا</p>
+                      <p className="text-foreground-muted">
+                        Host:{" "}
+                        <span className="font-mono" dir="ltr">
+                          {store.custom_domain}
+                        </span>{" "}
+                        →{" "}
+                        <span className="font-mono" dir="ltr">
+                          {store.custom_domain_cname_target}
+                        </span>
+                      </p>
+                    </>
+                  ) : (
+                    <p className="mt-2 text-foreground-muted">
+                      تو محیط لوکال/تست، بدون DNS هم می‌تونی تایید کنی. تو پروداکشن، CNAME هدف از تنظیمات سرور میاد.
+                    </p>
+                  )}
+                </div>
+              ) : null}
               {store?.custom_domain_verified_at ? (
                 <p className="text-sm text-foreground-muted">
                   تایید شده در {formatDateTime(store.custom_domain_verified_at)}
@@ -255,7 +303,7 @@ export default function SellerTeamPage() {
                   disabled={!store?.custom_domain || savingDomain}
                   onClick={() => void handleVerifyDomain()}
                 >
-                  تایید دامنه
+                  بررسی و تایید DNS
                 </Button>
               </div>
             </>

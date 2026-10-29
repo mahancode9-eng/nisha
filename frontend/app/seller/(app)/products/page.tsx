@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import * as productsApi from "@/lib/api/seller/products";
 import * as exportsApi from "@/lib/api/seller/exports";
+import * as storeApi from "@/lib/api/seller/store";
 import { paths } from "@/lib/auth/paths";
 import { formatMoney } from "@/lib/format";
 import { useToast } from "@/contexts/ToastContext";
@@ -39,7 +40,6 @@ export default function SellerProductsPage() {
   const canExport = entitlements.excel_export;
   const maxProducts = entitlements.max_products;
   const importLimit = entitlements.instagram_import_limit;
-  const canImport = importLimit === null || importLimit === undefined || importLimit > 0;
   const [page, setPage] = useState(1);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -52,6 +52,14 @@ export default function SellerProductsPage() {
   );
 
   const { data, error, isLoading, refetch } = useSellerFetch(fetchProducts, [page]);
+  const { data: store, refetch: refetchStore } = useSellerFetch(() => storeApi.getStore(), []);
+
+  const importUsed = store?.instagram_import_count ?? 0;
+  const importUnlimited = importLimit === null || importLimit === undefined;
+  const importRemaining = importUnlimited ? null : Math.max(0, Number(importLimit) - importUsed);
+  const canImport = importUnlimited || (typeof importLimit === "number" && importLimit > 0 && (importRemaining ?? 0) > 0);
+  const importExhausted =
+    !importUnlimited && typeof importLimit === "number" && importLimit > 0 && (importRemaining ?? 0) <= 0;
 
   async function handleDelete() {
     if (deleteId === null) return;
@@ -99,6 +107,9 @@ export default function SellerProductsPage() {
             {canImport && !atProductLimit ? (
               <Button type="button" variant="secondary" size="sm" onClick={() => setImportOpen(true)}>
                 از اینستاگرام
+                {importRemaining != null
+                  ? ` (${importRemaining.toLocaleString("fa-IR")} باقی)`
+                  : ""}
               </Button>
             ) : null}
             {atProductLimit ? (
@@ -120,6 +131,15 @@ export default function SellerProductsPage() {
           title={`سقف ${maxProducts} محصول پلن فعلی پر شده`}
           description="با ارتقا به پلن بالاتر می‌تونی محصولات بیشتری اضافه کنی و فروشگاهت رو کامل‌تر کنی."
           ctaLabel="دیدن پلن‌ها و ارتقا"
+        />
+      ) : null}
+
+      {importExhausted ? (
+        <UpgradeGate
+          compact
+          title="سقف ایمپورت اینستاگرام پر شده"
+          description={`تو پلن فعلی ${Number(importLimit).toLocaleString("fa-IR")} بار می‌تونی از اینستاگرام بیاری. برای بیشتر، پلن رو ارتقا بده.`}
+          ctaLabel="دیدن پلن‌ها"
         />
       ) : null}
 
@@ -225,7 +245,7 @@ export default function SellerProductsPage() {
         open={importOpen}
         onClose={() => setImportOpen(false)}
         onImported={(productId) => {
-          void refetch();
+          void Promise.all([refetch(), refetchStore()]);
           router.push(paths.seller.productEdit(productId));
         }}
       />
