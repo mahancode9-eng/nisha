@@ -73,6 +73,8 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
   const canTheme = entitlements.store_theme;
   const canPages = entitlements.store_pages;
   const canReceiptReminder = Boolean(entitlements.configurable_receipt_reminder);
+  const smsQuota = entitlements.sms_monthly_quota;
+  const smsSent = store.sms_sent_count ?? 0;
   const [messenger, setMessenger] = useState<MessengerStatus | null>(null);
   const [messengerBusy, setMessengerBusy] = useState<"telegram" | "bale" | null>(null);
   const [name, setName] = useState(store.name);
@@ -675,6 +677,28 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
                 <Link href={paths.seller.subscription} className="text-brand underline-offset-2 hover:underline">
                   ارتقای پلن
                 </Link>
+              </p>
+            )}
+          </FormSection>
+
+          <FormSection
+            title="پیامک"
+            description="سهمیه پیامک این ماه برای یادآوری و پیگیری سفارش."
+          >
+            {smsQuota === 0 ? (
+              <p className="text-sm text-foreground-muted">
+                تو پلن فعلی پیامک نداری.{" "}
+                <Link href={paths.seller.subscription} className="text-brand underline-offset-2 hover:underline">
+                  ارتقای پلن
+                </Link>
+              </p>
+            ) : smsQuota == null ? (
+              <p className="text-sm text-foreground">
+                پیامک نامحدود · این ماه {smsSent.toLocaleString("fa-IR")} تا فرستادی
+              </p>
+            ) : (
+              <p className="text-sm text-foreground">
+                {smsSent.toLocaleString("fa-IR")} از {smsQuota.toLocaleString("fa-IR")} پیامک این ماه
               </p>
             )}
           </FormSection>

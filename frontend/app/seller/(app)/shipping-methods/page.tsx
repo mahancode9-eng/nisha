@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { ErrorAlert } from "@/components/ui/ErrorAlert";
 import { Input } from "@/components/ui/Input";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { Modal } from "@/components/ui/Modal";
@@ -23,7 +24,7 @@ import type { ShippingMethod } from "@/types/seller/shipping-method";
 
 export default function SellerShippingMethodsPage() {
   const toast = useToast();
-  const { entitlements } = useSellerEntitlements();
+  const { entitlements, isLoading: entitlementsLoading } = useSellerEntitlements();
   const canManage = Boolean(entitlements.named_shipping_methods);
   const { data, error, isLoading, refetch } = useSellerFetch(
     () =>
@@ -109,7 +110,9 @@ export default function SellerShippingMethodsPage() {
     }
   }
 
-  if (isLoading) return <LoadingState message="داره روش‌های ارسال رو بارگذاری می‌کنه…" />;
+  if (entitlementsLoading || isLoading) {
+    return <LoadingState message="داره روش‌های ارسال رو بارگذاری می‌کنه…" />;
+  }
 
   return (
     <div className="page-stack">
@@ -126,11 +129,7 @@ export default function SellerShippingMethodsPage() {
         <UpgradeGate description="روش‌های ارسال نام‌دار از پلن پایه به بالا فعاله." />
       ) : null}
 
-      {error ? (
-        <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
-          {error}
-        </p>
-      ) : null}
+      {error ? <ErrorAlert message={error} /> : null}
 
       {canManage && !error && data?.length === 0 ? (
         <EmptyState

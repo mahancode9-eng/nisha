@@ -71,7 +71,7 @@ export function InstagramImportModal({ open, onClose, onImported }: InstagramImp
         price: parsedPrice,
         stock_quantity: stockNum,
       });
-      toast.success("محصول از اینستاگرام ساخته شد");
+      toast.success("محصول ساخته شد. هنوز پیش‌نویس است؛ از صفحه ویرایش فعالش کن.");
       setCaption("");
       setImageUrl("");
       setPrice("");

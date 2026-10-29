@@ -9,6 +9,7 @@ import {
   ORDER_ACTION_LABELS,
   type OrderAction,
 } from "@/lib/seller/orderActions";
+import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import type { SellerOrderListItem } from "@/types/seller/order";
@@ -55,6 +56,7 @@ export function OrderInboxCard({
               {order.invoice_code}
             </Link>
             <StatusBadge status={order.status} />
+            {order.is_manual ? <Badge variant="info">سفارش دستی</Badge> : null}
             {(order.payment_proof_count ?? 0) > 0 ? (
               <span className="rounded-full bg-brand/10 px-2 py-0.5 text-[11px] font-medium text-brand">
                 {toPersianDigits(order.payment_proof_count ?? 0)} رسید

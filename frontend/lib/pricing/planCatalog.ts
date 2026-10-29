@@ -92,6 +92,13 @@ export function highlightsForPlan(plan: SubscriptionPlan | CatalogPlan): string[
   if (e.sales_report) items.push("گزارش فروش");
   if (e.named_shipping_methods) items.push("روش ارسال نام‌دار");
   if (e.customer_tags) items.push("برچسب مشتری");
+  if (e.remove_nisha_watermark) items.push("بدون برند نیشا");
+  if (e.configurable_receipt_reminder) items.push("یادآوری رسید");
+  if (typeof e.sms_monthly_quota === "number" && e.sms_monthly_quota > 0) {
+    items.push(`${e.sms_monthly_quota.toLocaleString("fa-IR")} پیامک در ماه`);
+  } else if (e.sms_monthly_quota === null) {
+    items.push("پیامک نامحدود");
+  }
   if (e.store_team) items.push("تیم فروشگاه");
   if (e.custom_domain) items.push("دامنه اختصاصی");
   if (e.priority_support) items.push("پشتیبانی اولویت‌دار");

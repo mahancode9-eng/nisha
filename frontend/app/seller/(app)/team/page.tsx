@@ -19,9 +19,31 @@ import { ErrorAlert } from "@/components/ui/ErrorAlert";
 import { Input } from "@/components/ui/Input";
 import { LoadingState } from "@/components/ui/LoadingState";
 
+const ROLE_LABELS: Record<string, string> = {
+  STAFF: "همکار",
+  MANAGER: "مدیر",
+  OWNER: "مالک",
+};
+
+const ACTION_LABELS: Record<string, string> = {
+  "member.invite": "دعوت همکار",
+  "member.remove": "حذف همکار",
+  "domain.set": "ثبت دامنه",
+  "domain.verify": "تایید دامنه",
+  "domain.clear": "حذف دامنه",
+};
+
+function roleLabel(role: string): string {
+  return ROLE_LABELS[role] ?? role;
+}
+
+function actionLabel(action: string): string {
+  return ACTION_LABELS[action] ?? action;
+}
+
 export default function SellerTeamPage() {
   const toast = useToast();
-  const { entitlements } = useSellerEntitlements();
+  const { entitlements, isLoading: entitlementsLoading } = useSellerEntitlements();
   const canTeam = Boolean(entitlements.store_team);
   const canDomain = Boolean(entitlements.custom_domain);
 
@@ -49,7 +71,8 @@ export default function SellerTeamPage() {
   const [removeId, setRemoveId] = useState<number | null>(null);
   const [removing, setRemoving] = useState(false);
   const [domain, setDomain] = useState("");
-  const [domainBusy, setDomainBusy] = useState(false);
+  const [savingDomain, setSavingDomain] = useState(false);
+  const [verifyingDomain, setVerifyingDomain] = useState(false);
 
   const domainValue = store?.custom_domain ?? "";
   const domainInput = domain || domainValue;
@@ -89,7 +112,7 @@ export default function SellerTeamPage() {
   }
 
   async function handleSaveDomain() {
-    setDomainBusy(true);
+    setSavingDomain(true);
     try {
       const cleaned = domainInput.trim() || null;
       await teamApi.setCustomDomain(cleaned);
@@ -99,12 +122,12 @@ export default function SellerTeamPage() {
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : "دامنه ذخیره نشد. دوباره امتحان کن.");
     } finally {
-      setDomainBusy(false);
+      setSavingDomain(false);
     }
   }
 
   async function handleVerifyDomain() {
-    setDomainBusy(true);
+    setVerifyingDomain(true);
     try {
       await teamApi.verifyCustomDomain();
       toast.success("دامنه تایید شد");
@@ -112,11 +135,11 @@ export default function SellerTeamPage() {
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : "تایید دامنه نشد. دوباره امتحان کن.");
     } finally {
-      setDomainBusy(false);
+      setVerifyingDomain(false);
     }
   }
 
-  if (membersLoading || storeLoading) {
+  if (entitlementsLoading || membersLoading || storeLoading) {
     return <LoadingState message="داره تنظیمات تیم رو بارگذاری می‌کنه…" />;
   }
 
@@ -168,7 +191,7 @@ export default function SellerTeamPage() {
                           {member.email}
                         </p>
                         <div className="mt-1 flex flex-wrap gap-2 text-xs text-foreground-muted">
-                          <Badge variant="neutral">{member.role}</Badge>
+                          <Badge variant="neutral">{roleLabel(member.role)}</Badge>
                           <span>
                             {member.accepted_at
                               ? `پذیرفته در ${formatDateTime(member.accepted_at)}`
@@ -211,7 +234,7 @@ export default function SellerTeamPage() {
                 onChange={(e) => setDomain(e.target.value)}
                 placeholder="shop.example.com"
                 dir="ltr"
-                hint="بعد از ذخیره، DNS رو به نیشا بزن و بعد تایید کن."
+                hint="دامنه رو بدون https وارد کن. تایید کامل DNS به‌زودی میاد؛ فعلاً فقط برای تست محلی (مثل shop.localhost) تایید می‌شه."
               />
               {store?.custom_domain_verified_at ? (
                 <p className="text-sm text-foreground-muted">
@@ -223,13 +246,13 @@ export default function SellerTeamPage() {
                 </p>
               ) : null}
               <div className="flex flex-wrap gap-2">
-                <Button loading={domainBusy} onClick={() => void handleSaveDomain()}>
+                <Button loading={savingDomain} onClick={() => void handleSaveDomain()}>
                   ذخیره دامنه
                 </Button>
                 <Button
                   variant="secondary"
-                  loading={domainBusy}
-                  disabled={!store?.custom_domain}
+                  loading={verifyingDomain}
+                  disabled={!store?.custom_domain || savingDomain}
                   onClick={() => void handleVerifyDomain()}
                 >
                   تایید دامنه
@@ -254,7 +277,7 @@ export default function SellerTeamPage() {
               <ul className="space-y-3 text-sm">
                 {logs.map((log) => (
                   <li key={log.id} className="border-b border-border pb-2 last:border-0">
-                    <p className="font-medium text-foreground">{log.action}</p>
+                    <p className="font-medium text-foreground">{actionLabel(log.action)}</p>
                     <p className="text-foreground-muted">
                       {formatDateTime(log.created_at)}
                       {log.note ? ` · ${log.note}` : ""}

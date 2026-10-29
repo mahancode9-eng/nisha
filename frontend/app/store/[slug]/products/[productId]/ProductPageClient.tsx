@@ -266,6 +266,12 @@ export function ProductPageClient({ slug, productId }: ProductPageClientProps) {
             </div>
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <p className="text-2xl font-semibold text-foreground">{formatMoney(effectivePrice)}</p>
+              {product.compare_at_price &&
+              Number(product.compare_at_price) > Number(effectivePrice) ? (
+                <p className="text-base text-foreground-muted line-through">
+                  {formatMoney(product.compare_at_price)}
+                </p>
+              ) : null}
               <p
                 className={cn(
                   "text-sm",

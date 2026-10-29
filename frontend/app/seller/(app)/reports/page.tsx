@@ -32,7 +32,7 @@ function formatNumber(value: number): string {
 }
 
 export default function SellerReportsPage() {
-  const { entitlements } = useSellerEntitlements();
+  const { entitlements, isLoading: entitlementsLoading } = useSellerEntitlements();
   const canReport = Boolean(entitlements.sales_report);
   const [days, setDays] = useState(30);
 
@@ -41,6 +41,10 @@ export default function SellerReportsPage() {
     [canReport, days],
   );
   const { data, error, isLoading } = useSellerFetch(fetchReport, [canReport, days]);
+
+  if (entitlementsLoading) {
+    return <LoadingState message="داره گزارش رو آماده می‌کنه…" />;
+  }
 
   if (!canReport) {
     return (
@@ -51,7 +55,7 @@ export default function SellerReportsPage() {
     );
   }
 
-  if (isLoading) return <LoadingState message="داره گزارش رو آماده می‌کنه…" />;
+  if (isLoading && !data) return <LoadingState message="داره گزارش رو آماده می‌کنه…" />;
 
   const totals = data?.totals;
 

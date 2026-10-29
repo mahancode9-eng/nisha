@@ -174,6 +174,19 @@ export default function CheckoutPage({ params }: PageProps) {
     [shippingMethods, shippingMethodId],
   );
 
+  const usesProductShipping = useMemo(
+    () =>
+      items.some((line) => {
+        const product = productsById.get(line.productId);
+        return (
+          product?.shipping_cost !== null &&
+          product?.shipping_cost !== undefined &&
+          product.shipping_cost !== ""
+        );
+      }),
+    [items, productsById],
+  );
+
   const shippingAmount = useMemo(() => {
     if (!storeProfile) return 0;
     return computeShippingAmount(
@@ -190,9 +203,16 @@ export default function CheckoutPage({ params }: PageProps) {
           shippingCost: product?.shipping_cost,
         };
       }),
-      selectedShippingMethod?.cost,
+      usesProductShipping ? null : selectedShippingMethod?.cost,
     );
-  }, [storeProfile, subtotal, items, productsById, selectedShippingMethod]);
+  }, [
+    storeProfile,
+    subtotal,
+    items,
+    productsById,
+    selectedShippingMethod,
+    usesProductShipping,
+  ]);
   const payableTotal = Math.max(subtotal - discountAmount + shippingAmount, 0);
 
   useEffect(() => {
@@ -417,6 +437,10 @@ export default function CheckoutPage({ params }: PageProps) {
     }
     if (!paymentMethodId) {
       setError("یه روش پرداخت انتخاب کن.");
+      return;
+    }
+    if (shippingMethods.length > 0 && !shippingMethodId) {
+      setError("یه روش ارسال انتخاب کن.");
       return;
     }
     if (!customer && !guestCheckoutEnabled) {
@@ -897,30 +921,41 @@ export default function CheckoutPage({ params }: PageProps) {
             <CardHeader>
               <CardTitle>روش ارسال</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
-              {shippingMethods.map((method) => {
-                const active = method.id === shippingMethodId;
-                return (
-                  <button
-                    key={method.id}
-                    type="button"
-                    onClick={() => setShippingMethodId(method.id)}
-                    className={
-                      active
-                        ? "flex w-full items-center justify-between rounded-xl border border-brand bg-brand/10 px-3 py-3 text-start"
-                        : "flex w-full items-center justify-between rounded-xl border border-border px-3 py-3 text-start hover:border-brand/40"
-                    }
-                  >
-                    <span>
-                      <span className="block font-medium text-foreground">{method.name}</span>
-                      {method.eta_label ? (
-                        <span className="text-xs text-foreground-muted">{method.eta_label}</span>
+            <CardContent>
+              <div className="space-y-2" role="radiogroup" aria-label="روش ارسال">
+                {usesProductShipping ? (
+                  <p className="text-sm text-foreground-muted">
+                    هزینه ارسال از روی محصولات سبد حساب می‌شه؛ روش رو فقط برای نوع ارسال انتخاب کن.
+                  </p>
+                ) : null}
+                {shippingMethods.map((method) => {
+                  const active = method.id === shippingMethodId;
+                  return (
+                    <button
+                      key={method.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={active}
+                      onClick={() => setShippingMethodId(method.id)}
+                      className={
+                        active
+                          ? "flex w-full items-center justify-between rounded-xl border border-brand bg-brand/10 px-3 py-3 text-start"
+                          : "flex w-full items-center justify-between rounded-xl border border-border px-3 py-3 text-start hover:border-brand/40"
+                      }
+                    >
+                      <span>
+                        <span className="block font-medium text-foreground">{method.name}</span>
+                        {method.eta_label ? (
+                          <span className="text-xs text-foreground-muted">{method.eta_label}</span>
+                        ) : null}
+                      </span>
+                      {!usesProductShipping ? (
+                        <span className="text-sm font-medium">{formatMoney(method.cost)}</span>
                       ) : null}
-                    </span>
-                    <span className="text-sm font-medium">{formatMoney(method.cost)}</span>
-                  </button>
-                );
-              })}
+                    </button>
+                  );
+                })}
+              </div>
             </CardContent>
           </Card>
         ) : null}

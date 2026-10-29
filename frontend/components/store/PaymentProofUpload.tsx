@@ -49,15 +49,14 @@ export function PaymentProofUpload({
         payerCardLast4: last4 || null,
         transferTracking: transferTracking.trim() || null,
       });
+      toast.success("رسیدت ثبت شد. فروشنده بعد از بررسی، پرداخت رو تایید می‌کنه.");
       if (result.duplicate_warning) {
         const codes = result.duplicate_invoice_codes?.join("، ") ?? "";
-        toast.error(
+        toast.warning(
           codes
             ? `این رسید شبیه سفارش‌های دیگه است: ${codes}. فروشنده بررسی می‌کنه.`
             : "این رسید شبیه یه رسید دیگه است. فروشنده بررسی می‌کنه.",
         );
-      } else {
-        toast.success("رسیدت ثبت شد. فروشنده بعد از بررسی، پرداخت رو تایید می‌کنه.");
       }
       setFile(null);
       setCardLast4("");

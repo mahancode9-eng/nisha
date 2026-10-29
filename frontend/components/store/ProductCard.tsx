@@ -119,9 +119,17 @@ export function ProductCard({ product, storeSlug }: ProductCardProps) {
         </Link>
 
         <div className="mt-auto flex items-center justify-between gap-1.5 pt-0.5">
-          <p className="min-w-0 truncate text-[13px] font-semibold tracking-tight text-foreground">
-            {formatMoney(product.price)}
-          </p>
+          <div className="min-w-0">
+            <p className="truncate text-[13px] font-semibold tracking-tight text-foreground">
+              {formatMoney(product.price)}
+            </p>
+            {product.compare_at_price &&
+            Number(product.compare_at_price) > Number(product.price) ? (
+              <p className="truncate text-[11px] text-foreground-muted line-through">
+                {formatMoney(product.compare_at_price)}
+              </p>
+            ) : null}
+          </div>
 
           {hasVariants ? (
             <Link
