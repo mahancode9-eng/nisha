@@ -13,7 +13,12 @@ from app.models.product import Product
 from app.models.store import Store
 from app.models.user import User
 from app.schemas.seller_order import ManualOrderCreate, ManualOrderCreateResponse
-from app.services import chat_service, order_access_service, stock_service
+from app.services import (
+    chat_service,
+    order_access_service,
+    order_notification_service,
+    stock_service,
+)
 from app.services.exceptions import ServiceError
 from app.services.shipping_service import ShippingLineInput, compute_shipping_amount
 from app.utils import order_transitions
@@ -360,6 +365,10 @@ def create_manual_order(
         new_status=status,
         note="سفارش دستی ثبت شد",
     )
+    if not data.mark_paid:
+        order_notification_service.notify_order_placed(
+            db, order, store, invoice_password=plain_password
+        )
     db.commit()
     return ManualOrderCreateResponse(
         order_id=order.id,
@@ -368,6 +377,12 @@ def create_manual_order(
         status=status,
         is_manual=True,
     )
+
+
+def send_buyer_invoice_recovery(db: Session, store: Store, order_id: int) -> Order:
+    order = get_order_for_store(db, store, order_id)
+    order_notification_service.send_invoice_recovery_sms(db, store, order)
+    return order
 
 
 def update_tracking_code(

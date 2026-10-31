@@ -255,6 +255,26 @@ export function ProductShareSheet({
               کپی پست کانال تلگرام
             </Button>
           ) : null}
+          <Button
+            variant="secondary"
+            onClick={async () => {
+              const live = [
+                `لایو: ${title}`,
+                formatMoney(price),
+                "",
+                "برای سفارش بزن روی لینک:",
+                linkToShare,
+              ].join("\n");
+              try {
+                await navigator.clipboard.writeText(live);
+                setHint("متن لایو کپی شد؛ تو کامنت یا استوری بفرست");
+              } catch {
+                setHint("کپی متن لایو نشد");
+              }
+            }}
+          >
+            کپی متن لایو
+          </Button>
         </div>
         {hint ? <p className="mt-3 text-center text-sm text-foreground-muted">{hint}</p> : null}
       </div>

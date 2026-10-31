@@ -29,6 +29,8 @@ def test_order_placement_enqueues_buyer_sms_and_seller_email(
     assert buyer_sms[0].recipient == order.buyer_phone
     assert buyer_sms[0].status == "pending"
     assert order.invoice_code in (buyer_sms[0].payload_json or "")
+    assert placed_order["password"] in (buyer_sms[0].payload_json or "")
+    assert "invoice_password" in (buyer_sms[0].payload_json or "")
 
     seller_mail = [r for r in rows if r.template == "order_placed_seller"]
     assert len(seller_mail) == 1
