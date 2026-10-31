@@ -33,6 +33,9 @@ export type Store = {
   payment_reminder_minutes?: number | null;
   sms_quota_month?: string | null;
   sms_sent_count?: number;
+  notify_sms_phone?: string | null;
+  notify_by_email?: boolean;
+  notify_by_sms?: boolean;
   instagram_import_count?: number;
   custom_domain?: string | null;
   custom_domain_verified_at?: string | null;
@@ -92,6 +95,9 @@ export type StoreUpdate = {
   default_shipping_cost?: number | string | null;
   free_shipping_min_subtotal?: number | string | null;
   payment_reminder_minutes?: number | null;
+  notify_sms_phone?: string | null;
+  notify_by_email?: boolean;
+  notify_by_sms?: boolean;
   dm_reply_templates?: { title: string; body: string }[];
   social_links?: StoreSocialLinkInput[];
 };

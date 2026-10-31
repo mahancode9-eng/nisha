@@ -64,6 +64,9 @@ class StoreResponse(BaseModel):
     payment_reminder_minutes: int | None = None
     sms_quota_month: str | None = None
     sms_sent_count: int = 0
+    notify_sms_phone: str | None = None
+    notify_by_email: bool = True
+    notify_by_sms: bool = False
     instagram_import_count: int = 0
     custom_domain: str | None = None
     custom_domain_verified_at: datetime | None = None
@@ -122,6 +125,9 @@ class StoreUpdate(BaseModel):
     default_shipping_cost: Decimal | None = Field(default=None, ge=0)
     free_shipping_min_subtotal: Decimal | None = Field(default=None, ge=0)
     payment_reminder_minutes: int | None = Field(default=None, ge=1, le=1440)
+    notify_sms_phone: str | None = Field(default=None, max_length=50)
+    notify_by_email: bool | None = None
+    notify_by_sms: bool | None = None
     dm_reply_templates: list[dict[str, Any]] | None = None
 
     @field_validator("dm_reply_templates")

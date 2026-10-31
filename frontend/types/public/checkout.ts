@@ -17,6 +17,8 @@ export type OrderItemFieldValueInput = {
 export type GuestOrderCreate = {
   buyer_name: string;
   buyer_phone: string;
+  buyer_email?: string | null;
+  notify_sms?: boolean;
   buyer_address: string;
   buyer_note?: string | null;
   payment_method_id: number;

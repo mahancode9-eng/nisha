@@ -149,6 +149,8 @@ function CheckoutPageInner({ params }: PageProps) {
 
   const [buyerName, setBuyerName] = useState("");
   const [buyerPhone, setBuyerPhone] = useState("");
+  const [buyerEmail, setBuyerEmail] = useState("");
+  const [notifySms, setNotifySms] = useState(true);
   const [buyerAddress, setBuyerAddress] = useState("");
   const [postalCode, setPostalCode] = useState("");
   const [addressLine2, setAddressLine2] = useState("");
@@ -337,6 +339,7 @@ function CheckoutPageInner({ params }: PageProps) {
     }
     setBuyerName(customer.full_name);
     setBuyerPhone(customer.phone ?? "");
+    setBuyerEmail(customer.email ?? "");
     setPostalCode(customer.postal_code ?? "");
     setBuyerAddress("");
     setAddressLine2("");
@@ -505,6 +508,8 @@ function CheckoutPageInner({ params }: PageProps) {
       const payload = {
         buyer_name: buyerName.trim(),
         buyer_phone: normalizeDigits(buyerPhone.trim()),
+        buyer_email: buyerEmail.trim() || null,
+        notify_sms: notifySms,
         buyer_address: buyerAddress.trim(),
         buyer_note: buyerNote.trim() || null,
         payment_method_id: paymentMethodId,
@@ -928,6 +933,28 @@ function CheckoutPageInner({ params }: PageProps) {
               placeholder="09123456789"
               title="شماره موبایل ۱۱ رقمی که با ۰۹ شروع می‌شه"
             />
+            <Input
+              label="ایمیل (اختیاری)"
+              type="email"
+              value={buyerEmail}
+              onChange={(e) => setBuyerEmail(e.target.value)}
+              placeholder="برای خبر وضعیت سفارش"
+              dir="ltr"
+            />
+            <label className="flex items-start gap-3 rounded-xl border border-border p-3 text-sm text-foreground">
+              <input
+                type="checkbox"
+                className="mt-1 rounded border-border"
+                checked={notifySms}
+                onChange={(e) => setNotifySms(e.target.checked)}
+              />
+              <span>
+                <span className="block font-medium">پیامک وضعیت سفارش</span>
+                <span className="block text-xs text-foreground-muted">
+                  رمز فاکتور و خبرهای سفارش به همین شماره پیامک بشه.
+                </span>
+              </span>
+            </label>
             <Textarea
               label="آدرس تحویل"
               value={buyerAddress}

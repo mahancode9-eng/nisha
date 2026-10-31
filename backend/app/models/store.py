@@ -164,6 +164,14 @@ class Store(TimestampMixin, Base):
     payment_reminder_minutes: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     sms_quota_month: Mapped[Optional[str]] = mapped_column(String(7), nullable=True)
     sms_sent_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    # Panel alerts: email (owner) + optional SMS number; Telegram/Bale via chat_id link.
+    notify_sms_phone: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    notify_by_email: Mapped[bool] = mapped_column(
+        Boolean, default=True, server_default="true", nullable=False
+    )
+    notify_by_sms: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default="false", nullable=False
+    )
     custom_domain: Mapped[Optional[str]] = mapped_column(String(255), nullable=True, unique=True)
     custom_domain_verified_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True),

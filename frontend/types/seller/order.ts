@@ -65,6 +65,8 @@ export type SellerOrderDetail = {
   status: OrderStatus;
   buyer_name: string;
   buyer_phone: string;
+  buyer_email?: string | null;
+  notify_sms?: boolean;
   buyer_address: string;
   buyer_note: string | null;
   subtotal_amount: string;

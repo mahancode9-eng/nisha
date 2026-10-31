@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta, timezone
+from typing import Literal
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
@@ -53,6 +54,49 @@ def _enqueue_buyer_sms(
         return False
     notification_service.enqueue_sms(db, phone, template, payload)
     return True
+
+
+def _notify_buyer(
+    db: Session,
+    store: Store | None,
+    order: Order,
+    template: str,
+    payload: dict,
+) -> bool:
+    """SMS (if opted in) and/or email when the buyer left an address."""
+    sent = False
+    if order.notify_sms and order.buyer_phone:
+        sent = _enqueue_buyer_sms(db, store, order.buyer_phone, template, payload) or sent
+    email = (order.buyer_email or "").strip()
+    if email:
+        notification_service.enqueue_email(db, email, template, payload)
+        sent = True
+    return sent
+
+
+def _notify_seller(
+    db: Session,
+    store: Store,
+    template: str,
+    payload: dict,
+    *,
+    messenger_kind: Literal["order", "receipt"] | None = None,
+    order: Order | None = None,
+) -> None:
+    """Email / SMS / messenger based on store notify prefs."""
+    if store.notify_by_email:
+        owner = store.owner
+        if owner is not None and owner.email:
+            notification_service.enqueue_email(db, owner.email, template, payload)
+    if store.notify_by_sms and store.notify_sms_phone:
+        if sms_quota_service.consume_store_sms(db, store):
+            notification_service.enqueue_sms(
+                db, store.notify_sms_phone, template, payload
+            )
+    if messenger_kind and order is not None:
+        messenger_service.enqueue_seller_messenger(
+            db, store=store, order=order, kind=messenger_kind
+        )
 
 
 def _effective_reminder_minutes(db: Session, store: Store | None) -> int:
@@ -111,17 +155,14 @@ def notify_order_placed(
             "invoice_url": _invoice_url(order.invoice_code),
             "invoice_password": (invoice_password or "").strip() or "—",
         }
-        if order.buyer_phone:
-            _enqueue_buyer_sms(
-                db, store, order.buyer_phone, "order_placed_buyer", payload
-            )
-        owner = store.owner
-        if owner is not None and owner.email:
-            notification_service.enqueue_email(
-                db, owner.email, "order_placed_seller", payload
-            )
-        messenger_service.enqueue_seller_messenger(
-            db, store=store, order=order, kind="order"
+        _notify_buyer(db, store, order, "order_placed_buyer", payload)
+        _notify_seller(
+            db,
+            store,
+            "order_placed_seller",
+            payload,
+            messenger_kind="order",
+            order=order,
         )
     except Exception:  # noqa: BLE001 - notifications must never break checkout
         logger.exception(
@@ -140,16 +181,17 @@ def send_invoice_recovery_sms(db: Session, store: Store, order: Order) -> None:
             "فقط برای سفارش‌های باز می‌شه لینک فاکتور دوباره فرستاد.",
             status_code=422,
         )
-    if not order.buyer_phone:
-        raise ServiceError("شماره موبایل خریدار ثبت نشده.", status_code=422)
+    if not (order.notify_sms and order.buyer_phone) and not (order.buyer_email or "").strip():
+        raise ServiceError(
+            "برای این سفارش راهی برای خبر دادن به خریدار ثبت نشده.",
+            status_code=422,
+        )
     payload = {
         "invoice_code": order.invoice_code,
         "store_name": store.name,
         "invoice_url": _invoice_url(order.invoice_code),
     }
-    if not _enqueue_buyer_sms(
-        db, store, order.buyer_phone, "invoice_recovery_buyer", payload
-    ):
+    if not _notify_buyer(db, store, order, "invoice_recovery_buyer", payload):
         raise ServiceError(
             "سهمیه پیامک این ماه تموم شده یا پیامک فعال نیست.",
             status_code=422,
@@ -206,15 +248,10 @@ def send_due_payment_reminders(db: Session, *, limit: int = 50) -> int:
             "minutes_left": str(minutes_left),
         }
         try:
-            if locked.buyer_phone:
-                if not _enqueue_buyer_sms(
-                    db,
-                    store,
-                    locked.buyer_phone,
-                    "payment_reminder_buyer",
-                    payload,
-                ):
-                    continue
+            if not _notify_buyer(
+                db, store, locked, "payment_reminder_buyer", payload
+            ):
+                continue
             locked.payment_reminder_sent_at = now
             sent += 1
         except Exception:  # noqa: BLE001
@@ -228,17 +265,15 @@ def send_due_payment_reminders(db: Session, *, limit: int = 50) -> int:
 
 
 def notify_order_expired(db: Session, order: Order) -> None:
-    """SMS buyer once when an unpaid reservation expires (recovery link)."""
+    """Notify buyer once when an unpaid reservation expires (recovery link)."""
     try:
-        if not order.buyer_phone:
-            return
         store = order.store
         payload = {
             "invoice_code": order.invoice_code,
             "store_name": store.name if store is not None else "",
             "invoice_url": _invoice_url(order.invoice_code),
         }
-        _enqueue_buyer_sms(db, store, order.buyer_phone, "order_expired_buyer", payload)
+        _notify_buyer(db, store, order, "order_expired_buyer", payload)
     except Exception:  # noqa: BLE001
         logger.exception(
             "Failed to enqueue expiry recovery SMS for order %s", order.id
@@ -248,8 +283,8 @@ def notify_order_expired(db: Session, order: Order) -> None:
 def notify_status_change(db: Session, order: Order, new_status: OrderStatus) -> None:
     """Enqueue notifications for an order status change.
 
-    - Buyer gets an SMS for statuses in BUYER_NOTIFY_STATUSES.
-    - Seller gets an email when a payment proof is uploaded.
+    - Buyer gets SMS/email for statuses in BUYER_NOTIFY_STATUSES.
+    - Seller gets email/SMS/messenger when a payment proof is uploaded.
     """
     try:
         store = order.store
@@ -259,19 +294,17 @@ def notify_status_change(db: Session, order: Order, new_status: OrderStatus) -> 
             "status_label": STATUS_LABELS.get(new_status, new_status.value),
         }
 
-        if new_status in BUYER_NOTIFY_STATUSES and order.buyer_phone:
-            _enqueue_buyer_sms(
-                db, store, order.buyer_phone, "order_status_changed", payload
-            )
+        if new_status in BUYER_NOTIFY_STATUSES:
+            _notify_buyer(db, store, order, "order_status_changed", payload)
 
         if new_status == OrderStatus.PAYMENT_UPLOADED and store is not None:
-            owner = store.owner
-            if owner is not None and owner.email:
-                notification_service.enqueue_email(
-                    db, owner.email, "payment_uploaded_seller", payload
-                )
-            messenger_service.enqueue_seller_messenger(
-                db, store=store, order=order, kind="receipt"
+            _notify_seller(
+                db,
+                store,
+                "payment_uploaded_seller",
+                payload,
+                messenger_kind="receipt",
+                order=order,
             )
     except Exception:  # noqa: BLE001 - notifications must never break the flow
         logger.exception(

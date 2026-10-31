@@ -274,6 +274,11 @@ export default function SellerOrderDetailPage({ params }: PageProps) {
             <p>
               <span className="text-neutral-500">تلفن:</span> {data.buyer_phone}
             </p>
+            {data.buyer_email ? (
+              <p>
+                <span className="text-neutral-500">ایمیل:</span> {data.buyer_email}
+              </p>
+            ) : null}
             <p>
               <span className="text-neutral-500">آدرس:</span> {data.buyer_address}
             </p>
