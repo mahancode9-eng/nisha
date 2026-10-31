@@ -26,10 +26,28 @@ import { LoadingState } from "@/components/ui/LoadingState";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { OrderItemsPanel } from "@/components/orders/OrderItemsPanel";
 import type { OrderStatus } from "@/types/order";
+import type { PaymentProof } from "@/types/seller/order";
 
 type PageProps = {
   params: Promise<{ id: string }>;
 };
+
+function proofOcrBadge(proof: PaymentProof): { label: string; variant: "success" | "danger" | "warning" | "neutral" } | null {
+  switch (proof.ocr_status) {
+    case "matched":
+      return { label: "مبلغ و کارت جور درمیاد", variant: "success" };
+    case "mismatch":
+      return { label: "مبلغ یا کارت جور نیست", variant: "danger" };
+    case "unclear":
+      return { label: "رسید واضح خونده نشد", variant: "warning" };
+    case "failed":
+      return { label: "خوندن رسید نشد", variant: "warning" };
+    case "skipped":
+    case "pending":
+    default:
+      return null;
+  }
+}
 
 const TRACKING_STATUSES: OrderStatus[] = [
   "PAYMENT_CONFIRMED",
@@ -227,6 +245,11 @@ export default function SellerOrderDetailPage({ params }: PageProps) {
                   {proof.transfer_tracking ? (
                     <p className="text-xs text-neutral-600">پیگیری واریز: {proof.transfer_tracking}</p>
                   ) : null}
+                  {(() => {
+                    const ocr = proofOcrBadge(proof);
+                    if (!ocr) return null;
+                    return <Badge variant={ocr.variant}>{ocr.label}</Badge>;
+                  })()}
                 </div>
               ))}
             </div>

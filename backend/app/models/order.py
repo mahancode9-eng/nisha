@@ -206,6 +206,17 @@ class PaymentProof(Base):
     content_hash: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, index=True)
     payer_card_last4: Mapped[Optional[str]] = mapped_column(String(4), nullable=True)
     transfer_tracking: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    ocr_status: Mapped[str] = mapped_column(
+        String(20),
+        default="pending",
+        server_default="pending",
+        nullable=False,
+    )
+    ocr_amount: Mapped[Optional[Decimal]] = mapped_column(Numeric(12, 2), nullable=True)
+    ocr_dest_card_last4: Mapped[Optional[str]] = mapped_column(String(4), nullable=True)
+    ocr_amount_matched: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True)
+    ocr_dest_card_matched: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True)
+    ocr_confidence: Mapped[Optional[Decimal]] = mapped_column(Numeric(4, 3), nullable=True)
     uploaded_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

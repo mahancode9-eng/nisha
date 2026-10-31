@@ -64,6 +64,10 @@ class Settings(BaseSettings):
     PAYMENT_REMINDER_MINUTES_BEFORE_EXPIRY: int = 10
     # Seller chase when a payment proof sits idle this many hours (email + messenger).
     PAYMENT_PROOF_CHASE_HOURS: int = 6
+    # Cap proof uploads per order to blunt spam / screenshot flooding.
+    PAYMENT_PROOF_MAX_PER_ORDER: int = 5
+    # OCR match on upload (Tesseract). Disable if the binary is unavailable.
+    PAYMENT_PROOF_OCR_ENABLED: bool = True
 
     PRIVATE_UPLOAD_DIR: str = "./private_uploads"
     ALLOW_DEMO_SEED: bool = False

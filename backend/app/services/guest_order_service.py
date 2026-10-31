@@ -19,10 +19,10 @@ from app.schemas.guest_order import (
     PaymentProofUploadResponse,
 )
 from app.schemas.public import PublicPaymentMethod, public_store_profile_from_store
-from app.services import chat_service, order_access_service, review_service
+from app.services import chat_service, order_access_service, payment_proof_ocr_service, review_service
 from app.services.entitlement_service import get_seller_entitlements
-from app.services.order_item_serializers import track_order_item_response
 from app.services.exceptions import ServiceError
+from app.services.order_item_serializers import track_order_item_response
 from app.utils.upload import save_payment_proof_image
 
 
@@ -69,6 +69,14 @@ async def upload_payment_proof(
     order = order_access_service.authenticate_order(db, invoice_code, password)
     order_access_service.assert_upload_allowed_status(order)
 
+    max_proofs = max(1, int(settings.PAYMENT_PROOF_MAX_PER_ORDER))
+    existing_count = len(order.payment_proofs or [])
+    if existing_count >= max_proofs:
+        raise ServiceError(
+            f"بیشتر از {max_proofs} رسید برای این سفارش نمی‌شه آپلود کرد.",
+            status_code=422,
+        )
+
     last4 = _normalize_last4(payer_card_last4)
     tracking = (transfer_tracking or "").strip()[:100] or None
 
@@ -81,6 +89,13 @@ async def upload_payment_proof(
             payer_card_last4=last4,
             transfer_tracking=tracking,
         )
+        ocr_result = payment_proof_ocr_service.analyze_payment_proof(
+            order,
+            saved.content,
+            payer_card_last4=last4,
+            transfer_tracking=tracking,
+        )
+        payment_proof_ocr_service.apply_ocr_result(proof, ocr_result)
         db.add(proof)
 
         old_status = order.status

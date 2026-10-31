@@ -29,11 +29,25 @@ export type SellerOrderItem = {
   field_values?: import("@/types/order-item").OrderItemFieldValue[];
 };
 
+export type PaymentProofOcrStatus =
+  | "pending"
+  | "matched"
+  | "mismatch"
+  | "unclear"
+  | "failed"
+  | "skipped";
+
 export type PaymentProof = {
   id: number;
   image_url: string;
   payer_card_last4?: string | null;
   transfer_tracking?: string | null;
+  ocr_status?: PaymentProofOcrStatus | string;
+  ocr_amount?: string | null;
+  ocr_dest_card_last4?: string | null;
+  ocr_amount_matched?: boolean | null;
+  ocr_dest_card_matched?: boolean | null;
+  ocr_confidence?: string | null;
   uploaded_at: string;
 };
 
