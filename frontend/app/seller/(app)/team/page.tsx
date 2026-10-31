@@ -41,6 +41,35 @@ function actionLabel(action: string): string {
   return ACTION_LABELS[action] ?? action;
 }
 
+function DnsCopyRow({
+  label,
+  value,
+  onCopy,
+}: {
+  label: string;
+  value: string;
+  onCopy: () => void;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <p className="text-xs font-semibold uppercase tracking-wide text-neutral-600 dark:text-neutral-300">
+        {label}
+      </p>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
+        <code
+          className="block flex-1 break-all rounded-lg border border-neutral-300 bg-white px-3 py-2.5 font-mono text-sm leading-6 text-neutral-950 dark:border-neutral-600 dark:bg-black dark:text-neutral-50"
+          dir="ltr"
+        >
+          {value}
+        </code>
+        <Button type="button" size="sm" variant="secondary" className="shrink-0" onClick={onCopy}>
+          کپی
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export default function SellerTeamPage() {
   const toast = useToast();
   const { entitlements, isLoading: entitlementsLoading } = useSellerEntitlements();
@@ -76,6 +105,15 @@ export default function SellerTeamPage() {
 
   const domainValue = store?.custom_domain ?? "";
   const domainInput = domain || domainValue;
+
+  async function copyDns(value: string, okMessage: string) {
+    try {
+      await navigator.clipboard.writeText(value);
+      toast.success(okMessage);
+    } catch {
+      toast.error("کپی نشد");
+    }
+  }
 
   async function handleInvite() {
     const trimmed = email.trim();
@@ -238,63 +276,65 @@ export default function SellerTeamPage() {
                 onChange={(e) => setDomain(e.target.value)}
                 placeholder="shop.example.com"
                 dir="ltr"
-                hint="دامنه رو بدون https وارد کن. بعد از ذخیره، رکوردهای DNS رو بزن و تایید کن."
+                hint="بدون https بنویس، مثلا shop.example.com"
               />
               {store?.custom_domain && store.custom_domain_txt_name && store.custom_domain_txt_value ? (
-                <div className="space-y-2 rounded-xl border border-border bg-surface-muted/40 p-3 text-sm">
-                  <p className="font-medium text-foreground">۱) رکورد TXT مالکیت</p>
-                  <p className="text-foreground-muted">
-                    Host:{" "}
-                    <span className="font-mono" dir="ltr">
-                      {store.custom_domain_txt_name}
-                    </span>
-                  </p>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="font-mono break-all" dir="ltr">
-                      {store.custom_domain_txt_value}
+                <div className="space-y-4 rounded-2xl border-2 border-neutral-300 bg-white p-4 text-neutral-900 shadow-sm dark:border-neutral-600 dark:bg-neutral-950 dark:text-neutral-50">
+                  <div>
+                    <p className="text-base font-bold">راهنمای DNS</p>
+                    <p className="mt-1 text-sm leading-6 text-neutral-700 dark:text-neutral-200">
+                      این دو رکورد رو تو Cloudflare بساز. موقع تایید، ابر نارنجی رو خاموش کن (فقط DNS).
+                      بعد از تایید دوباره روشن کن.
                     </p>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="secondary"
-                      onClick={() => {
-                        void navigator.clipboard.writeText(store.custom_domain_txt_value ?? "").then(
-                          () => toast.success("مقدار TXT کپی شد"),
-                          () => toast.error("کپی نشد"),
-                        );
-                      }}
-                    >
-                      کپی
-                    </Button>
                   </div>
-                  {store.custom_domain_cname_target ? (
-                    <>
-                      <p className="mt-2 font-medium text-foreground">۲) CNAME به نیشا</p>
-                      <p className="text-foreground-muted">
-                        Host:{" "}
-                        <span className="font-mono" dir="ltr">
-                          {store.custom_domain}
-                        </span>{" "}
-                        →{" "}
-                        <span className="font-mono" dir="ltr">
-                          {store.custom_domain_cname_target}
-                        </span>
-                      </p>
-                    </>
-                  ) : (
-                    <p className="mt-2 text-foreground-muted">
-                      تو محیط لوکال/تست، بدون DNS هم می‌تونی تایید کنی. تو پروداکشن، CNAME هدف از تنظیمات سرور میاد.
+
+                  <div className="space-y-3 rounded-xl border border-neutral-200 bg-neutral-50 p-3 dark:border-neutral-700 dark:bg-neutral-900">
+                    <p className="text-sm font-bold text-neutral-900 dark:text-neutral-50">
+                      ۱) رکورد TXT (مالکیت)
                     </p>
-                  )}
+                    <DnsCopyRow
+                      label="نام / Host"
+                      value={store.custom_domain_txt_name}
+                      onCopy={() => void copyDns(store.custom_domain_txt_name ?? "", "نام TXT کپی شد")}
+                    />
+                    <DnsCopyRow
+                      label="مقدار / Value"
+                      value={store.custom_domain_txt_value}
+                      onCopy={() => void copyDns(store.custom_domain_txt_value ?? "", "مقدار TXT کپی شد")}
+                    />
+                  </div>
+
+                  {store.custom_domain_cname_target ? (
+                    <div className="space-y-3 rounded-xl border border-neutral-200 bg-neutral-50 p-3 dark:border-neutral-700 dark:bg-neutral-900">
+                      <p className="text-sm font-bold text-neutral-900 dark:text-neutral-50">
+                        ۲) رکورد CNAME (اتصال به نیشا)
+                      </p>
+                      <DnsCopyRow
+                        label="نام / Host"
+                        value={store.custom_domain}
+                        onCopy={() => void copyDns(store.custom_domain ?? "", "نام دامنه کپی شد")}
+                      />
+                      <DnsCopyRow
+                        label="مقدار / Target"
+                        value={store.custom_domain_cname_target}
+                        onCopy={() =>
+                          void copyDns(store.custom_domain_cname_target ?? "", "هدف CNAME کپی شد")
+                        }
+                      />
+                      <p className="text-sm leading-6 text-neutral-700 dark:text-neutral-200">
+                        Proxy باید خاموش باشه (ابر خاکستری) تا وقتی تایید تموم بشه.
+                      </p>
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
               {store?.custom_domain_verified_at ? (
-                <p className="text-sm text-foreground-muted">
+                <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200">
                   تایید شده در {formatDateTime(store.custom_domain_verified_at)}
                 </p>
               ) : store?.custom_domain ? (
-                <p className="text-sm text-amber-700 dark:text-amber-300">
-                  دامنه ذخیره شده، هنوز تایید نشده.
+                <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm font-medium text-amber-900 dark:bg-amber-950 dark:text-amber-100">
+                  دامنه ذخیره شده، هنوز تایید نشده. اول DNS رو بزن، بعد «بررسی و تایید DNS».
                 </p>
               ) : null}
               <div className="flex flex-wrap gap-2">
