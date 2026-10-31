@@ -1,8 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { use, useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import {
+  Suspense,
+  use,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+} from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import * as storesApi from "@/lib/api/public/stores";
 import * as customerOrdersApi from "@/lib/api/customer/orders";
 import * as customerProfileApi from "@/lib/api/customer/profile";
@@ -108,11 +117,23 @@ function serializeFieldValues(
 }
 
 export default function CheckoutPage({ params }: PageProps) {
+  return (
+    <Suspense fallback={<LoadingState message="داره چک‌اوت رو باز می‌کنه…" />}>
+      <CheckoutPageInner params={params} />
+    </Suspense>
+  );
+}
+
+function CheckoutPageInner({ params }: PageProps) {
   const { slug } = use(params);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const toast = useToast();
-  const { items, subtotal, clearCart, reconcileWithProducts, hydrated: cartHydrated } = useCart();
+  const { items, subtotal, clearCart, reconcileWithProducts, hydrated: cartHydrated, addItem } =
+    useCart();
   const { customer, isLoading: customerLoading } = useCustomerAuth();
+  const prefillProductId = Number(searchParams.get("product") || "");
+  const prefillApplied = useRef(false);
 
   const [loading, setLoading] = useState(true);
   const [storeProfile, setStoreProfile] = useState<PublicStoreProfile | null>(null);
@@ -247,6 +268,34 @@ export default function CheckoutPage({ params }: PageProps) {
       cancelled = true;
     };
   }, [slug, reconcileWithProducts, successOrder]);
+
+  // Deep link: /checkout?product=ID adds that product once cart + catalog are ready.
+  useEffect(() => {
+    if (successOrder || loading || !cartHydrated || prefillApplied.current) return;
+    if (!Number.isFinite(prefillProductId) || prefillProductId <= 0) return;
+    const product = storeProducts.find((item) => item.id === prefillProductId);
+    if (!product) return;
+    prefillApplied.current = true;
+    if (!items.some((line) => line.productId === product.id)) {
+      const variants = product.variants ?? [];
+      const variant =
+        variants.find((item) => item.stock_quantity > 0) ?? variants[0] ?? null;
+      addItem(product, 1, variant);
+      toast.success(`«${product.title}» به سبد اضافه شد`);
+    }
+    router.replace(paths.customer.checkout(slug), { scroll: false });
+  }, [
+    successOrder,
+    loading,
+    cartHydrated,
+    prefillProductId,
+    storeProducts,
+    items,
+    addItem,
+    toast,
+    router,
+    slug,
+  ]);
 
   useEffect(() => {
     if (!customer) {

@@ -21,6 +21,7 @@ class OrderInvoicePreviewResponse(BaseModel):
     store_name: str
     total_amount: Decimal
     currency_label: str = "تومان"
+    store_logo_url: str | None = None
 
 
 class GuestOrderEdit(BaseModel):

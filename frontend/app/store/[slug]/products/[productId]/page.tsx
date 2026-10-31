@@ -87,10 +87,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const description = descriptionParts.join(" · ");
   const canonical = SITE_URL + "/store/" + slug + "/products/" + productId;
   const image = firstProductImage(product);
-  const ogTitle = priceLabel ? `${title} — ${priceLabel}` : title;
+  const ogTitle = [
+    title,
+    priceLabel,
+    storeName,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
   return {
-    title,
+    title: storeName ? `${title} · ${storeName}` : title,
     description,
     alternates: { canonical },
     openGraph: {

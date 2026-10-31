@@ -80,3 +80,58 @@ export function resolveContactHref(platform: SocialPlatformKey, value: string): 
 
   return trimmed;
 }
+
+/** Prefill text for Instagram / messenger → seller chats. */
+export function buildWantThisMessage(input: {
+  title: string;
+  priceLabel?: string | null;
+  url: string;
+}): string {
+  const parts = [`می‌خوام اینو: ${input.title.trim()}`];
+  if (input.priceLabel?.trim()) parts.push(input.priceLabel.trim());
+  parts.push(input.url.trim());
+  return parts.join("\n");
+}
+
+/**
+ * Open WhatsApp or Telegram with a prefilled «می‌خوام اینو» message.
+ * Returns null when the stored contact value cannot be turned into a chat URL.
+ */
+export function buildWantThisHref(
+  platform: "whatsapp" | "telegram",
+  contactValue: string | null | undefined,
+  message: string,
+): string | null {
+  const raw = (contactValue ?? "").trim();
+  if (!raw) return null;
+  const encoded = encodeURIComponent(message);
+
+  if (platform === "whatsapp") {
+    if (/^https?:\/\//i.test(raw) && /wa\.me|whatsapp\.com/i.test(raw)) {
+      const base = raw.split("?")[0] ?? raw;
+      return `${base}?text=${encoded}`;
+    }
+    const digits = raw.replace(/[^\d+]/g, "").replace(/^\+/, "");
+    if (!digits) return null;
+    return `https://wa.me/${digits}?text=${encoded}`;
+  }
+
+  // Telegram: deep-link into a private chat when we have a username;
+  // otherwise fall back to share URL with the product text.
+  if (raw.startsWith("@") || /^[A-Za-z0-9_]{4,}$/.test(raw)) {
+    const handle = stripAt(raw);
+    return `https://t.me/${handle}?text=${encoded}`;
+  }
+  if (/^https?:\/\/t\.me\//i.test(raw)) {
+    try {
+      const url = new URL(raw);
+      const handle = url.pathname.replace(/^\/+/, "").split("/")[0] ?? "";
+      if (handle && !handle.includes("?")) {
+        return `https://t.me/${handle}?text=${encoded}`;
+      }
+    } catch {
+      /* fall through */
+    }
+  }
+  return `https://t.me/share/url?url=${encodeURIComponent(message.split("\n").at(-1) ?? "")}&text=${encoded}`;
+}

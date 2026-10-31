@@ -31,7 +31,7 @@ const FEATURE_PLAN: Record<string, SuggestedPlan> = {
   priority_support: "enterprise",
   store_team: "enterprise",
   custom_domain: "enterprise",
-  remove_nisha_watermark: "enterprise",
+  remove_nisha_watermark: "pro",
 };
 
 const FEATURE_TITLE: Record<string, string> = {

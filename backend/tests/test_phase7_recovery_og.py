@@ -104,6 +104,7 @@ def test_invoice_preview_endpoint(client, public_store, db):
     assert data["invoice_code"] == invoice_code
     assert data["store_name"]
     assert "total_amount" in data
+    assert "store_logo_url" in data
     assert "buyer_phone" not in data
     assert "buyer_name" not in data
 

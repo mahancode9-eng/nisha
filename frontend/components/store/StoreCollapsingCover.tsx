@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
+import { trustBadgeLabel } from "@/lib/store/badges";
 
 const COVER_COLLAPSE_RANGE = 120;
 
@@ -11,6 +12,7 @@ type StoreCollapsingCoverProps = {
   description?: string | null;
   ratingText: string;
   reviewCount: number;
+  trustBadges?: string[];
   onOpenReviews?: () => void;
   onOpenAbout?: () => void;
   /** Actions rendered outside the cover image (e.g. chat icon). */
@@ -71,6 +73,7 @@ export function StoreCollapsingCover({
   description,
   ratingText,
   reviewCount,
+  trustBadges = [],
   onOpenReviews,
   onOpenAbout,
   trailingAction,
@@ -146,9 +149,19 @@ export function StoreCollapsingCover({
           )}
         </div>
         <div className="min-w-0 flex-1 pb-0.5 sm:pb-1">
-          <h1 className="truncate text-lg font-bold tracking-tight text-foreground sm:text-2xl">
-            {storeName}
-          </h1>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <h1 className="truncate text-lg font-bold tracking-tight text-foreground sm:text-2xl">
+              {storeName}
+            </h1>
+            {trustBadges.map((badge) => (
+              <span
+                key={badge}
+                className="shrink-0 rounded-full border border-brand/30 bg-brand/10 px-2 py-0.5 text-[10px] font-medium text-brand sm:text-xs"
+              >
+                {trustBadgeLabel(badge)}
+              </span>
+            ))}
+          </div>
           <p className="mt-0.5 text-xs text-foreground-muted sm:text-sm">
             <span className="font-medium text-foreground">★ {ratingText}</span>
             {reviewCount > 0 ? (

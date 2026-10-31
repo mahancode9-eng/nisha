@@ -16,6 +16,11 @@ import { useToast } from "@/contexts/ToastContext";
 import { formatMoney, formatDateTime } from "@/lib/format";
 import { paths } from "@/lib/auth/paths";
 import { cn } from "@/lib/cn";
+import { getSiteUrl } from "@/lib/env";
+import {
+  buildWantThisHref,
+  buildWantThisMessage,
+} from "@/lib/seller/contactChannels";
 import type { PublicProductDetailResponse } from "@/types/public/store";
 
 type ProductPageClientProps = {
@@ -153,8 +158,26 @@ export function ProductPageClient({ slug, productId }: ProductPageClientProps) {
     setShareOpen(true);
   }
 
+  const productUrl = `${getSiteUrl()}/store/${slug}/products/${product.id}`;
+  const wantThisText = buildWantThisMessage({
+    title: product.title,
+    priceLabel: formatMoney(effectivePrice),
+    url: productUrl,
+  });
+  const whatsappWantHref = buildWantThisHref("whatsapp", store.whatsapp, wantThisText);
+  const telegramWantHref = buildWantThisHref("telegram", store.telegram, wantThisText);
+  const checkoutPrefillHref = `${paths.customer.checkout(slug)}?product=${product.id}`;
+
   return (
-    <div className="mx-auto max-w-5xl pb-24 lg:pb-6">
+    <div
+      className="mx-auto max-w-5xl pb-24 lg:pb-6"
+      style={
+        store.primary_color
+          ? ({ ["--store-primary" as string]: store.primary_color } as React.CSSProperties)
+          : undefined
+      }
+      data-store-theme={store.theme_preset || "default"}
+    >
       <Link
         href={paths.store(slug)}
         className="mb-3 inline-flex items-center gap-1 text-sm text-foreground-muted transition hover:text-foreground"
@@ -376,6 +399,37 @@ export function ProductPageClient({ slug, productId }: ProductPageClientProps) {
             <Button className="w-full" onClick={handleAddToCart} disabled={outOfStock}>
               {outOfStock ? "ناموجود" : "بزن به سبد"}
             </Button>
+            {!outOfStock ? (
+              <Link href={checkoutPrefillHref} className={cn("block w-full")}>
+                <Button type="button" variant="secondary" className="w-full">
+                  همین الان سفارش بده
+                </Button>
+              </Link>
+            ) : null}
+            {(whatsappWantHref || telegramWantHref) && (
+              <div className="flex flex-wrap gap-2">
+                {whatsappWantHref ? (
+                  <a
+                    href={whatsappWantHref}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex flex-1 items-center justify-center rounded-xl border border-border px-3 py-2 text-sm text-foreground hover:border-brand/40"
+                  >
+                    واتساپ: می‌خوام اینو
+                  </a>
+                ) : null}
+                {telegramWantHref ? (
+                  <a
+                    href={telegramWantHref}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex flex-1 items-center justify-center rounded-xl border border-border px-3 py-2 text-sm text-foreground hover:border-brand/40"
+                  >
+                    تلگرام: می‌خوام اینو
+                  </a>
+                ) : null}
+              </div>
+            )}
             <div className="flex justify-center">
               <MessageSellerButton storeId={store.id} />
             </div>
@@ -387,7 +441,31 @@ export function ProductPageClient({ slug, productId }: ProductPageClientProps) {
             </p>
           ) : null}
 
-          <div className="lg:hidden">
+          <div className="space-y-2 lg:hidden">
+            {(whatsappWantHref || telegramWantHref) && (
+              <div className="flex flex-wrap gap-2">
+                {whatsappWantHref ? (
+                  <a
+                    href={whatsappWantHref}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex flex-1 items-center justify-center rounded-xl border border-border px-3 py-2 text-sm text-foreground"
+                  >
+                    واتساپ: می‌خوام اینو
+                  </a>
+                ) : null}
+                {telegramWantHref ? (
+                  <a
+                    href={telegramWantHref}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex flex-1 items-center justify-center rounded-xl border border-border px-3 py-2 text-sm text-foreground"
+                  >
+                    تلگرام: می‌خوام اینو
+                  </a>
+                ) : null}
+              </div>
+            )}
             <MessageSellerButton storeId={store.id} />
           </div>
         </div>
@@ -496,11 +574,7 @@ export function ProductPageClient({ slug, productId }: ProductPageClientProps) {
             ? activeMedia.previewUrl
             : mediaItems.find((item) => item.kind === "image")?.previewUrl ?? null
         }
-        shareUrl={
-          typeof window !== "undefined"
-            ? window.location.href
-            : `${paths.store(slug)}/products/${productId}`
-        }
+        shareUrl={productUrl}
         brandColor={store.primary_color}
         allowPostTemplate={Boolean(store.share_card_templates)}
         removeWatermark={Boolean(store.remove_nisha_watermark)}

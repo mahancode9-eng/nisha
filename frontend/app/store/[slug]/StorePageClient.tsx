@@ -176,7 +176,7 @@ export function StorePageClient({ slug, initialData, initialError }: StorePageCl
           ? ({ ["--store-primary" as string]: store.primary_color } as React.CSSProperties)
           : undefined
       }
-      data-theme={store.theme_preset || "default"}
+      data-store-theme={store.theme_preset || "default"}
     >
       <Suspense fallback={null}>
         <StorePageChromeSync
@@ -194,6 +194,7 @@ export function StorePageClient({ slug, initialData, initialError }: StorePageCl
         description={store.description}
         ratingText={ratingText}
         reviewCount={review_summary.review_count}
+        trustBadges={store.trust_badges ?? []}
         onOpenReviews={openReviews}
         onOpenAbout={openAbout}
         trailingAction={<MessageSellerButton storeId={store.id} variant="icon" />}
