@@ -43,9 +43,12 @@ class Settings(BaseSettings):
     NOTIFY_WORKER_ENABLED: bool = True
     NOTIFY_POLL_INTERVAL_SECONDS: int = 15
     NOTIFY_MAX_ATTEMPTS: int = 5
-    SMS_PROVIDER: Literal["console", "kavenegar"] = "console"
+    SMS_PROVIDER: Literal["console", "kavenegar", "amootsms"] = "console"
     SMS_SENDER: str = ""
     KAVENEGAR_API_KEY: str = ""
+    AMOOTSMS_TOKEN: str = ""
+    # Amoot line id / "public". Falls back to SMS_SENDER when empty.
+    AMOOTSMS_LINE_NUMBER: str = "public"
     EMAIL_PROVIDER: Literal["console", "smtp", "resend"] = "console"
     SMTP_HOST: str = ""
     SMTP_PORT: int = 587

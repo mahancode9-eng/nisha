@@ -6,7 +6,7 @@ Design:
 - A background worker (started from the FastAPI lifespan) polls the outbox
   and delivers due notifications with exponential-backoff retries.
 - Delivery goes through pluggable providers selected via settings:
-  SMS_PROVIDER = console | kavenegar, EMAIL_PROVIDER = console | smtp | resend.
+  SMS_PROVIDER = console | kavenegar | amootsms, EMAIL_PROVIDER = console | smtp | resend.
   The `console` providers just log, so development and CI need no credentials.
 """
 
@@ -271,6 +271,49 @@ class KavenegarSmsProvider:
         response.raise_for_status()
 
 
+def _amootsms_mobile(to: str) -> str:
+    """Normalize to Iranian mobile without leading 0 / 98 (e.g. 9120000000)."""
+    digits = "".join(ch for ch in to if ch.isdigit())
+    if digits.startswith("98") and len(digits) >= 12:
+        digits = digits[2:]
+    if digits.startswith("0"):
+        digits = digits[1:]
+    if len(digits) < 10:
+        raise RuntimeError(f"Invalid mobile for AmootSMS: {to}")
+    return digits
+
+
+class AmootSmsProvider:
+    """Sends SMS through the AmootSMS REST API (portal.amootsms.com)."""
+
+    def send(self, to: str, text: str) -> None:
+        import httpx
+
+        if not settings.AMOOTSMS_TOKEN:
+            raise RuntimeError("AMOOTSMS_TOKEN is not configured")
+        line = (settings.AMOOTSMS_LINE_NUMBER or settings.SMS_SENDER or "public").strip()
+        mobile = _amootsms_mobile(to)
+        response = httpx.post(
+            "https://portal.amootsms.com/rest/SendSimple",
+            headers={"Authorization": settings.AMOOTSMS_TOKEN},
+            data={
+                "SendDateTime": "0",
+                "SMSMessageText": text,
+                "LineNumber": line,
+                "Mobiles": mobile,
+            },
+            timeout=20,
+        )
+        response.raise_for_status()
+        try:
+            payload = response.json()
+        except ValueError as exc:
+            raise RuntimeError(f"AmootSMS returned non-JSON: {response.text[:200]}") from exc
+        status = str(payload.get("Status") or "")
+        if status.lower() not in {"success", "ok"}:
+            raise RuntimeError(f"AmootSMS send failed: {status or payload}")
+
+
 class ConsoleEmailProvider:
     """Logs the email instead of sending it. Default in development/CI."""
 
@@ -464,6 +507,8 @@ def _resend_status_code(exc: Any) -> int:
 def get_sms_provider() -> SmsProvider:
     if settings.SMS_PROVIDER == "kavenegar":
         return KavenegarSmsProvider()
+    if settings.SMS_PROVIDER == "amootsms":
+        return AmootSmsProvider()
     return ConsoleSmsProvider()
 
 

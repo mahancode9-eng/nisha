@@ -69,7 +69,7 @@ async def lifespan(app: FastAPI):
 
         logging.getLogger(__name__).warning(
             "SMS_PROVIDER=console in production — SMS will only be logged, not sent. "
-            "Set SMS_PROVIDER=kavenegar and KAVENEGAR_API_KEY to deliver SMS."
+            "Set SMS_PROVIDER=amootsms (AMOOTSMS_TOKEN) or kavenegar (KAVENEGAR_API_KEY)."
         )
 
     notification_stop = asyncio.Event()
