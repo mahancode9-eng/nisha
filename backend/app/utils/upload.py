@@ -269,6 +269,7 @@ async def save_uploaded_video(file: UploadFile, *, subdir: str) -> UploadedMedia
 class SavedPaymentProof:
     url: str
     content_hash: str
+    content: bytes
 
 
 async def save_payment_proof_image(file: UploadFile, order_id: int) -> SavedPaymentProof:
@@ -291,7 +292,7 @@ async def save_payment_proof_image(file: UploadFile, order_id: int) -> SavedPaym
         image_only=True,
         private=True,
     )
-    return SavedPaymentProof(url=media.url, content_hash=content_hash)
+    return SavedPaymentProof(url=media.url, content_hash=content_hash, content=content)
 
 
 async def save_subscription_proof_image(file: UploadFile) -> str:

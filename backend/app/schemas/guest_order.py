@@ -48,6 +48,12 @@ class PaymentProofResponse(BaseModel):
     image_url: str
     payer_card_last4: str | None = None
     transfer_tracking: str | None = None
+    ocr_status: str = "pending"
+    ocr_amount: Decimal | None = None
+    ocr_dest_card_last4: str | None = None
+    ocr_amount_matched: bool | None = None
+    ocr_dest_card_matched: bool | None = None
+    ocr_confidence: Decimal | None = None
     uploaded_at: datetime
 
     @field_validator("image_url", mode="after")

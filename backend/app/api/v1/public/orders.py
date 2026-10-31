@@ -53,7 +53,7 @@ def preview_invoice(
     "/{invoice_code}/upload-payment-proof",
     response_model=PaymentProofUploadResponse,
 )
-@limiter.limit("5/minute")
+@limiter.limit("3/minute")
 async def upload_payment_proof(
     request: Request,
     invoice_code: str,
