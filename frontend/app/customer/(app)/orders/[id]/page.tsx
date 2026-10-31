@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/Textarea";
 import { ApiError } from "@/lib/api/errors";
 import { formatDateTime } from "@/lib/format";
 import { resolveMediaUrl } from "@/lib/media";
+import { trustBadgeLabel } from "@/lib/store/badges";
 import { uploadPublicImage } from "@/lib/api/public/uploads";
 import * as conversationsApi from "@/lib/api/customer/conversations";
 import {
@@ -373,7 +374,7 @@ export default function CustomerOrderDetailPage({ params }: PageProps) {
                 <div className="flex flex-wrap gap-2 pt-2">
                   {order.store.trust_badges.map((badge) => (
                     <Badge key={badge} variant="info">
-                      {badge}
+                      {trustBadgeLabel(badge)}
                     </Badge>
                   ))}
                 </div>

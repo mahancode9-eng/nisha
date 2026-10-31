@@ -32,6 +32,10 @@ import {
   TableRow,
 } from "@/components/ui/Table";
 import { ApiError } from "@/lib/api/errors";
+import { ProductShareSheet } from "@/components/store/ProductShareSheet";
+import { getSiteUrl } from "@/lib/env";
+import { resolveMediaUrl } from "@/lib/media";
+import type { Product } from "@/types/seller/product";
 
 export default function SellerProductsPage() {
   const router = useRouter();
@@ -45,6 +49,7 @@ export default function SellerProductsPage() {
   const [deleting, setDeleting] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [shareProduct, setShareProduct] = useState<Product | null>(null);
 
   const fetchProducts = useCallback(
     () => productsApi.listProducts({ page, page_size: 20 }),
@@ -199,7 +204,15 @@ export default function SellerProductsPage() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <div className="flex gap-1">
+                        <div className="flex flex-wrap gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setShareProduct(product)}
+                            disabled={!store?.slug}
+                          >
+                            استوری
+                          </Button>
                           <Link
                             href={paths.seller.productEdit(product.id)}
                             className={buttonClassName({ variant: "ghost", size: "sm" })}
@@ -251,6 +264,29 @@ export default function SellerProductsPage() {
           router.push(paths.seller.productEdit(productId));
         }}
       />
+
+      {shareProduct && store?.slug ? (
+        <ProductShareSheet
+          open
+          onClose={() => setShareProduct(null)}
+          title={shareProduct.title}
+          price={shareProduct.price}
+          storeName={store.name}
+          storeSlug={store.slug}
+          productId={shareProduct.id}
+          imageUrl={
+            shareProduct.images[0]
+              ? resolveMediaUrl(
+                  shareProduct.images[0].thumbnail_url || shareProduct.images[0].image_url,
+                )
+              : null
+          }
+          shareUrl={`${getSiteUrl()}/store/${store.slug}/products/${shareProduct.id}`}
+          brandColor={store.primary_color}
+          allowPostTemplate={Boolean(entitlements.share_card_templates)}
+          removeWatermark={Boolean(entitlements.remove_nisha_watermark)}
+        />
+      ) : null}
     </div>
   );
 }

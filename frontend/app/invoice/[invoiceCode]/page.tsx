@@ -18,6 +18,7 @@ import { uploadGuestImage } from "@/lib/api/public/uploads";
 import * as ordersApi from "@/lib/api/public/orders";
 import { formatDateTime } from "@/lib/format";
 import { resolveMediaUrl } from "@/lib/media";
+import { trustBadgeLabel } from "@/lib/store/badges";
 import type { ConversationDetail } from "@/types/chat";
 import type { OrderTrackResponse } from "@/types/public/order";
 
@@ -281,7 +282,7 @@ export default function InvoicePage({ params }: PageProps) {
                 ) : (
                   order.store.trust_badges.map((badge) => (
                     <Badge key={badge} variant="info">
-                      {badge}
+                      {trustBadgeLabel(badge)}
                     </Badge>
                   ))
                 )}

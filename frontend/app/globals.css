@@ -769,3 +769,20 @@ a {
     page-break-inside: avoid;
   }
 }
+
+/* Storefront theme presets (Pro+) — scoped so they don't clash with light/dark html theme. */
+[data-store-theme="warm"] {
+  --store-primary: #c45c26;
+  --brand: #c45c26;
+  --brand-foreground: #fff7ed;
+}
+[data-store-theme="cool"] {
+  --store-primary: #0f766e;
+  --brand: #0f766e;
+  --brand-foreground: #ecfdf5;
+}
+[data-store-theme="contrast"] {
+  --store-primary: #111827;
+  --brand: #111827;
+  --brand-foreground: #f9fafb;
+}

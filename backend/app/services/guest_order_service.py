@@ -137,6 +137,7 @@ def preview_invoice(db: Session, invoice_code: str) -> OrderInvoicePreviewRespon
         status=order.status,
         store_name=store.name if store is not None else "",
         total_amount=order.total_amount,
+        store_logo_url=store.logo_url if store is not None else None,
     )
 
 

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getApiUrl, getSiteUrl } from "@/lib/env";
 import { formatMoney } from "@/lib/format";
+import { resolveMediaUrl } from "@/lib/media";
 
 type LayoutProps = {
   children: React.ReactNode;
@@ -13,6 +14,7 @@ type InvoicePreview = {
   store_name: string;
   total_amount: string | number;
   currency_label?: string;
+  store_logo_url?: string | null;
 };
 
 async function fetchInvoicePreview(invoiceCode: string): Promise<InvoicePreview | null> {
@@ -49,6 +51,7 @@ export async function generateMetadata({ params }: LayoutProps): Promise<Metadat
   ].filter(Boolean);
   const description = descriptionParts.join(" · ");
   const canonical = getSiteUrl() + "/invoice/" + encodeURIComponent(invoiceCode);
+  const image = preview?.store_logo_url ? resolveMediaUrl(preview.store_logo_url) : null;
 
   return {
     title,
@@ -61,11 +64,13 @@ export async function generateMetadata({ params }: LayoutProps): Promise<Metadat
       type: "website",
       locale: "fa_IR",
       siteName: storeName || "نیشا",
+      ...(image ? { images: [{ url: image, alt: storeName || "نیشا" }] } : {}),
     },
     twitter: {
-      card: "summary",
+      card: image ? "summary_large_image" : "summary",
       title,
       description,
+      ...(image ? { images: [image] } : {}),
     },
     robots: { index: false, follow: false },
   };

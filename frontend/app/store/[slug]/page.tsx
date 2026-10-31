@@ -4,6 +4,7 @@ import { StorePageClient } from "./StorePageClient";
 import { VisitPing } from "./VisitPing";
 import { sanitizeScriptContent } from "@/lib/sanitize";
 import { getApiUrl, getSiteUrl } from "@/lib/env";
+import { resolveMediaUrl } from "@/lib/media";
 
 const SITE_URL = getSiteUrl();
 const API_BASE = getApiUrl();
@@ -16,6 +17,7 @@ type StoreSeoProfile = {
   name?: string;
   description?: string | null;
   logo_url?: string | null;
+  cover_image_url?: string | null;
 };
 
 type StoreSeoData = {
@@ -47,6 +49,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const description =
     store?.description ?? "خرید آنلاین از فروشگاه " + name + " در نیشا";
   const canonical = SITE_URL + "/store/" + slug;
+  const imageRaw = store?.cover_image_url || store?.logo_url || null;
+  const image = imageRaw ? resolveMediaUrl(imageRaw) : null;
   return {
     title: name,
     description,
@@ -56,12 +60,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description,
       url: canonical,
       type: "website",
-      ...(store?.logo_url ? { images: [store.logo_url] } : {}),
+      locale: "fa_IR",
+      siteName: "نیشا",
+      ...(image
+        ? {
+            images: [{ url: image, alt: name }],
+          }
+        : {}),
     },
     twitter: {
-      card: "summary",
+      card: image ? "summary_large_image" : "summary",
       title: name,
       description,
+      ...(image ? { images: [image] } : {}),
     },
   };
 }
@@ -72,19 +83,24 @@ export default async function StorePage({ params }: PageProps) {
   if (store === STORE_MISSING) notFound();
   let jsonLdProps: { __html: string } | null = null;
   if (store?.name) {
+    const imageRaw = store.cover_image_url || store.logo_url || null;
+    const image = imageRaw ? resolveMediaUrl(imageRaw) : null;
     const jsonLd = JSON.stringify({
       "@context": "https://schema.org",
       "@type": "OnlineStore",
       name: store.name,
       url: SITE_URL + "/store/" + slug,
       ...(store.description ? { description: store.description } : {}),
-      ...(store.logo_url ? { image: store.logo_url } : {}),
+      ...(image ? { image } : {}),
     });
     jsonLdProps = { __html: sanitizeScriptContent(jsonLd) };
   }
+
   return (
     <>
-      {jsonLdProps && <script type="application/ld+json" dangerouslySetInnerHTML={jsonLdProps} />}
+      {jsonLdProps ? (
+        <script type="application/ld+json" dangerouslySetInnerHTML={jsonLdProps} />
+      ) : null}
       <VisitPing slug={slug} />
       <StorePageClient slug={slug} />
     </>
