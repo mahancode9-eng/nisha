@@ -324,6 +324,8 @@ def create_manual_order(
         invoice_password_hash=hash_password(plain_password),
         buyer_name=data.buyer_name.strip(),
         buyer_phone=data.buyer_phone.strip(),
+        buyer_email=(data.buyer_email or "").strip().lower() or None,
+        notify_sms=bool(data.notify_sms),
         buyer_address=data.buyer_address.strip(),
         buyer_note=data.buyer_note,
         payment_method_id=method.id,

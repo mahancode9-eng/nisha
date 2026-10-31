@@ -50,6 +50,8 @@ class SellerOrderDetailResponse(BaseModel):
     status: OrderStatus
     buyer_name: str
     buyer_phone: str
+    buyer_email: str | None = None
+    notify_sms: bool = True
     buyer_address: str
     buyer_note: str | None
     subtotal_amount: Decimal
@@ -104,6 +106,8 @@ class ManualOrderItemInput(BaseModel):
 class ManualOrderCreate(BaseModel):
     buyer_name: str = Field(min_length=1, max_length=255)
     buyer_phone: str = Field(min_length=1, max_length=50)
+    buyer_email: str | None = Field(default=None, max_length=255)
+    notify_sms: bool = True
     buyer_address: str = Field(min_length=1)
     buyer_note: str | None = Field(default=None, max_length=1000)
     payment_method_id: int

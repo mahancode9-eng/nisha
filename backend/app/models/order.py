@@ -56,6 +56,10 @@ class Order(TimestampMixin, Base):
     invoice_password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     buyer_name: Mapped[str] = mapped_column(String(255), nullable=False)
     buyer_phone: Mapped[str] = mapped_column(String(50), nullable=False)
+    buyer_email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    notify_sms: Mapped[bool] = mapped_column(
+        Boolean, default=True, server_default="true", nullable=False
+    )
     buyer_address: Mapped[str] = mapped_column(Text, nullable=False)
     buyer_note: Mapped[Optional[str]] = mapped_column(String(1000), nullable=True)
     payment_method_id: Mapped[int] = mapped_column(

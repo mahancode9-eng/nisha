@@ -2,7 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 
 from app.models.enums import OrderStatus, PaymentMethodType, ReviewStatus
 from app.schemas.product import ProductFormFieldResponse, ProductImageResponse
@@ -260,6 +260,8 @@ class OrderItemFieldValueInput(BaseModel):
 class GuestOrderCreate(BaseModel):
     buyer_name: str = Field(min_length=1, max_length=255)
     buyer_phone: str = Field(min_length=1, max_length=50)
+    buyer_email: EmailStr | None = None
+    notify_sms: bool = True
     buyer_address: str = Field(min_length=1)
     buyer_note: str | None = Field(default=None, max_length=1000)
     payment_method_id: int
@@ -268,6 +270,15 @@ class GuestOrderCreate(BaseModel):
     items: list[OrderItemInput] = Field(min_length=1)
     # Honeypot for bots — must remain empty.
     company_website: str | None = Field(default=None, max_length=200)
+
+    @field_validator("buyer_email", mode="before")
+    @classmethod
+    def empty_email_to_none(cls, value: Any) -> Any:
+        if value is None:
+            return None
+        if isinstance(value, str) and not value.strip():
+            return None
+        return value
 
     @model_validator(mode="after")
     def merge_duplicate_products(self) -> "GuestOrderCreate":

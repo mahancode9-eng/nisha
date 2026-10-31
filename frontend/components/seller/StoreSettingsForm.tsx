@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/SocialIcon";
 import { socialInputHint, socialInputPlaceholder } from "@/lib/seller/contactChannels";
 import * as messengerApi from "@/lib/api/seller/messenger";
-import { formatMoneyInput, moneyInputToNumber, parseMoneyInput } from "@/lib/moneyInput";
+import { formatMoneyInput, moneyInputToNumber, normalizeDigits, parseMoneyInput } from "@/lib/moneyInput";
 import { cn } from "@/lib/cn";
 import { useToast } from "@/contexts/ToastContext";
 import type { Store, StoreUpdate } from "@/types/seller/store";
@@ -127,6 +127,9 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
   const [paymentReminderMinutes, setPaymentReminderMinutes] = useState(
     store.payment_reminder_minutes != null ? String(store.payment_reminder_minutes) : "",
   );
+  const [notifySmsPhone, setNotifySmsPhone] = useState(store.notify_sms_phone ?? "");
+  const [notifyByEmail, setNotifyByEmail] = useState(store.notify_by_email !== false);
+  const [notifyBySms, setNotifyBySms] = useState(Boolean(store.notify_by_sms));
   const [logoPreview, setLogoPreview] = useState<string | null>(store.logo_url ? resolveMediaUrl(store.logo_url) : null);
   const [coverPreview, setCoverPreview] = useState<string | null>(
     store.cover_image_url ? resolveMediaUrl(store.cover_image_url) : null,
@@ -222,6 +225,9 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
     setPaymentReminderMinutes(
       store.payment_reminder_minutes != null ? String(store.payment_reminder_minutes) : "",
     );
+    setNotifySmsPhone(store.notify_sms_phone ?? "");
+    setNotifyByEmail(store.notify_by_email !== false);
+    setNotifyBySms(Boolean(store.notify_by_sms));
     setLogoPreview(store.logo_url ? resolveMediaUrl(store.logo_url) : null);
     setCoverPreview(store.cover_image_url ? resolveMediaUrl(store.cover_image_url) : null);
   }, [store, canGuestCheckout]);
@@ -356,6 +362,9 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
                 : null,
             }
           : {}),
+        notify_sms_phone: notifySmsPhone.trim() || null,
+        notify_by_email: notifyByEmail,
+        notify_by_sms: notifyBySms,
       });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "تنظیمات ذخیره نشد. دوباره امتحان کن.");
@@ -481,6 +490,46 @@ export function StoreSettingsForm({ store, onSubmit }: StoreSettingsFormProps) {
               <Input label="بله" value={bale} onChange={(e) => setBale(e.target.value)} />
               <Input label="وب‌سایت" type="url" value={website} onChange={(e) => setWebsite(e.target.value)} />
               <Input label="راه ارتباطی پشتیبانی" value={supportContact} onChange={(e) => setSupportContact(e.target.value)} />
+            </div>
+          </FormSection>
+
+          <FormSection
+            title="خبر سفارش (ایمیل و پیامک)"
+            description="ایمیل از حساب فروشنده‌ت می‌ره. پیامک اختیاریه و از سهمیه پیامک فروشگاه کم می‌شه."
+          >
+            <div className="space-y-3">
+              <label className="flex items-start gap-3 rounded-xl border border-border p-3 text-sm">
+                <input
+                  type="checkbox"
+                  className="mt-1 rounded border-border"
+                  checked={notifyByEmail}
+                  onChange={(e) => setNotifyByEmail(e.target.checked)}
+                />
+                <span>
+                  <span className="block font-medium text-foreground">ایمیل</span>
+                  <span className="block text-xs text-foreground-muted">خبر سفارش و رسید به ایمیل حسابت</span>
+                </span>
+              </label>
+              <label className="flex items-start gap-3 rounded-xl border border-border p-3 text-sm">
+                <input
+                  type="checkbox"
+                  className="mt-1 rounded border-border"
+                  checked={notifyBySms}
+                  onChange={(e) => setNotifyBySms(e.target.checked)}
+                />
+                <span>
+                  <span className="block font-medium text-foreground">پیامک</span>
+                  <span className="block text-xs text-foreground-muted">خبر سفارش به شماره زیر</span>
+                </span>
+              </label>
+              <Input
+                label="شماره پیامک خبر (اختیاری)"
+                value={notifySmsPhone}
+                onChange={(e) => setNotifySmsPhone(normalizeDigits(e.target.value))}
+                placeholder="09123456789"
+                dir="ltr"
+                hint="فقط وقتی پیامک روشن باشه استفاده می‌شه"
+              />
             </div>
           </FormSection>
 

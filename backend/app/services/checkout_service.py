@@ -367,6 +367,9 @@ def create_guest_order(
         reservation_expires_at = datetime.now(timezone.utc) + timedelta(
             minutes=settings.ORDER_RESERVATION_MINUTES
         )
+        buyer_email_raw = getattr(data, "buyer_email", None)
+        buyer_email = str(buyer_email_raw).strip().lower() if buyer_email_raw else None
+        notify_sms = bool(getattr(data, "notify_sms", True))
         order = Order(
             store_id=store.id,
             customer_id=customer_id,
@@ -374,6 +377,8 @@ def create_guest_order(
             invoice_password_hash=hash_password(plain_password),
             buyer_name=data.buyer_name.strip(),
             buyer_phone=phone,
+            buyer_email=buyer_email,
+            notify_sms=notify_sms,
             buyer_address=data.buyer_address.strip(),
             buyer_note=data.buyer_note,
             payment_method_id=payment_method.id,
