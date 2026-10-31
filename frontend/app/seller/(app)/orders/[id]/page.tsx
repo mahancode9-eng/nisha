@@ -47,6 +47,7 @@ export default function SellerOrderDetailPage({ params }: PageProps) {
   const [downloadLoading, setDownloadLoading] = useState(false);
   const [trackingCode, setTrackingCode] = useState("");
   const [trackingLoading, setTrackingLoading] = useState(false);
+  const [recoveryLoading, setRecoveryLoading] = useState(false);
 
   const { data, error, isLoading, refetch } = useSellerFetch(
     () => ordersApi.getOrder(orderId),
@@ -121,6 +122,20 @@ export default function SellerOrderDetailPage({ params }: PageProps) {
     }
   }
 
+  async function handleSendInvoiceLink() {
+    setRecoveryLoading(true);
+    try {
+      await ordersApi.sendInvoiceLink(orderId);
+      toast.success("لینک فاکتور برای خریدار فرستاده شد");
+    } catch (err) {
+      toast.error(
+        err instanceof ApiError ? err.message : "لینک فرستاده نشد. دوباره امتحان کن.",
+      );
+    } finally {
+      setRecoveryLoading(false);
+    }
+  }
+
   if (isLoading) return <LoadingState message="داره سفارش رو بارگذاری می‌کنه…" />;
   if (error || !data) {
     return (
@@ -148,6 +163,10 @@ export default function SellerOrderDetailPage({ params }: PageProps) {
         ? "به مشتری خبر می‌دیم که دوباره پرداخت کنه و موجودی کالا برمی‌گرده."
         : "سفارش لغو می‌شه و موجودی کالاها به انبار برمی‌گرده.";
   const canEditTracking = TRACKING_STATUSES.includes(data.status);
+  const canSendInvoiceLink =
+    data.status === "PENDING_PAYMENT" ||
+    data.status === "PAYMENT_UPLOADED" ||
+    data.status === "PAYMENT_REJECTED";
 
   return (
     <div className="page-stack">
@@ -162,6 +181,16 @@ export default function SellerOrderDetailPage({ params }: PageProps) {
           <Button variant="secondary" size="sm" loading={downloadLoading} onClick={() => void handleDownload()}>
             دانلود فاکتور
           </Button>
+          {canSendInvoiceLink ? (
+            <Button
+              variant="secondary"
+              size="sm"
+              loading={recoveryLoading}
+              onClick={() => void handleSendInvoiceLink()}
+            >
+              ارسال لینک فاکتور
+            </Button>
+          ) : null}
         </div>
         <p className="mt-1 text-sm text-neutral-500">ثبت شده در {formatDateTime(data.created_at)}</p>
       </div>

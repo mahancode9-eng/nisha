@@ -25,6 +25,7 @@ from app.models.order import Order
 from app.models.store import Store
 from app.services import messenger_service, notification_service, sms_quota_service
 from app.services.entitlement_service import get_seller_entitlements
+from app.services.exceptions import ServiceError
 
 logger = logging.getLogger(__name__)
 
@@ -91,13 +92,24 @@ BUYER_NOTIFY_STATUSES = {
 }
 
 
-def notify_order_placed(db: Session, order: Order, store: Store) -> None:
-    """Enqueue buyer SMS + seller email when a new order is created."""
+def notify_order_placed(
+    db: Session,
+    order: Order,
+    store: Store,
+    *,
+    invoice_password: str | None = None,
+) -> None:
+    """Enqueue buyer SMS + seller email when a new order is created.
+
+    Pass [invoice_password] once at create time so the buyer can unlock the invoice
+    from SMS without storing the plaintext password.
+    """
     try:
         payload = {
             "invoice_code": order.invoice_code,
             "store_name": store.name,
             "invoice_url": _invoice_url(order.invoice_code),
+            "invoice_password": (invoice_password or "").strip() or "—",
         }
         if order.buyer_phone:
             _enqueue_buyer_sms(
@@ -115,6 +127,34 @@ def notify_order_placed(db: Session, order: Order, store: Store) -> None:
         logger.exception(
             "Failed to enqueue order-placed notifications for order %s", order.id
         )
+
+
+def send_invoice_recovery_sms(db: Session, store: Store, order: Order) -> None:
+    """Seller-triggered recovery: resend invoice link while order is still unpaid/open."""
+    if order.status not in {
+        OrderStatus.PENDING_PAYMENT,
+        OrderStatus.PAYMENT_UPLOADED,
+        OrderStatus.PAYMENT_REJECTED,
+    }:
+        raise ServiceError(
+            "فقط برای سفارش‌های باز می‌شه لینک فاکتور دوباره فرستاد.",
+            status_code=422,
+        )
+    if not order.buyer_phone:
+        raise ServiceError("شماره موبایل خریدار ثبت نشده.", status_code=422)
+    payload = {
+        "invoice_code": order.invoice_code,
+        "store_name": store.name,
+        "invoice_url": _invoice_url(order.invoice_code),
+    }
+    if not _enqueue_buyer_sms(
+        db, store, order.buyer_phone, "invoice_recovery_buyer", payload
+    ):
+        raise ServiceError(
+            "سهمیه پیامک این ماه تموم شده یا پیامک فعال نیست.",
+            status_code=422,
+        )
+    db.commit()
 
 
 def send_due_payment_reminders(db: Session, *, limit: int = 50) -> int:

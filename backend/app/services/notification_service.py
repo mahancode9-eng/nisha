@@ -94,24 +94,39 @@ TEMPLATES: dict[str, NotificationTemplate] = {
     ),
     "order_placed_buyer": NotificationTemplate(
         sms_text=(
-            "نیشا: سفارش {invoice_code} ثبت شد. برای پرداخت و آپلود رسید: {invoice_url}"
+            "نیشا: سفارش {invoice_code} ثبت شد. رمز فاکتور: {invoice_password}. "
+            "پرداخت و آپلود رسید: {invoice_url}"
         ),
         email_subject="ثبت سفارش {invoice_code}",
         email_body=(
             "سفارشت با کد {invoice_code} تو فروشگاه {store_name} ثبت شد.\n"
+            "رمز فاکتور: {invoice_password}\n"
             "برای پرداخت و آپلود رسید برو اینجا:\n{invoice_url}"
         ),
         html_style="simple",
     ),
     "payment_reminder_buyer": NotificationTemplate(
         sms_text=(
-            "نیشا: سفارش {invoice_code} هنوز پرداخت نشده. تا {minutes_left} دقیقه فرصت داری: {invoice_url}"
+            "نیشا: سفارش {invoice_code} هنوز بازه. تا {minutes_left} دقیقه فرصت داری. "
+            "با همون رمز فاکتور وارد شو: {invoice_url}"
         ),
         email_subject="یادآوری پرداخت سفارش {invoice_code}",
         email_body=(
             "سفارش {invoice_code} تو فروشگاه {store_name} هنوز پرداخت نشده.\n"
             "حدود {minutes_left} دقیقه تا پایان مهلت مونده.\n"
-            "لینک فاکتور: {invoice_url}"
+            "با رمز فاکتوری که برات فرستادیم وارد شو:\n{invoice_url}"
+        ),
+        html_style="simple",
+    ),
+    "invoice_recovery_buyer": NotificationTemplate(
+        sms_text=(
+            "نیشا: لینک فاکتور سفارش {invoice_code} از {store_name}: {invoice_url} "
+            "(رمز فاکتور همون پیام ثبت سفارشه)"
+        ),
+        email_subject="لینک فاکتور سفارش {invoice_code}",
+        email_body=(
+            "لینک فاکتور سفارش {invoice_code} تو فروشگاه {store_name}:\n{invoice_url}\n"
+            "رمز فاکتور همونیه که موقع ثبت سفارش برات فرستادیم."
         ),
         html_style="simple",
     ),

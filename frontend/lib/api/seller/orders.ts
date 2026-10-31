@@ -44,6 +44,10 @@ export function rejectPayment(id: number): Promise<SellerOrderActionResponse> {
   return apiPost<SellerOrderActionResponse>(`/api/v1/seller/orders/${id}/reject-payment`);
 }
 
+export function sendInvoiceLink(id: number): Promise<SellerOrderActionResponse> {
+  return apiPost<SellerOrderActionResponse>(`/api/v1/seller/orders/${id}/send-invoice-link`);
+}
+
 export function patchOrderStatus(
   id: number,
   body: { status: OrderStatusPatch; note?: string | null; tracking_code?: string | null },

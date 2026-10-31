@@ -412,7 +412,9 @@ def create_guest_order(
 
         # Roadmap task 12: enqueue buyer/seller notifications in the same
         # transaction (transactional outbox). Never raises.
-        order_notification_service.notify_order_placed(db, order, store)
+        order_notification_service.notify_order_placed(
+            db, order, store, invoice_password=plain_password
+        )
 
         db.commit()
     except IntegrityError as exc:

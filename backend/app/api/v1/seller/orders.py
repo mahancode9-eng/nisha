@@ -166,6 +166,25 @@ def download_invoice(
     )
 
 
+@router.post("/{order_id}/send-invoice-link", response_model=SellerOrderActionResponse)
+def send_invoice_link(
+    order_id: int,
+    store: Store = Depends(get_seller_store),
+    _seller: User = Depends(require_seller),
+    db: Session = Depends(get_db),
+) -> SellerOrderActionResponse:
+    try:
+        order = seller_order_service.send_buyer_invoice_recovery(db, store, order_id)
+    except ServiceError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.message) from exc
+    return SellerOrderActionResponse(
+        message="لینک فاکتور برای خریدار فرستاده شد",
+        order_id=order.id,
+        status=order.status,
+        tracking_code=order.tracking_code,
+    )
+
+
 @router.post("/{order_id}/confirm-payment", response_model=SellerOrderActionResponse)
 def confirm_payment(
     order_id: int,
